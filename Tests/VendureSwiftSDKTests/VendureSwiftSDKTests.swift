@@ -58,6 +58,19 @@ final class VendureSwiftSDKTests: XCTestCase {
         XCTAssertEqual(addressInput.countryCode, "US")
     }
     
+    func testLanguageCodeEnum() throws {
+        XCTAssertEqual(LanguageCode.en.rawValue, "en")
+        XCTAssertEqual(LanguageCode.es.rawValue, "es")
+        XCTAssertEqual(LanguageCode.fr.rawValue, "fr")
+        XCTAssertEqual(LanguageCode.de.rawValue, "de")
+    }
+    
+    func testCurrencyCodeEnum() throws {
+        XCTAssertEqual(CurrencyCode.USD.rawValue, "USD")
+        XCTAssertEqual(CurrencyCode.EUR.rawValue, "EUR")
+        XCTAssertEqual(CurrencyCode.GBP.rawValue, "GBP")
+    }
+    
     func testPackageLoads() throws {
         // Simple compile-time test
         XCTAssertTrue(true)

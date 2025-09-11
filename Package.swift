@@ -43,9 +43,9 @@ let package = Package(
                 "VendureSwiftSDK"
             ],
             path: "Tests",
-            plugins: [
-                .plugin(name: "skipstone", package: "skip")
-            ]
+            // plugins: [
+            //     .plugin(name: "skipstone", package: "skip")
+            // ]
         ),
     ]
 )

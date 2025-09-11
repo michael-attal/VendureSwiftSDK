@@ -4,14 +4,15 @@ A Swift SDK for interacting with the Vendure e-commerce framework's GraphQL API.
 
 ## Features
 
-- ✅ **Vapor Compatible**: Works perfectly with Vapor server-side Swift projects
-- ✅ **iOS Compatible**: Fully compatible with standard iOS applications
-- ✅ **Modern Async/Await**: Built with Swift's modern async/await patterns
+- ✅ **Multi-Platform**: Works on iOS, macOS, watchOS, tvOS, visionOS, and Android (via SKIP.tools)
+- ✅ **Vapor Compatible**: Perfect integration with Vapor server-side Swift projects
+- ✅ **Modern Async/Await**: Built with Swift's modern async/await and actor patterns
 - ✅ **Type-Safe**: Comprehensive type definitions for all Vendure API responses
-- ✅ **Authentication Support**: Multiple authentication strategies including native, Firebase, and custom
+- ✅ **Authentication Support**: Multiple authentication strategies (native, Firebase, custom)
 - ✅ **Complete API Coverage**: Support for all major Vendure operations
 - ✅ **Error Handling**: Comprehensive error handling with descriptive error types
 - ✅ **Extensible**: Support for custom GraphQL operations
+- ✅ **SKIP.tools Compatible**: Cross-platform support for Android development
 
 ## Installation
 
@@ -317,6 +318,82 @@ func routes(_ app: Application) throws {
 }
 ```
 
+## SwiftUI Integration
+
+VendureSwiftSDK works seamlessly with SwiftUI applications. Here's a complete example of customer authentication:
+
+```swift
+import SwiftUI
+import VendureSwiftSDK
+
+struct CustomerLoginView: View {
+    @State private var email = ""
+    @State private var password = ""
+    @State private var isLoading = false
+    @State private var loginResult: String = ""
+    @State private var currentCustomer: Customer?
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Customer Login")
+                .font(.title)
+            
+            TextField("Email", text: $email)
+                .keyboardType(.emailAddress)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            SecureField("Password", text: $password)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            Button("Login") {
+                Task {
+                    await performLogin()
+                }
+            }
+            .disabled(isLoading || email.isEmpty || password.isEmpty)
+            
+            if let customer = currentCustomer {
+                Text("Welcome, \(customer.firstName) \(customer.lastName)!")
+                    .foregroundColor(.green)
+            }
+            
+            if !loginResult.isEmpty {
+                Text(loginResult)
+                    .foregroundColor(loginResult.contains("Success") ? .green : .red)
+            }
+        }
+        .padding()
+    }
+    
+    private func performLogin() async {
+        isLoading = true
+        
+        do {
+            // Initialize with native authentication
+            let vendure = try await VendureSwiftSDK.initializeWithNativeAuth(
+                endpoint: "https://your-vendure-api.com/shop-api",
+                username: email,
+                password: password
+            )
+            
+            // Get customer information
+            let customer = try await vendure.customer.getActiveCustomer()
+            await MainActor.run {
+                self.currentCustomer = customer
+                self.loginResult = "Login successful!"
+            }
+            
+        } catch {
+            await MainActor.run {
+                self.loginResult = "Login failed: \(error.localizedDescription)"
+            }
+        }
+        
+        isLoading = false
+    }
+}
+```
+
 ## Error Handling
 
 The SDK provides comprehensive error handling:
@@ -361,15 +438,18 @@ All operations are thread-safe thanks to Swift's actor-based concurrency model. 
 ## Platform Support
 
 - **iOS**: 13.0+
-- **macOS**: 10.15+
+- **macOS**: 13.0+
 - **watchOS**: 6.0+
 - **tvOS**: 13.0+
+- **visionOS**: 1.0+
+- **Android**: Via SKIP.tools transpilation
 - **Swift**: 5.9+
 
 ## Requirements
 
 - Swift 5.9 or later
-- iOS 13.0+ / macOS 10.15+ / watchOS 6.0+ / tvOS 13.0+
+- iOS 13.0+ / macOS 13.0+ / watchOS 6.0+ / tvOS 13.0+ / visionOS 1.0+
+- For Android: SKIP.tools framework
 
 ## Contributing
 
