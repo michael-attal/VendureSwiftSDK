@@ -167,19 +167,6 @@ public struct RegisterCustomerInput: Codable {
     }
 }
 
-// MARK: - Payment Input
-public struct PaymentInput: Codable {
-    public let method: String
-    public let metadata: [String: AnyCodable]?
-    
-    public init(
-        method: String,
-        metadata: [String: AnyCodable]? = nil
-    ) {
-        self.method = method
-        self.metadata = metadata
-    }
-}
 
 // MARK: - Order Input
 public struct UpdateOrderInput: Codable {

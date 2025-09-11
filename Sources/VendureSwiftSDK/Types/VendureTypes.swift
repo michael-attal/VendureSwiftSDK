@@ -221,14 +221,14 @@ public enum AssetType: String, Codable, CaseIterable {
     case IMAGE, VIDEO, AUDIO, OTHER
 }
 
-/// Represents a tag
-public struct Tag: Codable, Hashable, Identifiable {
-    public let id: String
-    public let value: String
+/// Represents a list of assets with pagination info
+public struct AssetList: Codable, Hashable {
+    public let items: [Asset]
+    public let totalItems: Int
     
-    public init(id: String, value: String) {
-        self.id = id
-        self.value = value
+    public init(items: [Asset], totalItems: Int) {
+        self.items = items
+        self.totalItems = totalItems
     }
 }
 
@@ -756,5 +756,21 @@ public struct DateOperators: Codable {
         self.before = before
         self.after = after
         self.between = between
+    }
+}
+
+// MARK: - Tag Types
+
+public struct Tag: Codable, Hashable {
+    public let id: String
+    public let createdAt: Date
+    public let updatedAt: Date
+    public let value: String
+    
+    public init(id: String, createdAt: Date, updatedAt: Date, value: String) {
+        self.id = id
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.value = value
     }
 }
