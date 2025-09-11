@@ -1,0 +1,577 @@
+import Foundation
+
+// MARK: - Order Types
+
+/// Represents an order
+public struct Order: Codable, Hashable, Identifiable {
+    /// An order is active as long as the payment process has not been completed
+    public let active: Bool
+    public let billingAddress: OrderAddress?
+    /// A unique code for the Order
+    public let code: String
+    /// An array of all coupon codes applied to the Order
+    public let couponCodes: [String]
+    public let createdAt: Date
+    public let currencyCode: CurrencyCode
+    public let customFields: [String: AnyCodable]?
+    public let customer: Customer?
+    public let discounts: [Discount]
+    public let fulfillments: [Fulfillment]?
+    public let history: HistoryEntryList
+    public let id: String
+    public let lines: [OrderLine]
+    /// The date & time that the Order was placed, i.e. the Customer completed the checkout and the Order is no longer "active"
+    public let orderPlacedAt: Date?
+    public let payments: [Payment]?
+    /// Promotions applied to the order. Only gets populated after the payment process has completed.
+    public let promotions: [Promotion]
+    public let shipping: Double
+    public let shippingAddress: OrderAddress?
+    public let shippingLines: [ShippingLine]
+    public let shippingWithTax: Double
+    public let state: String
+    /// The subTotal is the total of all OrderLines in the Order. This figure also includes any Order-level
+    /// discounts which have been prorated (proportionally distributed) amongst the items of each OrderLine.
+    /// To get a total of all OrderLines which does not account for prorated discounts, use the
+    /// sum of `OrderLine.discountedLinePrice` values.
+    public let subTotal: Double
+    /// Same as subTotal, but inclusive of tax
+    public let subTotalWithTax: Double
+    /// Surcharges are arbitrary modifications to the Order total which are neither
+    /// ProductVariants nor discounts resulting from applied Promotions. For example,
+    /// one-off discounts based on customer interaction, or surcharges based on payment methods.
+    public let surcharges: [Surcharge]
+    /// A summary of the taxes being applied to this Order
+    public let taxSummary: [OrderTaxSummary]
+    /// Equal to subTotal plus shipping
+    public let total: Double
+    public let totalQuantity: Int
+    /// The final payable amount. Equal to subTotalWithTax plus shippingWithTax
+    public let totalWithTax: Double
+    public let type: OrderType
+    public let updatedAt: Date
+    
+    public init(active: Bool, billingAddress: OrderAddress? = nil, code: String, couponCodes: [String] = [],
+                createdAt: Date, currencyCode: CurrencyCode, customFields: [String: AnyCodable]? = nil,
+                customer: Customer? = nil, discounts: [Discount] = [], fulfillments: [Fulfillment]? = nil,
+                history: HistoryEntryList, id: String, lines: [OrderLine] = [], orderPlacedAt: Date? = nil,
+                payments: [Payment]? = nil, promotions: [Promotion] = [], shipping: Double,
+                shippingAddress: OrderAddress? = nil, shippingLines: [ShippingLine] = [], shippingWithTax: Double,
+                state: String, subTotal: Double, subTotalWithTax: Double, surcharges: [Surcharge] = [],
+                taxSummary: [OrderTaxSummary] = [], total: Double, totalQuantity: Int, totalWithTax: Double,
+                type: OrderType, updatedAt: Date) {
+        self.active = active
+        self.billingAddress = billingAddress
+        self.code = code
+        self.couponCodes = couponCodes
+        self.createdAt = createdAt
+        self.currencyCode = currencyCode
+        self.customFields = customFields
+        self.customer = customer
+        self.discounts = discounts
+        self.fulfillments = fulfillments
+        self.history = history
+        self.id = id
+        self.lines = lines
+        self.orderPlacedAt = orderPlacedAt
+        self.payments = payments
+        self.promotions = promotions
+        self.shipping = shipping
+        self.shippingAddress = shippingAddress
+        self.shippingLines = shippingLines
+        self.shippingWithTax = shippingWithTax
+        self.state = state
+        self.subTotal = subTotal
+        self.subTotalWithTax = subTotalWithTax
+        self.surcharges = surcharges
+        self.taxSummary = taxSummary
+        self.total = total
+        self.totalQuantity = totalQuantity
+        self.totalWithTax = totalWithTax
+        self.type = type
+        self.updatedAt = updatedAt
+    }
+}
+
+/// Represents an order address
+public struct OrderAddress: Codable, Hashable {
+    public let fullName: String?
+    public let company: String?
+    public let streetLine1: String
+    public let streetLine2: String?
+    public let city: String?
+    public let province: String?
+    public let postalCode: String?
+    public let country: String?
+    public let countryCode: String?
+    public let phoneNumber: String?
+    
+    public init(fullName: String? = nil, company: String? = nil, streetLine1: String,
+                streetLine2: String? = nil, city: String? = nil, province: String? = nil,
+                postalCode: String? = nil, country: String? = nil, countryCode: String? = nil,
+                phoneNumber: String? = nil) {
+        self.fullName = fullName
+        self.company = company
+        self.streetLine1 = streetLine1
+        self.streetLine2 = streetLine2
+        self.city = city
+        self.province = province
+        self.postalCode = postalCode
+        self.country = country
+        self.countryCode = countryCode
+        self.phoneNumber = phoneNumber
+    }
+}
+
+/// Represents an order line
+public struct OrderLine: Codable, Hashable, Identifiable {
+    public let id: String
+    public let productVariant: ProductVariant
+    public let featuredAsset: Asset?
+    public let unitPrice: Double
+    public let unitPriceWithTax: Double
+    public let quantity: Int
+    public let linePrice: Double
+    public let linePriceWithTax: Double
+    public let discountedLinePrice: Double
+    public let discountedLinePriceWithTax: Double
+    public let discounts: [Discount]
+    public let taxLines: [TaxLine]
+    public let customFields: [String: AnyCodable]?
+    public let createdAt: Date
+    public let updatedAt: Date
+    
+    public init(id: String, productVariant: ProductVariant, featuredAsset: Asset? = nil,
+                unitPrice: Double, unitPriceWithTax: Double, quantity: Int, linePrice: Double,
+                linePriceWithTax: Double, discountedLinePrice: Double, discountedLinePriceWithTax: Double,
+                discounts: [Discount] = [], taxLines: [TaxLine] = [], customFields: [String: AnyCodable]? = nil,
+                createdAt: Date, updatedAt: Date) {
+        self.id = id
+        self.productVariant = productVariant
+        self.featuredAsset = featuredAsset
+        self.unitPrice = unitPrice
+        self.unitPriceWithTax = unitPriceWithTax
+        self.quantity = quantity
+        self.linePrice = linePrice
+        self.linePriceWithTax = linePriceWithTax
+        self.discountedLinePrice = discountedLinePrice
+        self.discountedLinePriceWithTax = discountedLinePriceWithTax
+        self.discounts = discounts
+        self.taxLines = taxLines
+        self.customFields = customFields
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+/// Represents a discount
+public struct Discount: Codable, Hashable, Identifiable {
+    public let adjustmentSource: String
+    public let type: AdjustmentType
+    public let description: String
+    public let amount: Double
+    public let amountWithTax: Double
+    
+    public var id: String { adjustmentSource }
+    
+    public init(adjustmentSource: String, type: AdjustmentType, description: String,
+                amount: Double, amountWithTax: Double) {
+        self.adjustmentSource = adjustmentSource
+        self.type = type
+        self.description = description
+        self.amount = amount
+        self.amountWithTax = amountWithTax
+    }
+}
+
+/// Adjustment types
+public enum AdjustmentType: String, Codable, CaseIterable {
+    case PROMOTION, DISTRIBUTED_ORDER_PROMOTION, OTHER
+}
+
+/// Represents a tax line
+public struct TaxLine: Codable, Hashable {
+    public let description: String
+    public let taxRate: Double
+    
+    public init(description: String, taxRate: Double) {
+        self.description = description
+        self.taxRate = taxRate
+    }
+}
+
+/// Represents an order tax summary
+public struct OrderTaxSummary: Codable, Hashable {
+    public let description: String
+    public let taxRate: Double
+    public let taxBase: Double
+    public let taxTotal: Double
+    
+    public init(description: String, taxRate: Double, taxBase: Double, taxTotal: Double) {
+        self.description = description
+        self.taxRate = taxRate
+        self.taxBase = taxBase
+        self.taxTotal = taxTotal
+    }
+}
+
+/// Represents a surcharge
+public struct Surcharge: Codable, Hashable, Identifiable {
+    public let id: String
+    public let description: String
+    public let sku: String?
+    public let price: Double
+    public let priceWithTax: Double
+    public let taxRate: Double
+    
+    public init(id: String, description: String, sku: String? = nil,
+                price: Double, priceWithTax: Double, taxRate: Double) {
+        self.id = id
+        self.description = description
+        self.sku = sku
+        self.price = price
+        self.priceWithTax = priceWithTax
+        self.taxRate = taxRate
+    }
+}
+
+/// Represents a shipping line
+public struct ShippingLine: Codable, Hashable, Identifiable {
+    public let id: String
+    public let shippingMethod: ShippingMethod
+    public let price: Double
+    public let priceWithTax: Double
+    public let discounts: [Discount]
+    public let taxLines: [TaxLine]
+    
+    public init(id: String, shippingMethod: ShippingMethod, price: Double, priceWithTax: Double,
+                discounts: [Discount] = [], taxLines: [TaxLine] = []) {
+        self.id = id
+        self.shippingMethod = shippingMethod
+        self.price = price
+        self.priceWithTax = priceWithTax
+        self.discounts = discounts
+        self.taxLines = taxLines
+    }
+}
+
+/// Represents a shipping method
+public struct ShippingMethod: Codable, Hashable, Identifiable {
+    public let id: String
+    public let code: String
+    public let name: String
+    public let description: String
+    public let fulfillmentHandlerCode: String
+    public let checker: ConfigurableOperation
+    public let calculator: ConfigurableOperation
+    public let translations: [ShippingMethodTranslation]
+    public let customFields: [String: AnyCodable]?
+    public let createdAt: Date
+    public let updatedAt: Date
+    
+    public init(id: String, code: String, name: String, description: String,
+                fulfillmentHandlerCode: String, checker: ConfigurableOperation, calculator: ConfigurableOperation,
+                translations: [ShippingMethodTranslation] = [], customFields: [String: AnyCodable]? = nil,
+                createdAt: Date, updatedAt: Date) {
+        self.id = id
+        self.code = code
+        self.name = name
+        self.description = description
+        self.fulfillmentHandlerCode = fulfillmentHandlerCode
+        self.checker = checker
+        self.calculator = calculator
+        self.translations = translations
+        self.customFields = customFields
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+/// Shipping method translation
+public struct ShippingMethodTranslation: Codable, Hashable {
+    public let languageCode: LanguageCode
+    public let name: String
+    public let description: String
+    
+    public init(languageCode: LanguageCode, name: String, description: String) {
+        self.languageCode = languageCode
+        self.name = name
+        self.description = description
+    }
+}
+
+// MARK: - Payment Types
+
+public struct Payment: Codable, Hashable, Identifiable {
+    public let id: String
+    public let method: String
+    public let amount: Double
+    public let state: String
+    public let transactionId: String?
+    public let errorMessage: String?
+    public let refunds: [Refund]
+    public let metadata: [String: AnyCodable]?
+    public let createdAt: Date
+    public let updatedAt: Date
+    
+    public init(id: String, method: String, amount: Double, state: String,
+                transactionId: String? = nil, errorMessage: String? = nil, refunds: [Refund] = [],
+                metadata: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
+        self.id = id
+        self.method = method
+        self.amount = amount
+        self.state = state
+        self.transactionId = transactionId
+        self.errorMessage = errorMessage
+        self.refunds = refunds
+        self.metadata = metadata
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public struct Refund: Codable, Hashable, Identifiable {
+    public let id: String
+    public let total: Double
+    public let reason: String?
+    public let state: String
+    public let items: Double
+    public let shipping: Double
+    public let adjustment: Double
+    public let paymentId: String
+    public let metadata: [String: AnyCodable]?
+    public let method: String?
+    public let createdAt: Date
+    public let updatedAt: Date
+    
+    public init(id: String, total: Double, reason: String? = nil, state: String, items: Double, shipping: Double, adjustment: Double, paymentId: String, metadata: [String: AnyCodable]? = nil, method: String? = nil, createdAt: Date, updatedAt: Date) {
+        self.id = id
+        self.total = total
+        self.reason = reason
+        self.state = state
+        self.items = items
+        self.shipping = shipping
+        self.adjustment = adjustment
+        self.paymentId = paymentId
+        self.metadata = metadata
+        self.method = method
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+// MARK: - Fulfillment Types
+
+public struct Fulfillment: Codable, Hashable, Identifiable {
+    public let id: String
+    public let state: String
+    public let method: String
+    public let trackingCode: String?
+    public let lines: [FulfillmentLine]
+    public let summary: [FulfillmentLineSummary]
+    public let customFields: [String: AnyCodable]?
+    public let createdAt: Date
+    public let updatedAt: Date
+    
+    public init(id: String, state: String, method: String, trackingCode: String? = nil,
+                lines: [FulfillmentLine] = [], summary: [FulfillmentLineSummary] = [],
+                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
+        self.id = id
+        self.state = state
+        self.method = method
+        self.trackingCode = trackingCode
+        self.lines = lines
+        self.summary = summary
+        self.customFields = customFields
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public struct FulfillmentLine: Codable, Hashable, Identifiable {
+    public let orderLineId: String
+    public let quantity: Int
+    public let orderLine: OrderLine
+    
+    public var id: String { orderLineId }
+    
+    public init(orderLineId: String, quantity: Int, orderLine: OrderLine) {
+        self.orderLineId = orderLineId
+        self.quantity = quantity
+        self.orderLine = orderLine
+    }
+}
+
+public struct FulfillmentLineSummary: Codable, Hashable {
+    public let orderLine: OrderLine
+    public let quantity: Int
+    
+    public init(orderLine: OrderLine, quantity: Int) {
+        self.orderLine = orderLine
+        self.quantity = quantity
+    }
+}
+
+// MARK: - History Types
+
+public struct HistoryEntryList: Codable, Hashable {
+    public let items: [HistoryEntry]
+    public let totalItems: Int
+    
+    public init(items: [HistoryEntry], totalItems: Int) {
+        self.items = items
+        self.totalItems = totalItems
+    }
+}
+
+public struct HistoryEntry: Codable, Hashable, Identifiable {
+    public let id: String
+    public let type: HistoryEntryType
+    public let data: [String: AnyCodable]
+    public let createdAt: Date
+    public let updatedAt: Date
+    
+    public init(id: String, type: HistoryEntryType, data: [String: AnyCodable],
+                createdAt: Date, updatedAt: Date) {
+        self.id = id
+        self.type = type
+        self.data = data
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public enum HistoryEntryType: String, Codable, CaseIterable {
+    case CUSTOMER_REGISTERED, CUSTOMER_VERIFIED, CUSTOMER_DETAIL_UPDATED
+    case CUSTOMER_ADDED_TO_GROUP, CUSTOMER_REMOVED_FROM_GROUP
+    case CUSTOMER_ADDRESS_CREATED, CUSTOMER_ADDRESS_UPDATED, CUSTOMER_ADDRESS_DELETED
+    case CUSTOMER_PASSWORD_UPDATED, CUSTOMER_PASSWORD_RESET_REQUESTED, CUSTOMER_PASSWORD_RESET_VERIFIED
+    case CUSTOMER_EMAIL_UPDATE_REQUESTED, CUSTOMER_EMAIL_UPDATE_VERIFIED
+    case ORDER_STATE_TRANSITION, ORDER_PAYMENT_TRANSITION, ORDER_FULFILLMENT_TRANSITION
+    case ORDER_FULFILLMENT, ORDER_CANCELLATION, ORDER_REFUND_TRANSITION
+    case ORDER_FULFILLMENT_STATE_TRANSITION, ORDER_NOTE, ORDER_COUPON_APPLIED, ORDER_COUPON_REMOVED
+    case ORDER_MODIFIED
+}
+
+// MARK: - Promotion Types
+
+public struct Promotion: Codable, Hashable, Identifiable {
+    public let id: String
+    public let name: String
+    public let enabled: Bool
+    public let couponCode: String?
+    public let perCustomerUsageLimit: Int?
+    public let usageLimit: Int?
+    public let startsAt: Date?
+    public let endsAt: Date?
+    public let conditions: [ConfigurableOperation]
+    public let actions: [ConfigurableOperation]
+    public let translations: [PromotionTranslation]
+    public let customFields: [String: AnyCodable]?
+    public let createdAt: Date
+    public let updatedAt: Date
+    
+    public init(id: String, name: String, enabled: Bool, couponCode: String? = nil,
+                perCustomerUsageLimit: Int? = nil, usageLimit: Int? = nil, startsAt: Date? = nil,
+                endsAt: Date? = nil, conditions: [ConfigurableOperation] = [], actions: [ConfigurableOperation] = [],
+                translations: [PromotionTranslation] = [], customFields: [String: AnyCodable]? = nil,
+                createdAt: Date, updatedAt: Date) {
+        self.id = id
+        self.name = name
+        self.enabled = enabled
+        self.couponCode = couponCode
+        self.perCustomerUsageLimit = perCustomerUsageLimit
+        self.usageLimit = usageLimit
+        self.startsAt = startsAt
+        self.endsAt = endsAt
+        self.conditions = conditions
+        self.actions = actions
+        self.translations = translations
+        self.customFields = customFields
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+public struct PromotionTranslation: Codable, Hashable {
+    public let languageCode: LanguageCode
+    public let name: String
+    public let description: String
+    
+    public init(languageCode: LanguageCode, name: String, description: String) {
+        self.languageCode = languageCode
+        self.name = name
+        self.description = description
+    }
+}
+
+// MARK: - Order Operation Result Types
+
+/// Set order shipping method result
+public typealias SetOrderShippingMethodResult = Order
+
+/// Update order items result
+public typealias UpdateOrderItemsResult = Order
+
+/// Remove order items result
+public typealias RemoveOrderItemsResult = Order
+
+/// Set customer for order result
+public typealias SetCustomerForOrderResult = Order
+
+/// Apply coupon code result
+public typealias ApplyCouponCodeResult = Order
+
+/// Remove coupon code result
+public typealias RemoveCouponCodeResult = Order
+
+/// Transition order to state result
+public typealias TransitionOrderToStateResult = Order
+
+// MARK: - Payment Method Quote
+
+public struct PaymentMethodQuote: Codable, Hashable, Identifiable {
+    public let id: String
+    public let code: String
+    public let name: String
+    public let description: String
+    public let isEligible: Bool
+    public let eligibilityMessage: String?
+    public let customFields: [String: AnyCodable]?
+    
+    public init(id: String, code: String, name: String, description: String, isEligible: Bool,
+                eligibilityMessage: String? = nil, customFields: [String: AnyCodable]? = nil) {
+        self.id = id
+        self.code = code
+        self.name = name
+        self.description = description
+        self.isEligible = isEligible
+        self.eligibilityMessage = eligibilityMessage
+        self.customFields = customFields
+    }
+}
+
+// MARK: - Shipping Method Quote
+
+public struct ShippingMethodQuote: Codable, Hashable, Identifiable {
+    public let id: String
+    public let price: Double
+    public let priceWithTax: Double
+    public let code: String
+    public let name: String
+    public let description: String
+    public let customFields: [String: AnyCodable]?
+    
+    public init(id: String, price: Double, priceWithTax: Double, code: String, name: String,
+                description: String, customFields: [String: AnyCodable]? = nil) {
+        self.id = id
+        self.price = price
+        self.priceWithTax = priceWithTax
+        self.code = code
+        self.name = name
+        self.description = description
+        self.customFields = customFields
+    }
+}
+
+

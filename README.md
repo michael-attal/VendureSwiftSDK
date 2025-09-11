@@ -1,0 +1,389 @@
+# VendureSwiftSDK
+
+A Swift SDK for interacting with the Vendure e-commerce framework's GraphQL API. This SDK is designed to work seamlessly with both iOS applications and Vapor server-side Swift projects.
+
+## Features
+
+- ✅ **Vapor Compatible**: Works perfectly with Vapor server-side Swift projects
+- ✅ **iOS Compatible**: Fully compatible with standard iOS applications
+- ✅ **Modern Async/Await**: Built with Swift's modern async/await patterns
+- ✅ **Type-Safe**: Comprehensive type definitions for all Vendure API responses
+- ✅ **Authentication Support**: Multiple authentication strategies including native, Firebase, and custom
+- ✅ **Complete API Coverage**: Support for all major Vendure operations
+- ✅ **Error Handling**: Comprehensive error handling with descriptive error types
+- ✅ **Extensible**: Support for custom GraphQL operations
+
+## Installation
+
+### Swift Package Manager
+
+Add VendureSwiftSDK to your project using Swift Package Manager:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/yourusername/VendureSwiftSDK.git", from: "1.0.0")
+]
+```
+
+Add it to your target dependencies:
+
+```swift
+targets: [
+    .target(
+        name: "YourTarget",
+        dependencies: ["VendureSwiftSDK"]
+    )
+]
+```
+
+## Quick Start
+
+### Basic Initialization
+
+```swift
+import VendureSwiftSDK
+
+// Initialize with token
+let vendure = try await VendureSwiftSDK.initialize(
+    endpoint: "https://your-vendure-api.com/shop-api",
+    token: "your-auth-token"
+)
+```
+
+### Authentication Methods
+
+#### Native Authentication
+```swift
+let vendure = try await VendureSwiftSDK.initializeWithNativeAuth(
+    endpoint: "https://your-vendure-api.com/shop-api",
+    username: "customer@example.com",
+    password: "password123",
+    sessionDuration: TimeInterval(60 * 60 * 24) // 1 day
+)
+```
+
+#### Firebase Authentication
+```swift
+let vendure = try await VendureSwiftSDK.initializeWithFirebaseAuth(
+    endpoint: "https://your-vendure-api.com/shop-api",
+    uid: "firebase-user-id",
+    jwt: "firebase-jwt-token",
+    sessionDuration: TimeInterval(60 * 60), // 1 hour
+    languageCode: "en",
+    channelToken: "your-channel-token"
+)
+```
+
+#### Custom Authentication
+```swift
+let vendure = try await VendureSwiftSDK.initializeWithCustomAuth(
+    endpoint: "https://your-vendure-api.com/shop-api",
+    fetchToken: { params in
+        // Your custom token fetching logic
+        return try await yourCustomTokenFetcher(params)
+    },
+    tokenParams: [
+        "customParam1": "value1",
+        "customParam2": "value2"
+    ]
+)
+```
+
+## Usage Examples
+
+### Order Operations
+
+#### Add Item to Cart
+```swift
+do {
+    let result = try await vendure.order.addItemToOrder(
+        productVariantId: "123",
+        quantity: 2
+    )
+    print("Item added to order: \(result)")
+} catch {
+    print("Error: \(error)")
+}
+```
+
+#### Get Active Order
+```swift
+let activeOrder = try await vendure.order.getActiveOrder()
+print("Current order: \(activeOrder?.code ?? "No active order")")
+```
+
+#### Set Shipping Address
+```swift
+let address = CreateAddressInput(
+    streetLine1: "123 Main Street",
+    city: "New York",
+    postalCode: "10001",
+    countryCode: "US"
+)
+
+let result = try await vendure.order.setOrderShippingAddress(input: address)
+```
+
+#### Add Payment
+```swift
+let payment = PaymentInput(
+    method: "stripe-payment",
+    metadata: ["stripe_payment_method": "pm_123456"]
+)
+
+let result = try await vendure.order.addPaymentToOrder(input: payment)
+```
+
+### Catalog Operations
+
+#### Get Products
+```swift
+let options = ProductListOptions(take: 20, skip: 0)
+let products = try await vendure.catalog.getProducts(options: options)
+
+for product in products.items {
+    print("Product: \(product.name) - \(product.slug)")
+}
+```
+
+#### Search Products
+```swift
+let searchInput = SearchInput(
+    term: "electronics",
+    take: 10
+)
+
+let searchResults = try await vendure.catalog.searchCatalog(input: searchInput)
+print("Found \(searchResults.totalItems) products")
+```
+
+#### Get Collections
+```swift
+let collections = try await vendure.catalog.getCollections()
+for collection in collections.items {
+    print("Collection: \(collection.name)")
+}
+```
+
+### Customer Operations
+
+#### Get Active Customer
+```swift
+let customer = try await vendure.customer.getActiveCustomer()
+print("Customer: \(customer?.firstName ?? "Anonymous") \(customer?.lastName ?? "")")
+```
+
+#### Update Customer
+```swift
+let updateInput = UpdateCustomerInput(
+    firstName: "John",
+    lastName: "Doe"
+)
+
+let updatedCustomer = try await vendure.customer.updateCustomer(input: updateInput)
+```
+
+#### Manage Addresses
+```swift
+// Create address
+let newAddress = CreateAddressInput(
+    fullName: "John Doe",
+    streetLine1: "456 Oak Avenue",
+    city: "San Francisco",
+    postalCode: "94105",
+    countryCode: "US"
+)
+
+let address = try await vendure.customer.createCustomerAddress(input: newAddress)
+
+// Update address
+let updateAddress = UpdateAddressInput(
+    id: address.id,
+    streetLine1: "456 Pine Avenue" // Updated street
+)
+
+let updatedAddress = try await vendure.customer.updateCustomerAddress(input: updateAddress)
+```
+
+### Authentication Operations
+
+#### Register New Customer
+```swift
+let registration = RegisterCustomerInput(
+    emailAddress: "newcustomer@example.com",
+    firstName: "Jane",
+    lastName: "Smith",
+    password: "securepassword"
+)
+
+let result = try await vendure.auth.registerCustomerAccount(input: registration)
+```
+
+#### Login/Logout
+```swift
+// Login
+let loginResult = try await vendure.auth.login(
+    username: "customer@example.com",
+    password: "password123",
+    rememberMe: true
+)
+
+// Logout
+let logoutResult = try await vendure.auth.logout()
+```
+
+### System Operations
+
+#### Get Available Countries
+```swift
+let countries = try await vendure.system.getAvailableCountries()
+for country in countries {
+    print("Country: \(country.name) (\(country.code))")
+}
+```
+
+### Custom Operations
+
+For advanced use cases, you can execute custom GraphQL operations:
+
+```swift
+// Custom Query
+let customQuery = """
+query MyCustomQuery($id: ID!) {
+  product(id: $id) {
+    id
+    name
+    customFields {
+      myCustomField
+    }
+  }
+}
+"""
+
+struct CustomProductResponse: Codable {
+    let id: String
+    let name: String
+    let customFields: [String: AnyCodable]?
+}
+
+let result = try await vendure.custom.query(
+    customQuery,
+    variables: ["id": "123"],
+    responseType: CustomProductResponse.self,
+    expectedDataType: "product"
+)
+```
+
+## Vapor Integration
+
+VendureSwiftSDK works seamlessly with Vapor applications:
+
+```swift
+import Vapor
+import VendureSwiftSDK
+
+func routes(_ app: Application) throws {
+    app.get("products") { req async throws -> [Product] in
+        let vendure = try await VendureSwiftSDK.initialize(
+            endpoint: "https://your-vendure-api.com/shop-api",
+            token: "your-server-token"
+        )
+        
+        let products = try await vendure.catalog.getProducts()
+        return products.items
+    }
+    
+    app.post("cart", "add") { req async throws -> Order in
+        let vendure = try await VendureSwiftSDK.initialize(
+            endpoint: "https://your-vendure-api.com/shop-api",
+            token: req.headers.bearerAuthorization?.token
+        )
+        
+        struct AddToCartRequest: Content {
+            let productVariantId: String
+            let quantity: Int
+        }
+        
+        let addToCart = try req.content.decode(AddToCartRequest.self)
+        
+        let result = try await vendure.order.addItemToOrder(
+            productVariantId: addToCart.productVariantId,
+            quantity: addToCart.quantity
+        )
+        
+        // Assuming result is an Order (you'd need to handle union types appropriately)
+        return result as! Order
+    }
+}
+```
+
+## Error Handling
+
+The SDK provides comprehensive error handling:
+
+```swift
+do {
+    let order = try await vendure.order.getActiveOrder()
+    // Handle successful response
+} catch VendureError.networkError(let message) {
+    print("Network error: \(message)")
+} catch VendureError.graphqlError(let errors) {
+    print("GraphQL errors: \(errors.joined(separator: ", "))")
+} catch VendureError.tokenMissing {
+    print("Authentication token is missing")
+} catch {
+    print("Unexpected error: \(error)")
+}
+```
+
+## Runtime Configuration
+
+You can update authentication and configuration at runtime:
+
+```swift
+// Update auth token
+try await Vendure.setAuthToken("new-token")
+
+// Update language code
+try await Vendure.setLanguageCode("es")
+
+// Update channel token
+try await Vendure.setChannelToken("new-channel-token")
+
+// Refresh token (if using token manager)
+try await Vendure.refreshToken(["key": "value"])
+```
+
+## Thread Safety
+
+All operations are thread-safe thanks to Swift's actor-based concurrency model. The SDK uses actors to ensure safe concurrent access to shared resources.
+
+## Platform Support
+
+- **iOS**: 13.0+
+- **macOS**: 10.15+
+- **watchOS**: 6.0+
+- **tvOS**: 13.0+
+- **Swift**: 5.9+
+
+## Requirements
+
+- Swift 5.9 or later
+- iOS 13.0+ / macOS 10.15+ / watchOS 6.0+ / tvOS 13.0+
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License.
+
+## Related Projects
+
+- [Vendure](https://www.vendure.io/) - The headless e-commerce framework this SDK is built for
+- [Vendure Flutter SDK](https://pub.dev/packages/vendure) - The original Flutter SDK that inspired this Swift implementation
+
+---
+
+For more detailed API documentation, please refer to the inline code documentation and the official Vendure GraphQL API documentation.
