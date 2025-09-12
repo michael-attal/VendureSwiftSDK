@@ -41,7 +41,7 @@ public actor CatalogOperations {
         """
         
         let variables: [String: Any] = ["options": options as Any]
-        return try await vendure.custom.query(query, variables: variables, responseType: CollectionList.self, expectedDataType: "collections")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "collections", responseType: CollectionList.self)
     }
     
     /// Get collection by ID
@@ -72,7 +72,7 @@ public actor CatalogOperations {
         """
         
         let variables = ["id": id]
-        return try await vendure.custom.query(query, variables: variables, responseType: Collection.self, expectedDataType: "collection")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "collection", responseType: Collection.self)
     }
     
     /// Get collection by slug
@@ -103,11 +103,11 @@ public actor CatalogOperations {
         """
         
         let variables = ["slug": slug]
-        return try await vendure.custom.query(query, variables: variables, responseType: Collection.self, expectedDataType: "collection")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "collection", responseType: Collection.self)
     }
     
     /// Get products
-    public func getProducts(options: ProductListOptions? = nil) async throws -> ProductList {
+    public func getProducts(options: ProductListOptions? = nil) async throws -> CatalogProductList {
         let query = """
         query products($options: ProductListOptions) {
           products(options: $options) {
@@ -116,6 +116,7 @@ public actor CatalogOperations {
               name
               slug
               description
+              enabled
               featuredAsset {
                 id
                 preview
@@ -143,7 +144,7 @@ public actor CatalogOperations {
         } else {
             variables = [:]
         }
-        return try await vendure.custom.query(query, variables: variables, responseType: ProductList.self, expectedDataType: "products")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "products", responseType: CatalogProductList.self)
     }
     
     /// Get product by ID
@@ -174,7 +175,7 @@ public actor CatalogOperations {
         """
         
         let variables = ["id": id]
-        return try await vendure.custom.query(query, variables: variables, responseType: Product.self, expectedDataType: "product")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "product", responseType: Product.self)
     }
     
     /// Get product by slug
@@ -205,7 +206,7 @@ public actor CatalogOperations {
         """
         
         let variables = ["slug": slug]
-        return try await vendure.custom.query(query, variables: variables, responseType: Product.self, expectedDataType: "product")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "product", responseType: Product.self)
     }
     
     /// Search catalog
@@ -260,6 +261,6 @@ public actor CatalogOperations {
         """
         
         let variables = ["input": input]
-        return try await vendure.custom.query(query, variables: variables, responseType: SearchResult.self, expectedDataType: "search")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "search", responseType: SearchResult.self)
     }
 }

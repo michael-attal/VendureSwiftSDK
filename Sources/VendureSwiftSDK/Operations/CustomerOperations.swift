@@ -40,7 +40,7 @@ public actor CustomerOperations {
         }
         """
         
-        return try await vendure.custom.query(query, responseType: Customer?.self, expectedDataType: "activeCustomer")
+        return try await vendure.custom.query(query, expectedDataType: "activeCustomer", responseType: Customer?.self)
     }
     
     /// Get current user
@@ -59,7 +59,7 @@ public actor CustomerOperations {
         }
         """
         
-        return try await vendure.custom.query(query, responseType: CurrentUser?.self, expectedDataType: "me")
+        return try await vendure.custom.query(query, expectedDataType: "me", responseType: CurrentUser?.self)
     }
     
     /// Get active channel
@@ -78,7 +78,7 @@ public actor CustomerOperations {
         }
         """
         
-        return try await vendure.custom.query(query, responseType: Channel.self, expectedDataType: "activeChannel")
+        return try await vendure.custom.query(query, expectedDataType: "activeChannel", responseType: Channel.self)
     }
     
     /// Update customer

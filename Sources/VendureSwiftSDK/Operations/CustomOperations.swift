@@ -28,19 +28,29 @@ public actor CustomOperations {
             throw VendureError.networkError("No data returned from mutation")
         }
         
-        return try decodeResponse(data, to: responseType)
+        // Extract the expected data type from the response if specified
+        let extractedData: AnyCodable
+        if let expectedType = expectedDataType {
+            let extracted = extractExpectedData(data.value, expectedDataType: expectedType)
+            extractedData = AnyCodable(extracted)
+        } else {
+            extractedData = data
+        }
+        
+        return try decodeResponse(extractedData, to: responseType)
     }
     
     /// Execute a custom GraphQL query
     public func query<T: Codable>(
         _ query: String,
-        variables: [String: Any] = [:],
-        responseType: T.Type,
-        expectedDataType: String? = nil
+        variables: [String: Any]? = nil,
+        expectedDataType: String? = nil,
+        responseType: T.Type
     ) async throws -> T {
+        await VendureLogger.shared.log(.info, category: "CustomOps", "Executing custom query with expectedDataType: \(expectedDataType ?? "nil")")
         let result = try await executeOperation(
             query,
-            variables: variables,
+            variables: variables ?? [:],
             isMutation: false,
             expectedDataType: expectedDataType
         )
@@ -49,7 +59,19 @@ public actor CustomOperations {
             throw VendureError.networkError("No data returned from query")
         }
         
-        return try decodeResponse(data, to: responseType)
+        // Extract the expected data type from the response if specified
+        let extractedData: AnyCodable
+        if let expectedType = expectedDataType {
+            await VendureLogger.shared.log(.debug, category: "CustomOps", "Extracting data for expectedType: \(expectedType)")
+            let extracted = extractExpectedData(data.value, expectedDataType: expectedType)
+            await VendureLogger.shared.log(.debug, category: "CustomOps", "Extracted data type: \(type(of: extracted))")
+            extractedData = AnyCodable(extracted)
+        } else {
+            await VendureLogger.shared.log(.debug, category: "CustomOps", "No expectedDataType specified, using raw data")
+            extractedData = data
+        }
+        
+        return try decodeResponse(extractedData, to: responseType)
     }
     
     /// Execute a custom GraphQL query that returns a list
@@ -70,7 +92,16 @@ public actor CustomOperations {
             throw VendureError.networkError("No data returned from queryList")
         }
         
-        return try decodeResponseList(data, to: responseType)
+        // Extract the expected data type from the response if specified
+        let extractedData: AnyCodable
+        if let expectedType = expectedDataType {
+            let extracted = extractExpectedData(data.value, expectedDataType: expectedType)
+            extractedData = AnyCodable(extracted)
+        } else {
+            extractedData = data
+        }
+        
+        return try decodeResponseList(extractedData, to: responseType)
     }
     
     /// Execute a custom GraphQL mutation that returns a list
@@ -91,7 +122,16 @@ public actor CustomOperations {
             throw VendureError.networkError("No data returned from mutateList")
         }
         
-        return try decodeResponseList(data, to: responseType)
+        // Extract the expected data type from the response if specified
+        let extractedData: AnyCodable
+        if let expectedType = expectedDataType {
+            let extracted = extractExpectedData(data.value, expectedDataType: expectedType)
+            extractedData = AnyCodable(extracted)
+        } else {
+            extractedData = data
+        }
+        
+        return try decodeResponseList(extractedData, to: responseType)
     }
     
     // MARK: - Private Methods

@@ -347,6 +347,162 @@ public struct FacetValueResult: Codable, Hashable, Sendable {
 /// Type alias for search response
 public typealias SearchResponse = SearchResult
 
+// MARK: - Simplified Catalog Types (for listing)
+
+/// Simplified asset for catalog listing
+public struct CatalogAsset: Codable, Hashable, Identifiable, Sendable {
+    public let id: String
+    public let preview: String
+    public let source: String
+    
+    public init(id: String, preview: String, source: String) {
+        self.id = id
+        self.preview = preview
+        self.source = source
+    }
+}
+
+/// Simplified product for catalog listing
+public struct CatalogProduct: Codable, Hashable, Identifiable, Sendable {
+    public let id: String
+    public let name: String
+    public let slug: String
+    public let description: String
+    public let enabled: Bool
+    public let featuredAsset: CatalogAsset?
+    public let variants: [CatalogProductVariant]
+    
+    public init(id: String, name: String, slug: String, description: String, enabled: Bool,
+                featuredAsset: CatalogAsset? = nil, variants: [CatalogProductVariant] = []) {
+        self.id = id
+        self.name = name
+        self.slug = slug
+        self.description = description
+        self.enabled = enabled
+        self.featuredAsset = featuredAsset
+        self.variants = variants
+    }
+}
+
+/// Simplified product variant for catalog listing
+public struct CatalogProductVariant: Codable, Hashable, Identifiable, Sendable {
+    public let id: String
+    public let name: String
+    public let sku: String
+    public let price: Double
+    public let priceWithTax: Double
+    public let currencyCode: CurrencyCode
+    public let stockLevel: String
+    
+    public init(id: String, name: String, sku: String, price: Double, priceWithTax: Double,
+                currencyCode: CurrencyCode, stockLevel: String) {
+        self.id = id
+        self.name = name
+        self.sku = sku
+        self.price = price
+        self.priceWithTax = priceWithTax
+        self.currencyCode = currencyCode
+        self.stockLevel = stockLevel
+    }
+}
+
+/// Product list for catalog
+public struct CatalogProductList: Codable, Sendable {
+    public let items: [CatalogProduct]
+    public let totalItems: Int
+    
+    public init(items: [CatalogProduct], totalItems: Int) {
+        self.items = items
+        self.totalItems = totalItems
+    }
+}
+
+// MARK: - Extensions for conversion
+
+extension CatalogAsset {
+    /// Convert to full Asset model with default values for missing fields
+    public func toAsset() -> Asset {
+        return Asset(
+            id: self.id,
+            name: "", // Default empty name since it's not available in catalog query
+            type: .IMAGE, // Default to IMAGE type
+            fileSize: 0,
+            mimeType: "image/jpeg", // Default MIME type
+            width: nil,
+            height: nil,
+            source: self.source,
+            preview: self.preview,
+            focalPoint: nil,
+            tags: [],
+            customFields: nil,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+}
+
+extension CatalogProduct {
+    /// Convert to full Product model with default values for missing fields
+    public func toProduct() -> Product {
+        return Product(
+            id: self.id,
+            name: self.name,
+            slug: self.slug,
+            description: self.description,
+            enabled: self.enabled,
+            featuredAsset: self.featuredAsset?.toAsset(),
+            assets: self.featuredAsset.map { [$0.toAsset()] } ?? [],
+            variants: self.variants.map { $0.toProductVariant() },
+            optionGroups: [],
+            facetValues: [],
+            translations: [],
+            customFields: nil,
+            languageCode: .en, // Default to English
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+}
+
+extension CatalogProductVariant {
+    /// Convert to full ProductVariant model with default values for missing fields
+    public func toProductVariant() -> ProductVariant {
+        return ProductVariant(
+            id: self.id,
+            name: self.name,
+            sku: self.sku,
+            price: self.price,
+            priceWithTax: self.priceWithTax,
+            currencyCode: self.currencyCode,
+            enabled: true, // Default to enabled since we can't query this field
+            stockLevel: self.stockLevel,
+            trackInventory: "INHERIT",
+            stockOnHand: 0,
+            stockAllocated: 0,
+            outOfStockThreshold: 0,
+            useGlobalOutOfStockThreshold: true,
+            featuredAsset: nil,
+            assets: [],
+            options: [],
+            facetValues: [],
+            translations: [],
+            customFields: nil,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+}
+
+extension CatalogProductList {
+    /// Convert to full ProductList for backwards compatibility
+    public func toProductList() -> ProductList {
+        return ProductList(
+            items: self.items.map { $0.toProduct() },
+            totalItems: self.totalItems
+        )
+    }
+}
+
 // MARK: - Collection Types
 
 /// Represents a collection

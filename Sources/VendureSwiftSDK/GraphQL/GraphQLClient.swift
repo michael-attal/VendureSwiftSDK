@@ -193,6 +193,7 @@ public actor GraphQLClient {
         headers: [String: String] = [:],
         responseType: T.Type
     ) async throws -> GraphQLResponse<T> {
+        await VendureLogger.shared.log(.debug, category: "GraphQL", "Executing query: \(String(request.query.prefix(100)))...")
         var urlRequest = URLRequest(url: endpoint)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -207,28 +208,45 @@ public actor GraphQLClient {
         let requestData = try encodeRequest(request)
         urlRequest.httpBody = requestData
         
+        if let variables = request.variables {
+            await VendureLogger.shared.log(.verbose, category: "GraphQL", "Variables: \(variables)")
+        }
+        
         // Perform the request
+        await VendureLogger.shared.log(.debug, category: "HTTP", "Making request to: \(endpoint)")
         let (data, response) = try await session.data(for: urlRequest)
         
         // Check HTTP response
         guard let httpResponse = response as? HTTPURLResponse else {
+            await VendureLogger.shared.log(.error, category: "HTTP", "Invalid response type")
             throw VendureError.networkError("Invalid response type")
         }
         
+        await VendureLogger.shared.log(.debug, category: "HTTP", "Response status: \(httpResponse.statusCode)")
+        
         guard 200...299 ~= httpResponse.statusCode else {
-            throw VendureError.httpError(httpResponse.statusCode, String(data: data, encoding: .utf8) ?? "Unknown error")
+            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            await VendureLogger.shared.log(.error, category: "HTTP", "HTTP error \(httpResponse.statusCode): \(errorMessage)")
+            throw VendureError.httpError(httpResponse.statusCode, errorMessage)
         }
         
         // Decode GraphQL response
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         
+        await VendureLogger.shared.log(.verbose, category: "Decode", "Response data: \(String(data: data, encoding: .utf8) ?? "Unable to convert to string")")
+        
         do {
-            return try decoder.decode(GraphQLResponse<T>.self, from: data)
+            let result = try decoder.decode(GraphQLResponse<T>.self, from: data)
+            await VendureLogger.shared.log(.debug, category: "Decode", "Successfully decoded response")
+            return result
         } catch {
+            await VendureLogger.shared.log(.error, category: "Decode", "Decoding error: \(error)")
+            
             // Try to decode as a general error response
             if let errorResponse = try? decoder.decode(GraphQLResponse<AnyCodable>.self, from: data),
                let errors = errorResponse.errors, !errors.isEmpty {
+                await VendureLogger.shared.log(.error, category: "GraphQL", "GraphQL errors: \(errors.map { $0.message })")
                 throw VendureError.graphqlError(errors.map { $0.message })
             }
             throw VendureError.decodingError(error)

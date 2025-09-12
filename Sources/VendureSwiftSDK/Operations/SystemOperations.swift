@@ -64,7 +64,7 @@ public actor SystemOperations {
         """
         
         let variables: [String: Any] = ["options": options as Any]
-        return try await vendure.custom.query(query, variables: variables, responseType: FacetList.self, expectedDataType: "facets")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "facets", responseType: FacetList.self)
     }
     
     /// Get facet by ID
@@ -97,7 +97,7 @@ public actor SystemOperations {
         """
         
         let variables = ["id": id]
-        return try await vendure.custom.query(query, variables: variables, responseType: Facet.self, expectedDataType: "facet")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "facet", responseType: Facet.self)
     }
     
     /// Get collections with parent and children
@@ -142,7 +142,7 @@ public actor SystemOperations {
         """
         
         let variables: [String: Any] = ["options": options as Any]
-        return try await vendure.custom.query(query, variables: variables, responseType: CollectionList.self, expectedDataType: "collections")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "collections", responseType: CollectionList.self)
     }
     
     /// Get collection with parent and children
@@ -184,7 +184,7 @@ public actor SystemOperations {
         """
         
         let variables = ["id": id]
-        return try await vendure.custom.query(query, variables: variables, responseType: Collection.self, expectedDataType: "collection")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "collection", responseType: Collection.self)
     }
     
     /// Get collection with parent only
@@ -211,7 +211,7 @@ public actor SystemOperations {
         """
         
         let variables = ["id": id]
-        return try await vendure.custom.query(query, variables: variables, responseType: Collection.self, expectedDataType: "collection")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "collection", responseType: Collection.self)
     }
     
     /// Get collection with children only
@@ -238,7 +238,7 @@ public actor SystemOperations {
         """
         
         let variables = ["id": id]
-        return try await vendure.custom.query(query, variables: variables, responseType: Collection.self, expectedDataType: "collection")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "collection", responseType: Collection.self)
     }
     
     /// Search catalog
@@ -310,6 +310,6 @@ public actor SystemOperations {
         """
         
         let variables = ["input": input]
-        return try await vendure.custom.query(query, variables: variables, responseType: SearchResponse.self, expectedDataType: "search")
+        return try await vendure.custom.query(query, variables: variables, expectedDataType: "search", responseType: SearchResponse.self)
     }
 }
