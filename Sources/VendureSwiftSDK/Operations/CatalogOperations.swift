@@ -136,7 +136,13 @@ public actor CatalogOperations {
         }
         """
         
-        let variables: [String: Any] = ["options": options as Any]
+        // Handle nil options properly to avoid JSONSerialization issues
+        let variables: [String: Any]
+        if let options = options {
+            variables = ["options": options]
+        } else {
+            variables = [:]
+        }
         return try await vendure.custom.query(query, variables: variables, responseType: ProductList.self, expectedDataType: "products")
     }
     
