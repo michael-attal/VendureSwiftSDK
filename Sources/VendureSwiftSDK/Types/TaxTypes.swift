@@ -57,7 +57,7 @@ public struct TaxRate: Codable, Hashable, Identifiable {
 // MARK: - Tax Line
 
 /// Represents a tax line on an order item
-public struct TaxLine: Codable, Hashable {
+public struct TaxLine: Codable, Hashable, Sendable {
     public let description: String
     public let taxRate: Double
     
@@ -70,7 +70,7 @@ public struct TaxLine: Codable, Hashable {
 // MARK: - Order Tax Summary
 
 /// Tax summary for an order
-public struct OrderTaxSummary: Codable, Hashable {
+public struct OrderTaxSummary: Codable, Hashable, Sendable {
     public let description: String
     public let taxRate: Double
     public let taxBase: Double

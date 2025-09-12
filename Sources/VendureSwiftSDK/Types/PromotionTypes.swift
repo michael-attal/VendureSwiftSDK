@@ -4,7 +4,7 @@ import SkipFoundation
 // MARK: - Promotion
 
 /// Represents a promotion
-public struct Promotion: Codable, Hashable, Identifiable {
+public struct Promotion: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let description: String
@@ -45,7 +45,7 @@ public struct Promotion: Codable, Hashable, Identifiable {
 }
 
 /// Promotion translation
-public struct PromotionTranslation: Codable, Hashable {
+public struct PromotionTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     public let description: String

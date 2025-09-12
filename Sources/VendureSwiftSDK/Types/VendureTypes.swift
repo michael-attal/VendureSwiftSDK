@@ -6,7 +6,7 @@ import SkipModel
 // MARK: - Core Types and Enums
 
 /// Currency codes supported by Vendure
-public enum CurrencyCode: String, Codable, CaseIterable {
+public enum CurrencyCode: String, Codable, CaseIterable, Sendable {
     case AED, AFN, ALL, AMD, ANG, AOA, ARS, AUD, AWG, AZN
     case BAM, BBD, BDT, BGN, BHD, BIF, BMD, BND, BOB, BRL, BSD, BTN, BWP, BYN, BZD
     case CAD, CDF, CHF, CLP, CNY, COP, CRC, CUC, CUP, CVE, CZK
@@ -36,32 +36,32 @@ public enum CurrencyCode: String, Codable, CaseIterable {
 }
 
 /// Language codes supported by Vendure
-public enum LanguageCode: String, Codable, CaseIterable {
+public enum LanguageCode: String, Codable, CaseIterable, Sendable {
     case af, ak, am, ar, `as`, az, be, bg, bm, bn, bo, br, bs, ca, ce, co, cs, cu, cy, da, de, dv, dz, ee, el, en, eo, es, et, eu, fa, ff, fi, fo, fr, fy, ga, gd, gl, gu, gv, ha, he, hi, ho, hr, ht, hu, hy, hz, ia, id, ie, ig, ii, ik, io, `is`, it, iu, ja, jv, ka, kg, ki, kj, kk, kl, km, kn, ko, kr, ks, ku, kv, kw, ky, la, lb, lg, li, ln, lo, lr, ls, lt, lu, lv, mg, mh, mi, mk, ml, mn, mr, ms, mt, my, na, nb, nd, ne, ng, nl, nn, no, nr, nv, ny, oc, oj, om, or, os, pa, pi, pl, ps, pt, qu, rm, rn, ro, ru, rw, sa, sc, sd, se, sg, si, sk, sl, sm, sn, so, sq, sr, ss, st, su, sv, sw, ta, te, tg, th, ti, tk, tl, tn, to, tr, ts, tt, tw, ty, ug, uk, ur, uz, ve, vi, vo, wa, wo, xh, yi, yo, za, zh, zu
 }
 
 /// Order types
-public enum OrderType: String, Codable, CaseIterable {
+public enum OrderType: String, Codable, CaseIterable, Sendable {
     case Regular, Seller, Aggregate
 }
 
 /// Sort orders
-public enum SortOrder: String, Codable, CaseIterable {
+public enum SortOrder: String, Codable, CaseIterable, Sendable {
     case ASC, DESC
 }
 
 /// Logical operators for filtering
-public enum LogicalOperator: String, Codable, CaseIterable {
+public enum LogicalOperator: String, Codable, CaseIterable, Sendable {
     case AND, OR
 }
 
 /// Permission levels
-public enum Permission: String, Codable, CaseIterable {
+public enum Permission: String, Codable, CaseIterable, Sendable {
     case Authenticated, SuperAdmin, Owner, Public, UpdateGlobalSettings, CreateCatalog, ReadCatalog, UpdateCatalog, DeleteCatalog, CreateProduct, ReadProduct, UpdateProduct, DeleteProduct, CreatePromotion, ReadPromotion, UpdatePromotion, DeletePromotion, CreateSettings, ReadSettings, UpdateSettings, DeleteSettings, CreateAdministrator, ReadAdministrator, UpdateAdministrator, DeleteAdministrator, CreateAsset, ReadAsset, UpdateAsset, DeleteAsset, CreateChannel, ReadChannel, UpdateChannel, DeleteChannel, CreateCollection, ReadCollection, UpdateCollection, DeleteCollection, CreateCountry, ReadCountry, UpdateCountry, DeleteCountry, CreateCustomer, ReadCustomer, UpdateCustomer, DeleteCustomer, CreateCustomerGroup, ReadCustomerGroup, UpdateCustomerGroup, DeleteCustomerGroup, CreateFacet, ReadFacet, UpdateFacet, DeleteFacet, CreateOrder, ReadOrder, UpdateOrder, DeleteOrder, CreatePaymentMethod, ReadPaymentMethod, UpdatePaymentMethod, DeletePaymentMethod, CreateShippingMethod, ReadShippingMethod, UpdateShippingMethod, DeleteShippingMethod, CreateTag, ReadTag, UpdateTag, DeleteTag, CreateTaxCategory, ReadTaxCategory, UpdateTaxCategory, DeleteTaxCategory, CreateTaxRate, ReadTaxRate, UpdateTaxRate, DeleteTaxRate, CreateSystem, ReadSystem, UpdateSystem, DeleteSystem, CreateZone, ReadZone, UpdateZone, DeleteZone
 }
 
 /// Error codes that can be returned by the API
-public enum ErrorCode: String, Codable, CaseIterable {
+public enum ErrorCode: String, Codable, CaseIterable, Sendable {
     case UNKNOWN_ERROR
     case MIME_TYPE_ERROR
     case LANGUAGE_NOT_AVAILABLE_ERROR
@@ -122,7 +122,7 @@ public enum ErrorCode: String, Codable, CaseIterable {
 // MARK: - Base Types
 
 /// Represents a monetary amount
-public struct Money: Codable, Hashable {
+public struct Money: Codable, Hashable, Sendable {
     public let value: Double
     public let currencyCode: CurrencyCode
     
@@ -133,7 +133,7 @@ public struct Money: Codable, Hashable {
 }
 
 /// Represents a price range
-public struct PriceRange: Codable, Hashable {
+public struct PriceRange: Codable, Hashable, Sendable {
     public let min: Double
     public let max: Double
     
@@ -144,7 +144,7 @@ public struct PriceRange: Codable, Hashable {
 }
 
 /// Represents a date range
-public struct DateRange: Codable, Hashable {
+public struct DateRange: Codable, Hashable, Sendable {
     public let start: Date
     public let end: Date
     
@@ -155,7 +155,7 @@ public struct DateRange: Codable, Hashable {
 }
 
 /// Represents a coordinate
-public struct Coordinate: Codable, Hashable {
+public struct Coordinate: Codable, Hashable, Sendable {
     public let x: Double
     public let y: Double
     
@@ -166,7 +166,7 @@ public struct Coordinate: Codable, Hashable {
 }
 
 /// Represents localized string content
-public struct LocalizedString: Codable, Hashable {
+public struct LocalizedString: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let value: String
     
@@ -179,7 +179,7 @@ public struct LocalizedString: Codable, Hashable {
 // MARK: - Asset Types
 
 /// Represents an asset (image, document, etc.)
-public struct Asset: Codable, Hashable, Identifiable {
+public struct Asset: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let type: AssetType
@@ -217,12 +217,12 @@ public struct Asset: Codable, Hashable, Identifiable {
 }
 
 /// Asset type enumeration
-public enum AssetType: String, Codable, CaseIterable {
+public enum AssetType: String, Codable, CaseIterable, Sendable {
     case IMAGE, VIDEO, AUDIO, OTHER
 }
 
 /// Represents a list of assets with pagination info
-public struct AssetList: Codable, Hashable {
+public struct AssetList: Codable, Hashable, Sendable {
     public let items: [Asset]
     public let totalItems: Int
     
@@ -235,7 +235,7 @@ public struct AssetList: Codable, Hashable {
 // MARK: - Address Types
 
 /// Represents an address
-public struct Address: Codable, Hashable, Identifiable {
+public struct Address: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let fullName: String?
     public let company: String?
@@ -277,7 +277,7 @@ public struct Address: Codable, Hashable, Identifiable {
 }
 
 /// Represents a country
-public struct Country: Codable, Hashable, Identifiable {
+public struct Country: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let code: String
     public let name: String
@@ -294,7 +294,7 @@ public struct Country: Codable, Hashable, Identifiable {
 }
 
 /// Country translation
-public struct CountryTranslation: Codable, Hashable {
+public struct CountryTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     
@@ -307,7 +307,7 @@ public struct CountryTranslation: Codable, Hashable {
 // MARK: - Channel and Zone
 
 /// Represents a channel
-public struct Channel: Codable, Hashable, Identifiable {
+public struct Channel: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let code: String
     public let token: String
@@ -349,7 +349,7 @@ public struct Channel: Codable, Hashable, Identifiable {
 }
 
 /// Represents a zone
-public struct Zone: Codable, Hashable, Identifiable {
+public struct Zone: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let members: [Region]
@@ -369,7 +369,7 @@ public struct Zone: Codable, Hashable, Identifiable {
 }
 
 /// Represents a region (country or province)
-public final class Region: Codable, Hashable, Identifiable {
+public final class Region: Codable, Hashable, Identifiable, @unchecked Sendable {
     public let id: String
     public let code: String
     public let name: String
@@ -407,7 +407,7 @@ public final class Region: Codable, Hashable, Identifiable {
 }
 
 /// Region translation
-public struct RegionTranslation: Codable, Hashable {
+public struct RegionTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     
@@ -418,7 +418,7 @@ public struct RegionTranslation: Codable, Hashable {
 }
 
 /// Represents a seller
-public struct Seller: Codable, Hashable, Identifiable {
+public struct Seller: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let customFields: [String: AnyCodable]?
@@ -437,7 +437,7 @@ public struct Seller: Codable, Hashable, Identifiable {
 
 // MARK: - List Types
 
-public struct ProductList: Codable {
+public struct ProductList: Codable, Sendable {
     public let items: [Product]
     public let totalItems: Int
     
@@ -447,7 +447,7 @@ public struct ProductList: Codable {
     }
 }
 
-public struct ProductVariantList: Codable {
+public struct ProductVariantList: Codable, Sendable {
     public let items: [ProductVariant]
     public let totalItems: Int
     
@@ -457,7 +457,7 @@ public struct ProductVariantList: Codable {
     }
 }
 
-public struct CollectionList: Codable {
+public struct CollectionList: Codable, Sendable {
     public let items: [Collection]
     public let totalItems: Int
     
@@ -467,7 +467,7 @@ public struct CollectionList: Codable {
     }
 }
 
-public struct FacetList: Codable {
+public struct FacetList: Codable, Sendable {
     public let items: [Facet]
     public let totalItems: Int
     
@@ -479,7 +479,7 @@ public struct FacetList: Codable {
 
 // MARK: - List Options
 
-public struct ProductListOptions: Codable {
+public struct ProductListOptions: Codable, Sendable {
     public let skip: Int?
     public let take: Int?
     public let sort: ProductSortParameter?
@@ -495,7 +495,7 @@ public struct ProductListOptions: Codable {
     }
 }
 
-public struct CollectionListOptions: Codable {
+public struct CollectionListOptions: Codable, Sendable {
     public let skip: Int?
     public let take: Int?
     public let sort: CollectionSortParameter?
@@ -513,7 +513,7 @@ public struct CollectionListOptions: Codable {
     }
 }
 
-public struct FacetListOptions: Codable {
+public struct FacetListOptions: Codable, Sendable {
     public let skip: Int?
     public let take: Int?
     public let sort: FacetSortParameter?
@@ -531,7 +531,7 @@ public struct FacetListOptions: Codable {
 
 // MARK: - Sort Parameters
 
-public struct ProductSortParameter: Codable {
+public struct ProductSortParameter: Codable, Sendable {
     public let id: SortOrder?
     public let createdAt: SortOrder?
     public let updatedAt: SortOrder?
@@ -547,7 +547,7 @@ public struct ProductSortParameter: Codable {
     }
 }
 
-public struct CollectionSortParameter: Codable {
+public struct CollectionSortParameter: Codable, Sendable {
     public let id: SortOrder?
     public let createdAt: SortOrder?
     public let updatedAt: SortOrder?
@@ -565,7 +565,7 @@ public struct CollectionSortParameter: Codable {
     }
 }
 
-public struct FacetSortParameter: Codable {
+public struct FacetSortParameter: Codable, Sendable {
     public let id: SortOrder?
     public let createdAt: SortOrder?
     public let updatedAt: SortOrder?
@@ -583,7 +583,7 @@ public struct FacetSortParameter: Codable {
 
 // MARK: - Filter Parameters
 
-public struct ProductFilterParameter: Codable {
+public struct ProductFilterParameter: Codable, Sendable {
     public let id: IDOperators?
     public let createdAt: DateOperators?
     public let updatedAt: DateOperators?
@@ -605,7 +605,7 @@ public struct ProductFilterParameter: Codable {
     }
 }
 
-public struct CollectionFilterParameter: Codable {
+public struct CollectionFilterParameter: Codable, Sendable {
     public let id: IDOperators?
     public let createdAt: DateOperators?
     public let updatedAt: DateOperators?
@@ -631,7 +631,7 @@ public struct CollectionFilterParameter: Codable {
     }
 }
 
-public struct FacetFilterParameter: Codable {
+public struct FacetFilterParameter: Codable, Sendable {
     public let id: IDOperators?
     public let createdAt: DateOperators?
     public let updatedAt: DateOperators?
@@ -651,7 +651,7 @@ public struct FacetFilterParameter: Codable {
     }
 }
 
-public struct NumberOperators: Codable {
+public struct NumberOperators: Codable, Sendable {
     public let eq: Double?
     public let lt: Double?
     public let lte: Double?
@@ -669,7 +669,7 @@ public struct NumberOperators: Codable {
     }
 }
 
-public struct NumberRange: Codable {
+public struct NumberRange: Codable, Sendable {
     public let start: Double
     public let end: Double
     
@@ -681,7 +681,7 @@ public struct NumberRange: Codable {
 
 // MARK: - Operation Types
 
-public struct ConfigurableOperation: Codable, Hashable {
+public struct ConfigurableOperation: Codable, Hashable, Sendable {
     public let code: String
     public let args: [ConfigArg]
     
@@ -691,7 +691,7 @@ public struct ConfigurableOperation: Codable, Hashable {
     }
 }
 
-public struct ConfigArg: Codable, Hashable {
+public struct ConfigArg: Codable, Hashable, Sendable {
     public let name: String
     public let value: String
     
@@ -703,7 +703,7 @@ public struct ConfigArg: Codable, Hashable {
 
 // MARK: - Filter Operators (continued from SystemOperations)
 
-public struct IDOperators: Codable {
+public struct IDOperators: Codable, Sendable {
     public let eq: String?
     public let notEq: String?
     public let `in`: [String]?
@@ -717,7 +717,7 @@ public struct IDOperators: Codable {
     }
 }
 
-public struct StringOperators: Codable {
+public struct StringOperators: Codable, Sendable {
     public let eq: String?
     public let notEq: String?
     public let contains: String?
@@ -737,7 +737,7 @@ public struct StringOperators: Codable {
     }
 }
 
-public struct BooleanOperators: Codable {
+public struct BooleanOperators: Codable, Sendable {
     public let eq: Bool?
     
     public init(eq: Bool? = nil) {
@@ -745,7 +745,7 @@ public struct BooleanOperators: Codable {
     }
 }
 
-public struct DateOperators: Codable {
+public struct DateOperators: Codable, Sendable {
     public let eq: Date?
     public let before: Date?
     public let after: Date?
@@ -761,7 +761,7 @@ public struct DateOperators: Codable {
 
 // MARK: - Tag Types
 
-public struct Tag: Codable, Hashable {
+public struct Tag: Codable, Hashable, Sendable {
     public let id: String
     public let createdAt: Date
     public let updatedAt: Date

@@ -4,7 +4,7 @@ import SkipFoundation
 // MARK: - Payment Method
 
 /// Represents a payment method
-public struct PaymentMethod: Codable, Hashable, Identifiable {
+public struct PaymentMethod: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let code: String
     public let name: String
@@ -36,7 +36,7 @@ public struct PaymentMethod: Codable, Hashable, Identifiable {
 }
 
 /// Payment method translation
-public struct PaymentMethodTranslation: Codable, Hashable {
+public struct PaymentMethodTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     public let description: String
@@ -49,7 +49,7 @@ public struct PaymentMethodTranslation: Codable, Hashable {
 }
 
 /// Payment method quote for an order
-public struct PaymentMethodQuote: Codable, Hashable, Identifiable {
+public struct PaymentMethodQuote: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let code: String
     public let name: String
@@ -74,7 +74,7 @@ public struct PaymentMethodQuote: Codable, Hashable, Identifiable {
 // MARK: - Payment
 
 /// Payment states
-public enum PaymentState: String, Codable, CaseIterable {
+public enum PaymentState: String, Codable, CaseIterable, Sendable {
     case created = "Created"
     case authorized = "Authorized"
     case settled = "Settled"
@@ -84,7 +84,7 @@ public enum PaymentState: String, Codable, CaseIterable {
 }
 
 /// Represents a payment refund
-public struct Refund: Codable, Hashable, Identifiable {
+public struct Refund: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let total: Double
     public let reason: String?
@@ -118,7 +118,7 @@ public struct Refund: Codable, Hashable, Identifiable {
 }
 
 /// Represents a payment
-public struct Payment: Codable, Hashable, Identifiable {
+public struct Payment: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let transactionId: String?
     public let amount: Double
@@ -149,7 +149,7 @@ public struct Payment: Codable, Hashable, Identifiable {
 // MARK: - Payment Input
 
 /// Input for creating a payment
-public struct PaymentInput: Codable {
+public struct PaymentInput: Codable, Sendable {
     public let method: String
     public let metadata: [String: AnyCodable]?
     
@@ -162,7 +162,7 @@ public struct PaymentInput: Codable {
 // MARK: - Payment Errors
 
 /// Error when payment is declined
-public struct PaymentDeclinedError: Codable, Hashable, Error {
+public struct PaymentDeclinedError: Codable, Hashable, Error, Sendable {
     public let errorCode: ErrorCode
     public let message: String
     public let paymentErrorMessage: String
@@ -176,7 +176,7 @@ public struct PaymentDeclinedError: Codable, Hashable, Error {
 }
 
 /// Error when payment fails
-public struct PaymentFailedError: Codable, Hashable, Error {
+public struct PaymentFailedError: Codable, Hashable, Error, Sendable {
     public let errorCode: ErrorCode
     public let message: String
     public let paymentErrorMessage: String
@@ -190,7 +190,7 @@ public struct PaymentFailedError: Codable, Hashable, Error {
 }
 
 /// Error when payment method is ineligible
-public struct IneligiblePaymentMethodError: Codable, Hashable, Error {
+public struct IneligiblePaymentMethodError: Codable, Hashable, Error, Sendable {
     public let errorCode: ErrorCode
     public let message: String
     public let eligibilityCheckerMessage: String?

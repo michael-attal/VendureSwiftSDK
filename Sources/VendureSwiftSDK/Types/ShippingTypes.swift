@@ -4,7 +4,7 @@ import SkipFoundation
 // MARK: - Shipping Method
 
 /// Represents a shipping method
-public struct ShippingMethod: Codable, Hashable, Identifiable {
+public struct ShippingMethod: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let code: String
     public let name: String
@@ -36,7 +36,7 @@ public struct ShippingMethod: Codable, Hashable, Identifiable {
 }
 
 /// Shipping method translation
-public struct ShippingMethodTranslation: Codable, Hashable {
+public struct ShippingMethodTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     public let description: String
@@ -49,7 +49,7 @@ public struct ShippingMethodTranslation: Codable, Hashable {
 }
 
 /// Shipping method quote for an order
-public struct ShippingMethodQuote: Codable, Hashable, Identifiable {
+public struct ShippingMethodQuote: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let price: Double
     public let priceWithTax: Double
@@ -74,7 +74,7 @@ public struct ShippingMethodQuote: Codable, Hashable, Identifiable {
 }
 
 /// Shipping line in an order
-public struct ShippingLine: Codable, Hashable, Identifiable {
+public struct ShippingLine: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let shippingMethod: ShippingMethod
     public let price: Double
@@ -99,7 +99,7 @@ public struct ShippingLine: Codable, Hashable, Identifiable {
 // MARK: - Shipping Lists
 
 /// List of shipping methods
-public struct ShippingMethodList: Codable {
+public struct ShippingMethodList: Codable, Sendable {
     public let items: [ShippingMethod]
     public let totalItems: Int
     
@@ -112,7 +112,7 @@ public struct ShippingMethodList: Codable {
 // MARK: - Shipping Errors
 
 /// Error when shipping method is ineligible
-public struct IneligibleShippingMethodError: Codable, Hashable {
+public struct IneligibleShippingMethodError: Codable, Hashable, Sendable {
     public let errorCode: ErrorCode
     public let message: String
     public let eligibilityCheckerMessage: String?

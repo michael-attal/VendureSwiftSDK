@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Order Types
 
 /// Represents an order
-public struct Order: Codable, Hashable, Identifiable {
+public struct Order: Codable, Hashable, Identifiable, Sendable {
     /// An order is active as long as the payment process has not been completed
     public let active: Bool
     public let billingAddress: OrderAddress?
@@ -94,7 +94,7 @@ public struct Order: Codable, Hashable, Identifiable {
 }
 
 /// Represents an order address
-public struct OrderAddress: Codable, Hashable {
+public struct OrderAddress: Codable, Hashable, Sendable {
     public let fullName: String?
     public let company: String?
     public let streetLine1: String
@@ -124,7 +124,7 @@ public struct OrderAddress: Codable, Hashable {
 }
 
 /// Represents an order line
-public struct OrderLine: Codable, Hashable, Identifiable {
+public struct OrderLine: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let productVariant: ProductVariant
     public let featuredAsset: Asset?
@@ -165,7 +165,7 @@ public struct OrderLine: Codable, Hashable, Identifiable {
 }
 
 /// Represents a discount
-public struct Discount: Codable, Hashable, Identifiable {
+public struct Discount: Codable, Hashable, Identifiable, Sendable {
     public let adjustmentSource: String
     public let type: AdjustmentType
     public let description: String
@@ -185,13 +185,13 @@ public struct Discount: Codable, Hashable, Identifiable {
 }
 
 /// Adjustment types
-public enum AdjustmentType: String, Codable, CaseIterable {
+public enum AdjustmentType: String, Codable, CaseIterable, Sendable {
     case PROMOTION, DISTRIBUTED_ORDER_PROMOTION, OTHER
 }
 
 
 /// Represents a surcharge
-public struct Surcharge: Codable, Hashable, Identifiable {
+public struct Surcharge: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let description: String
     public let sku: String?
@@ -214,7 +214,7 @@ public struct Surcharge: Codable, Hashable, Identifiable {
 
 // MARK: - Fulfillment Types
 
-public struct Fulfillment: Codable, Hashable, Identifiable {
+public struct Fulfillment: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let state: String
     public let method: String
@@ -240,7 +240,7 @@ public struct Fulfillment: Codable, Hashable, Identifiable {
     }
 }
 
-public struct FulfillmentLine: Codable, Hashable, Identifiable {
+public struct FulfillmentLine: Codable, Hashable, Identifiable, Sendable {
     public let orderLineId: String
     public let quantity: Int
     public let orderLine: OrderLine
@@ -254,7 +254,7 @@ public struct FulfillmentLine: Codable, Hashable, Identifiable {
     }
 }
 
-public struct FulfillmentLineSummary: Codable, Hashable {
+public struct FulfillmentLineSummary: Codable, Hashable, Sendable {
     public let orderLine: OrderLine
     public let quantity: Int
     
@@ -266,7 +266,7 @@ public struct FulfillmentLineSummary: Codable, Hashable {
 
 // MARK: - History Types
 
-public struct HistoryEntryList: Codable, Hashable {
+public struct HistoryEntryList: Codable, Hashable, Sendable {
     public let items: [HistoryEntry]
     public let totalItems: Int
     
@@ -276,7 +276,7 @@ public struct HistoryEntryList: Codable, Hashable {
     }
 }
 
-public struct HistoryEntry: Codable, Hashable, Identifiable {
+public struct HistoryEntry: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let type: HistoryEntryType
     public let data: [String: AnyCodable]
@@ -293,7 +293,7 @@ public struct HistoryEntry: Codable, Hashable, Identifiable {
     }
 }
 
-public enum HistoryEntryType: String, Codable, CaseIterable {
+public enum HistoryEntryType: String, Codable, CaseIterable, Sendable {
     case CUSTOMER_REGISTERED, CUSTOMER_VERIFIED, CUSTOMER_DETAIL_UPDATED
     case CUSTOMER_ADDED_TO_GROUP, CUSTOMER_REMOVED_FROM_GROUP
     case CUSTOMER_ADDRESS_CREATED, CUSTOMER_ADDRESS_UPDATED, CUSTOMER_ADDRESS_DELETED

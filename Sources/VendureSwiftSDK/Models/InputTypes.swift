@@ -178,7 +178,7 @@ public struct UpdateOrderInput: Codable {
 }
 
 // MARK: - Search Input (Moved FacetValueFilterInput to maintain dependency)
-public struct FacetValueFilterInput: Codable {
+public struct FacetValueFilterInput: Codable, Sendable {
     public let and: String?
     public let or: [String]?
     

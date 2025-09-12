@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Product Types
 
 /// Represents a product in the catalog
-public struct Product: Codable, Hashable, Identifiable {
+public struct Product: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let slug: String
@@ -44,7 +44,7 @@ public struct Product: Codable, Hashable, Identifiable {
 }
 
 /// Represents a product variant
-public struct ProductVariant: Codable, Hashable, Identifiable {
+public struct ProductVariant: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let sku: String
@@ -99,7 +99,7 @@ public struct ProductVariant: Codable, Hashable, Identifiable {
 }
 
 /// Represents a product option
-public struct ProductOption: Codable, Hashable, Identifiable {
+public struct ProductOption: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let code: String
     public let name: String
@@ -121,7 +121,7 @@ public struct ProductOption: Codable, Hashable, Identifiable {
 }
 
 /// Represents a product option group
-public struct ProductOptionGroup: Codable, Hashable, Identifiable {
+public struct ProductOptionGroup: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let code: String
     public let name: String
@@ -148,7 +148,7 @@ public struct ProductOptionGroup: Codable, Hashable, Identifiable {
 }
 
 /// Product translation
-public struct ProductTranslation: Codable, Hashable {
+public struct ProductTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     public let slug: String
@@ -163,7 +163,7 @@ public struct ProductTranslation: Codable, Hashable {
 }
 
 /// Product variant translation
-public struct ProductVariantTranslation: Codable, Hashable {
+public struct ProductVariantTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     
@@ -174,7 +174,7 @@ public struct ProductVariantTranslation: Codable, Hashable {
 }
 
 /// Product option translation
-public struct ProductOptionTranslation: Codable, Hashable {
+public struct ProductOptionTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     
@@ -185,7 +185,7 @@ public struct ProductOptionTranslation: Codable, Hashable {
 }
 
 /// Product option group translation
-public struct ProductOptionGroupTranslation: Codable, Hashable {
+public struct ProductOptionGroupTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     
@@ -198,7 +198,7 @@ public struct ProductOptionGroupTranslation: Codable, Hashable {
 // MARK: - Search Types
 
 /// Search input for catalog search
-public struct SearchInput: Codable {
+public struct SearchInput: Codable, Sendable {
     public let term: String?
     public let facetValueFilters: [FacetValueFilterInput]?
     public let facetValueIds: [String]?
@@ -229,7 +229,7 @@ public struct SearchInput: Codable {
 }
 
 /// Search result sort parameter
-public struct SearchResultSortParameter: Codable {
+public struct SearchResultSortParameter: Codable, Sendable {
     public let name: SortOrder?
     public let price: SortOrder?
     
@@ -241,7 +241,7 @@ public struct SearchResultSortParameter: Codable {
 
 
 /// Search result
-public struct SearchResult: Codable, Hashable {
+public struct SearchResult: Codable, Hashable, Sendable {
     public let items: [SearchResultItem]
     public let totalItems: Int
     public let facetValues: [FacetValueResult]
@@ -254,7 +254,7 @@ public struct SearchResult: Codable, Hashable {
 }
 
 /// Search result item
-public struct SearchResultItem: Codable, Hashable, Identifiable {
+public struct SearchResultItem: Codable, Hashable, Identifiable, Sendable {
     public let productId: String
     public let productName: String
     public let productAsset: Asset?
@@ -299,7 +299,7 @@ public struct SearchResultItem: Codable, Hashable, Identifiable {
 }
 
 /// Search result price (can be single price or range)
-public enum SearchResultPrice: Codable, Hashable {
+public enum SearchResultPrice: Codable, Hashable, Sendable {
     case single(Double)
     case range(min: Double, max: Double)
     
@@ -334,7 +334,7 @@ public enum SearchResultPrice: Codable, Hashable {
 }
 
 /// Facet value result from search
-public struct FacetValueResult: Codable, Hashable {
+public struct FacetValueResult: Codable, Hashable, Sendable {
     public let facetValue: FacetValue
     public let count: Int
     
@@ -350,7 +350,7 @@ public typealias SearchResponse = SearchResult
 // MARK: - Collection Types
 
 /// Represents a collection
-public final class Collection: Codable, Hashable, Identifiable {
+public final class Collection: Codable, Hashable, Identifiable, @unchecked Sendable {
     public let id: String
     public let name: String
     public let slug: String
@@ -410,7 +410,7 @@ public final class Collection: Codable, Hashable, Identifiable {
 }
 
 /// Collection breadcrumb
-public struct CollectionBreadcrumb: Codable, Hashable, Identifiable {
+public struct CollectionBreadcrumb: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let slug: String
@@ -423,7 +423,7 @@ public struct CollectionBreadcrumb: Codable, Hashable, Identifiable {
 }
 
 /// Collection translation
-public struct CollectionTranslation: Codable, Hashable {
+public struct CollectionTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     public let slug: String
@@ -440,7 +440,7 @@ public struct CollectionTranslation: Codable, Hashable {
 // MARK: - Facet Types
 
 /// Represents a facet
-public struct Facet: Codable, Hashable, Identifiable {
+public struct Facet: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let code: String
@@ -469,7 +469,7 @@ public struct Facet: Codable, Hashable, Identifiable {
 }
 
 /// Represents a facet value
-public struct FacetValue: Codable, Hashable, Identifiable {
+public struct FacetValue: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let code: String
@@ -496,7 +496,7 @@ public struct FacetValue: Codable, Hashable, Identifiable {
 }
 
 /// Facet translation
-public struct FacetTranslation: Codable, Hashable {
+public struct FacetTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     
@@ -507,7 +507,7 @@ public struct FacetTranslation: Codable, Hashable {
 }
 
 /// Facet value translation
-public struct FacetValueTranslation: Codable, Hashable {
+public struct FacetValueTranslation: Codable, Hashable, Sendable {
     public let languageCode: LanguageCode
     public let name: String
     
@@ -519,7 +519,7 @@ public struct FacetValueTranslation: Codable, Hashable {
 
 
 /// Search result asset
-public struct SearchResultAsset: Codable, Hashable, Identifiable {
+public struct SearchResultAsset: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let preview: String
     public let focalPoint: Coordinate?

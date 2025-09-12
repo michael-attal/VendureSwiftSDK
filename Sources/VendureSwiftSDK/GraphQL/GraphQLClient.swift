@@ -63,7 +63,7 @@ public struct GraphQLErrorLocation: Codable {
 }
 
 /// Helper for encoding/decoding Any values in JSON
-public struct AnyCodable: Codable, Hashable, Equatable {
+public struct AnyCodable: Codable, Hashable, Equatable, @unchecked Sendable {
     public let value: Any
     
     public init(_ value: Any) {
