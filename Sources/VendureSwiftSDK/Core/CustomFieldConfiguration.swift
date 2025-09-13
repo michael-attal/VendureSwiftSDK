@@ -128,8 +128,8 @@ extension CustomField {
 // MARK: - Global Configuration
 
 /// Global SDK configuration for custom fields
-public class VendureConfiguration {
-    public static var shared = VendureConfiguration()
+public class VendureConfiguration: @unchecked Sendable {
+    nonisolated(unsafe) public static var shared = VendureConfiguration()
     
     private var _customFields: [CustomField] = []
     private let queue = DispatchQueue(label: "vendure.configuration", attributes: .concurrent)
