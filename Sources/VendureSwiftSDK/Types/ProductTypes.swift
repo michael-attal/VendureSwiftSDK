@@ -606,7 +606,7 @@ extension CatalogProductList {
     /// Convert to full ProductList for backwards compatibility
     public func toProductList() -> ProductList {
         let products = self.items.map { catalogProduct in
-            print("[toProductList] Converting product: \(catalogProduct.id), customFields: \(catalogProduct.customFields)")
+            print("[toProductList] Converting product: \(catalogProduct.id), customFields: \(String(describing: catalogProduct.customFields))")
             return catalogProduct.toProduct()
         }
         return ProductList(
