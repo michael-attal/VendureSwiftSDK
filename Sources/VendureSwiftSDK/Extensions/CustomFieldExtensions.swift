@@ -257,7 +257,7 @@ extension Collection {
 // MARK: - JSON Decoder Extension to automatically populate extended fields
 
 /// Extension to automatically populate extended fields during JSON decoding
-public class ExtendedFieldJSONDecoder: JSONDecoder {
+public class ExtendedFieldJSONDecoder: JSONDecoder, @unchecked Sendable {
     
     public override init() {
         super.init()

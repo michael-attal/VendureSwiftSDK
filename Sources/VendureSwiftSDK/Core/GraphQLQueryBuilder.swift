@@ -678,16 +678,7 @@ public class GraphQLQueryBuilder {
 /// Extension to help manage custom fields in operations
 extension VendureConfiguration {
     
-    /// Helper to determine whether a query should include custom fields
-    public func shouldIncludeCustomFields(for type: String, userRequested: Bool? = nil) -> Bool {
-        // If the user has explicitly requested or refused, respect that choice.
-        if let userRequested = userRequested {
-            return userRequested
-        }
-        
-        // By default, include custom fields if they are configured.
-        return hasCustomFields(for: type)
-    }
+    // Note: shouldIncludeCustomFields method is defined in CustomFieldConfiguration.swift
     
     /// Get the list of types that have custom fields configured
     public func getTypesWithCustomFields() -> Set<String> {

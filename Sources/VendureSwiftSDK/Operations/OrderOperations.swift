@@ -49,7 +49,14 @@ public actor OrderOperations {
         }
         """
         
-        let variables: [String: Any] = ["input": input]
+        let variables: [String: Any]
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(input),
+           let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            variables = ["input": dict]
+        } else {
+            variables = [:]
+        }
         return try await vendure.custom.mutate(query, variables: variables, responseType: Order.self)
     }
     
@@ -83,7 +90,14 @@ public actor OrderOperations {
         }
         """
         
-        let variables: [String: Any] = ["input": input]
+        let variables: [String: Any]
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(input),
+           let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            variables = ["input": dict]
+        } else {
+            variables = [:]
+        }
         return try await vendure.custom.mutate(query, variables: variables, responseType: Order.self)
     }
     
@@ -139,7 +153,14 @@ public actor OrderOperations {
         }
         """
         
-        let variables: [String: Any] = ["input": input]
+        let variables: [String: Any]
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(input),
+           let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            variables = ["input": dict]
+        } else {
+            variables = [:]
+        }
         return try await vendure.custom.mutate(query, variables: variables, responseType: Order.self)
     }
     

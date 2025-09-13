@@ -287,6 +287,18 @@ extension VendureConfiguration {
         return !getCustomFieldsFor(type: type).isEmpty
     }
     
+    /// Determine if custom fields should be included in queries
+    /// This is used by operations to decide whether to inject custom fields
+    public func shouldIncludeCustomFields(for type: String, userRequested: Bool?) -> Bool {
+        // If user explicitly requested custom fields
+        if let userRequested = userRequested {
+            return userRequested
+        }
+        
+        // Default: include custom fields if any are configured for this type
+        return hasCustomFields(for: type)
+    }
+    
     /// Get a summary of the configuration for debugging
     public func getConfigurationSummary() -> String {
         let fields = customFields

@@ -15,7 +15,18 @@ public actor CatalogOperations {
         let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Collection", userRequested: includeCustomFields)
         let query = GraphQLQueryBuilder.buildCollectionQuery(includeCustomFields: shouldIncludeCustomFields)
         
-        let variables: [String: Any] = ["options": options as Any]
+        let variables: [String: Any]
+        if let options = options {
+            let encoder = JSONEncoder()
+            if let data = try? encoder.encode(options),
+               let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                variables = ["options": dict]
+            } else {
+                variables = [:]
+            }
+        } else {
+            variables = [:]
+        }
         return try await vendure.custom.query(query, variables: variables, expectedDataType: "collections", responseType: CollectionList.self)
     }
     
@@ -56,7 +67,14 @@ public actor CatalogOperations {
         // Handle nil options properly to avoid JSONSerialization issues
         let variables: [String: Any]
         if let options = options {
-            variables = ["options": options]
+            // Convert ProductListOptions to a dictionary to ensure JSON serialization works
+            let encoder = JSONEncoder()
+            if let data = try? encoder.encode(options),
+               let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                variables = ["options": dict]
+            } else {
+                variables = [:]
+            }
         } else {
             variables = [:]
         }
@@ -92,7 +110,14 @@ public actor CatalogOperations {
         let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "SearchResult", userRequested: includeCustomFields)
         let query = GraphQLQueryBuilder.buildSearchQuery(includeCustomFields: shouldIncludeCustomFields)
         
-        let variables = ["input": input]
+        let variables: [String: Any]
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(input),
+           let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            variables = ["input": dict]
+        } else {
+            variables = [:]  // Fallback if encoding fails
+        }
         return try await vendure.custom.query(query, variables: variables, expectedDataType: "search", responseType: SearchResult.self)
     }
 }
