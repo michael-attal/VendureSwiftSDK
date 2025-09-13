@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Order Types
 
 /// Represents an order
-public struct Order: Codable, Hashable, Identifiable, Sendable {
+public struct Order: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     /// An order is active as long as the payment process has not been completed
     public let active: Bool
     public let billingAddress: OrderAddress?
@@ -13,7 +13,7 @@ public struct Order: Codable, Hashable, Identifiable, Sendable {
     public let couponCodes: [String]
     public let createdAt: Date
     public let currencyCode: CurrencyCode
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let customer: Customer?
     public let discounts: [Discount]
     public let fulfillments: [Fulfillment]?
@@ -91,6 +91,52 @@ public struct Order: Codable, Hashable, Identifiable, Sendable {
         self.type = type
         self.updatedAt = updatedAt
     }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.active = try container.decode(Bool.self, forKey: .active)
+        self.billingAddress = try container.decodeIfPresent(OrderAddress.self, forKey: .billingAddress)
+        self.code = try container.decode(String.self, forKey: .code)
+        self.couponCodes = try container.decode([String].self, forKey: .couponCodes)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.currencyCode = try container.decode(CurrencyCode.self, forKey: .currencyCode)
+        self.customer = try container.decodeIfPresent(Customer.self, forKey: .customer)
+        self.discounts = try container.decode([Discount].self, forKey: .discounts)
+        self.fulfillments = try container.decodeIfPresent([Fulfillment].self, forKey: .fulfillments)
+        self.history = try container.decode(HistoryEntryList.self, forKey: .history)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.lines = try container.decode([OrderLine].self, forKey: .lines)
+        self.orderPlacedAt = try container.decodeIfPresent(Date.self, forKey: .orderPlacedAt)
+        self.payments = try container.decodeIfPresent([Payment].self, forKey: .payments)
+        self.promotions = try container.decode([Promotion].self, forKey: .promotions)
+        self.shipping = try container.decode(Double.self, forKey: .shipping)
+        self.shippingAddress = try container.decodeIfPresent(OrderAddress.self, forKey: .shippingAddress)
+        self.shippingLines = try container.decode([ShippingLine].self, forKey: .shippingLines)
+        self.shippingWithTax = try container.decode(Double.self, forKey: .shippingWithTax)
+        self.state = try container.decode(String.self, forKey: .state)
+        self.subTotal = try container.decode(Double.self, forKey: .subTotal)
+        self.subTotalWithTax = try container.decode(Double.self, forKey: .subTotalWithTax)
+        self.surcharges = try container.decode([Surcharge].self, forKey: .surcharges)
+        self.taxSummary = try container.decode([OrderTaxSummary].self, forKey: .taxSummary)
+        self.total = try container.decode(Double.self, forKey: .total)
+        self.totalQuantity = try container.decode(Int.self, forKey: .totalQuantity)
+        self.totalWithTax = try container.decode(Double.self, forKey: .totalWithTax)
+        self.type = try container.decode(OrderType.self, forKey: .type)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "Order")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case active, billingAddress, code, couponCodes, createdAt, currencyCode, customFields, customer, discounts, fulfillments, history, id, lines, orderPlacedAt, payments, promotions, shipping, shippingAddress, shippingLines, shippingWithTax, state, subTotal, subTotalWithTax, surcharges, taxSummary, total, totalQuantity, totalWithTax, type, updatedAt
+    }
 }
 
 /// Represents an order address
@@ -124,7 +170,7 @@ public struct OrderAddress: Codable, Hashable, Sendable {
 }
 
 /// Represents an order line
-public struct OrderLine: Codable, Hashable, Identifiable, Sendable {
+public struct OrderLine: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let productVariant: ProductVariant
     public let featuredAsset: Asset?
@@ -137,7 +183,7 @@ public struct OrderLine: Codable, Hashable, Identifiable, Sendable {
     public let discountedLinePriceWithTax: Double
     public let discounts: [Discount]
     public let taxLines: [TaxLine]
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -161,6 +207,37 @@ public struct OrderLine: Codable, Hashable, Identifiable, Sendable {
         self.customFields = customFields
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.productVariant = try container.decode(ProductVariant.self, forKey: .productVariant)
+        self.featuredAsset = try container.decodeIfPresent(Asset.self, forKey: .featuredAsset)
+        self.unitPrice = try container.decode(Double.self, forKey: .unitPrice)
+        self.unitPriceWithTax = try container.decode(Double.self, forKey: .unitPriceWithTax)
+        self.quantity = try container.decode(Int.self, forKey: .quantity)
+        self.linePrice = try container.decode(Double.self, forKey: .linePrice)
+        self.linePriceWithTax = try container.decode(Double.self, forKey: .linePriceWithTax)
+        self.discountedLinePrice = try container.decode(Double.self, forKey: .discountedLinePrice)
+        self.discountedLinePriceWithTax = try container.decode(Double.self, forKey: .discountedLinePriceWithTax)
+        self.discounts = try container.decode([Discount].self, forKey: .discounts)
+        self.taxLines = try container.decode([TaxLine].self, forKey: .taxLines)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "OrderLine")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, productVariant, featuredAsset, unitPrice, unitPriceWithTax, quantity, linePrice, linePriceWithTax, discountedLinePrice, discountedLinePriceWithTax, discounts, taxLines, customFields, createdAt, updatedAt
     }
 }
 

@@ -4,7 +4,7 @@ import SkipFoundation
 // MARK: - Promotion
 
 /// Represents a promotion
-public struct Promotion: Codable, Hashable, Identifiable, Sendable {
+public struct Promotion: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let name: String
     public let description: String
@@ -17,9 +17,40 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
     public let startsAt: Date?
     public let endsAt: Date?
     public let translations: [PromotionTranslation]
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decode(String.self, forKey: .description)
+        enabled = try container.decode(Bool.self, forKey: .enabled)
+        conditions = try container.decode([ConfigurableOperation].self, forKey: .conditions)
+        actions = try container.decode([ConfigurableOperation].self, forKey: .actions)
+        couponCode = try container.decodeIfPresent(String.self, forKey: .couponCode)
+        perCustomerUsageLimit = try container.decodeIfPresent(Int.self, forKey: .perCustomerUsageLimit)
+        usageLimit = try container.decodeIfPresent(Int.self, forKey: .usageLimit)
+        startsAt = try container.decodeIfPresent(Date.self, forKey: .startsAt)
+        endsAt = try container.decodeIfPresent(Date.self, forKey: .endsAt)
+        translations = try container.decode([PromotionTranslation].self, forKey: .translations)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "Promotion")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, description, enabled, conditions, actions, couponCode, perCustomerUsageLimit, usageLimit, startsAt, endsAt, translations, customFields, createdAt, updatedAt
+    }
     
     public init(id: String, name: String, description: String, enabled: Bool,
                 conditions: [ConfigurableOperation] = [], actions: [ConfigurableOperation] = [],

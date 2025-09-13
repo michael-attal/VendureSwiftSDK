@@ -40,6 +40,17 @@ public class GraphQLQueryBuilder {
                 currencyCode
                 sku
                 stockLevel
+        """
+        
+        // Inject custom fields for ProductVariant in catalog query
+        if includeCustomFields {
+            let variantCustomFields = VendureConfiguration.shared.injectCustomFields(for: "ProductVariant")
+            if !variantCustomFields.isEmpty {
+                query += "\n                \(variantCustomFields)"
+            }
+        }
+        
+        query += """
               }
         """
         

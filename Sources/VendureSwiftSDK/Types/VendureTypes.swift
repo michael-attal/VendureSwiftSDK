@@ -179,7 +179,7 @@ public struct LocalizedString: Codable, Hashable, Sendable {
 // MARK: - Asset Types
 
 /// Represents an asset (image, document, etc.)
-public struct Asset: Codable, Hashable, Identifiable, Sendable {
+public struct Asset: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let name: String
     public let type: AssetType
@@ -191,7 +191,7 @@ public struct Asset: Codable, Hashable, Identifiable, Sendable {
     public let preview: String
     public let focalPoint: Coordinate?
     public let tags: [Tag]
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -214,11 +214,41 @@ public struct Asset: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.type = try container.decode(AssetType.self, forKey: .type)
+        self.fileSize = try container.decode(Int.self, forKey: .fileSize)
+        self.mimeType = try container.decode(String.self, forKey: .mimeType)
+        self.width = try container.decodeIfPresent(Int.self, forKey: .width)
+        self.height = try container.decodeIfPresent(Int.self, forKey: .height)
+        self.source = try container.decode(String.self, forKey: .source)
+        self.preview = try container.decode(String.self, forKey: .preview)
+        self.focalPoint = try container.decodeIfPresent(Coordinate.self, forKey: .focalPoint)
+        self.tags = try container.decode([Tag].self, forKey: .tags)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "Asset")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, type, fileSize, mimeType, width, height, source, preview, focalPoint, tags, customFields, createdAt, updatedAt
+    }
 }
 
 /// Asset type enumeration
 public enum AssetType: String, Codable, CaseIterable, Sendable {
-    case IMAGE, VIDEO, AUDIO, OTHER
+    case IMAGE, VIDEO, AUDIO, BINARY, OTHER
 }
 
 /// Represents a list of assets with pagination info
@@ -235,7 +265,7 @@ public struct AssetList: Codable, Hashable, Sendable {
 // MARK: - Address Types
 
 /// Represents an address
-public struct Address: Codable, Hashable, Identifiable, Sendable {
+public struct Address: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let fullName: String?
     public let company: String?
@@ -248,7 +278,7 @@ public struct Address: Codable, Hashable, Identifiable, Sendable {
     public let phoneNumber: String?
     public let defaultShippingAddress: Bool?
     public let defaultBillingAddress: Bool?
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -273,6 +303,37 @@ public struct Address: Codable, Hashable, Identifiable, Sendable {
         self.customFields = customFields
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.fullName = try container.decodeIfPresent(String.self, forKey: .fullName)
+        self.company = try container.decodeIfPresent(String.self, forKey: .company)
+        self.streetLine1 = try container.decode(String.self, forKey: .streetLine1)
+        self.streetLine2 = try container.decodeIfPresent(String.self, forKey: .streetLine2)
+        self.city = try container.decodeIfPresent(String.self, forKey: .city)
+        self.province = try container.decodeIfPresent(String.self, forKey: .province)
+        self.postalCode = try container.decodeIfPresent(String.self, forKey: .postalCode)
+        self.country = try container.decode(Country.self, forKey: .country)
+        self.phoneNumber = try container.decodeIfPresent(String.self, forKey: .phoneNumber)
+        self.defaultShippingAddress = try container.decodeIfPresent(Bool.self, forKey: .defaultShippingAddress)
+        self.defaultBillingAddress = try container.decodeIfPresent(Bool.self, forKey: .defaultBillingAddress)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "Address")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, fullName, company, streetLine1, streetLine2, city, province, postalCode, country, phoneNumber, defaultShippingAddress, defaultBillingAddress, customFields, createdAt, updatedAt
     }
 }
 
@@ -307,7 +368,7 @@ public struct CountryTranslation: Codable, Hashable, Sendable {
 // MARK: - Channel and Zone
 
 /// Represents a channel
-public struct Channel: Codable, Hashable, Identifiable, Sendable {
+public struct Channel: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let code: String
     public let token: String
@@ -320,7 +381,7 @@ public struct Channel: Codable, Hashable, Identifiable, Sendable {
     public let defaultTaxZone: Zone?
     public let pricesIncludeTax: Bool
     public let seller: Seller?
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -346,14 +407,45 @@ public struct Channel: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.code = try container.decode(String.self, forKey: .code)
+        self.token = try container.decode(String.self, forKey: .token)
+        self.description = try container.decodeIfPresent(String.self, forKey: .description)
+        self.defaultLanguageCode = try container.decode(LanguageCode.self, forKey: .defaultLanguageCode)
+        self.availableLanguageCodes = try container.decode([LanguageCode].self, forKey: .availableLanguageCodes)
+        self.defaultCurrencyCode = try container.decode(CurrencyCode.self, forKey: .defaultCurrencyCode)
+        self.availableCurrencyCodes = try container.decode([CurrencyCode].self, forKey: .availableCurrencyCodes)
+        self.defaultShippingZone = try container.decodeIfPresent(Zone.self, forKey: .defaultShippingZone)
+        self.defaultTaxZone = try container.decodeIfPresent(Zone.self, forKey: .defaultTaxZone)
+        self.pricesIncludeTax = try container.decode(Bool.self, forKey: .pricesIncludeTax)
+        self.seller = try container.decodeIfPresent(Seller.self, forKey: .seller)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "Channel")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, code, token, description, defaultLanguageCode, availableLanguageCodes, defaultCurrencyCode, availableCurrencyCodes, defaultShippingZone, defaultTaxZone, pricesIncludeTax, seller, customFields, createdAt, updatedAt
+    }
 }
 
 /// Represents a zone
-public struct Zone: Codable, Hashable, Identifiable, Sendable {
+public struct Zone: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let name: String
     public let members: [Region]
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -365,6 +457,28 @@ public struct Zone: Codable, Hashable, Identifiable, Sendable {
         self.customFields = customFields
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.members = try container.decode([Region].self, forKey: .members)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "Zone")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, members, customFields, createdAt, updatedAt
     }
 }
 

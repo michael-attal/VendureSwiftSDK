@@ -1,5 +1,56 @@
 import Foundation
 
+// MARK: - Dynamic Coding Keys for extended fields
+struct DynamicCodingKeys: CodingKey {
+    let stringValue: String
+    let intValue: Int?
+    
+    init(stringValue: String) {
+        self.stringValue = stringValue
+        self.intValue = nil
+    }
+    
+    init(intValue: Int) {
+        self.stringValue = String(intValue)
+        self.intValue = intValue
+    }
+}
+
+// MARK: - Custom Fields Decoder Protocol
+protocol CustomFieldsDecodable {
+    var customFields: [String: AnyCodable]? { get set }
+    associatedtype CodingKeys: CaseIterable, CodingKey, RawRepresentable where CodingKeys.RawValue == String
+}
+
+extension CustomFieldsDecodable {
+    /// Generic method to decode custom fields by capturing unknown keys
+    mutating func decodeCustomFields(from decoder: Decoder, typeName: String) throws {
+        var decodedCustomFields: [String: AnyCodable] = self.customFields ?? [:]
+        
+        // Capture extended fields by checking for unknown keys
+        if let allKeysContainer = try? decoder.container(keyedBy: DynamicCodingKeys.self) {
+            print("[\(typeName)] All keys: \(allKeysContainer.allKeys.map { $0.stringValue })")
+            for key in allKeysContainer.allKeys {
+                // Skip known standard fields
+                let knownKeys = Self.CodingKeys.allCases.map { $0.rawValue }
+                if !knownKeys.contains(key.stringValue) {
+                    print("[\(typeName)] Found extended field: \(key.stringValue)")
+                    // This is likely an extended field - capture it
+                    if let value = try? allKeysContainer.decode(AnyCodable.self, forKey: key) {
+                        decodedCustomFields[key.stringValue] = value
+                        print("[\(typeName)] Captured extended field: \(key.stringValue) = \(value)")
+                    } else {
+                        print("[\(typeName)] Failed to decode extended field: \(key.stringValue)")
+                    }
+                }
+            }
+        }
+        
+        self.customFields = decodedCustomFields.isEmpty ? nil : decodedCustomFields
+        print("[\(typeName)] Final customFields: \(self.customFields ?? [:])")
+    }
+}
+
 // MARK: - Product Types
 
 /// Represents a product in the catalog
@@ -363,7 +414,7 @@ public struct CatalogAsset: Codable, Hashable, Identifiable, Sendable {
 }
 
 /// Simplified product for catalog listing
-public struct CatalogProduct: Codable, Hashable, Identifiable, Sendable {
+public struct CatalogProduct: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let name: String
     public let slug: String
@@ -371,9 +422,11 @@ public struct CatalogProduct: Codable, Hashable, Identifiable, Sendable {
     public let enabled: Bool
     public let featuredAsset: CatalogAsset?
     public let variants: [CatalogProductVariant]
+    public var customFields: [String: AnyCodable]?
     
     public init(id: String, name: String, slug: String, description: String, enabled: Bool,
-                featuredAsset: CatalogAsset? = nil, variants: [CatalogProductVariant] = []) {
+                featuredAsset: CatalogAsset? = nil, variants: [CatalogProductVariant] = [], 
+                customFields: [String: AnyCodable]? = nil) {
         self.id = id
         self.name = name
         self.slug = slug
@@ -381,11 +434,36 @@ public struct CatalogProduct: Codable, Hashable, Identifiable, Sendable {
         self.enabled = enabled
         self.featuredAsset = featuredAsset
         self.variants = variants
+        self.customFields = customFields
+    }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.slug = try container.decode(String.self, forKey: .slug)
+        self.description = try container.decode(String.self, forKey: .description)
+        self.enabled = try container.decode(Bool.self, forKey: .enabled)
+        self.featuredAsset = try container.decodeIfPresent(CatalogAsset.self, forKey: .featuredAsset)
+        self.variants = try container.decode([CatalogProductVariant].self, forKey: .variants)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "CatalogProduct")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, slug, description, enabled, featuredAsset, variants, customFields
     }
 }
 
 /// Simplified product variant for catalog listing
-public struct CatalogProductVariant: Codable, Hashable, Identifiable, Sendable {
+public struct CatalogProductVariant: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let name: String
     public let sku: String
@@ -393,9 +471,10 @@ public struct CatalogProductVariant: Codable, Hashable, Identifiable, Sendable {
     public let priceWithTax: Double
     public let currencyCode: CurrencyCode
     public let stockLevel: String
+    public var customFields: [String: AnyCodable]?
     
     public init(id: String, name: String, sku: String, price: Double, priceWithTax: Double,
-                currencyCode: CurrencyCode, stockLevel: String) {
+                currencyCode: CurrencyCode, stockLevel: String, customFields: [String: AnyCodable]? = nil) {
         self.id = id
         self.name = name
         self.sku = sku
@@ -403,6 +482,31 @@ public struct CatalogProductVariant: Codable, Hashable, Identifiable, Sendable {
         self.priceWithTax = priceWithTax
         self.currencyCode = currencyCode
         self.stockLevel = stockLevel
+        self.customFields = customFields
+    }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.sku = try container.decode(String.self, forKey: .sku)
+        self.price = try container.decode(Double.self, forKey: .price)
+        self.priceWithTax = try container.decode(Double.self, forKey: .priceWithTax)
+        self.currencyCode = try container.decode(CurrencyCode.self, forKey: .currencyCode)
+        self.stockLevel = try container.decode(String.self, forKey: .stockLevel)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "CatalogProductVariant")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, sku, price, priceWithTax, currencyCode, stockLevel, customFields
     }
 }
 
@@ -444,23 +548,28 @@ extension CatalogAsset {
 extension CatalogProduct {
     /// Convert to full Product model with default values for missing fields
     public func toProduct() -> Product {
-        return Product(
+        print("[CatalogProduct.toProduct] Converting product \(self.id)")
+        print("[CatalogProduct.toProduct] Source customFields: \(self.customFields ?? [:])")
+        
+        let product = Product(
             id: self.id,
             name: self.name,
             slug: self.slug,
             description: self.description,
             enabled: self.enabled,
-            featuredAsset: self.featuredAsset?.toAsset(),
-            assets: self.featuredAsset.map { [$0.toAsset()] } ?? [],
+            assets: self.featuredAsset != nil ? [self.featuredAsset!.toAsset()] : [],
             variants: self.variants.map { $0.toProductVariant() },
             optionGroups: [],
-            facetValues: [],
+            facetValues: [], // Not available in CatalogProduct
             translations: [],
-            customFields: nil,
+            customFields: self.customFields,
             languageCode: .en, // Default to English
             createdAt: Date(),
             updatedAt: Date()
         )
+        
+        print("[CatalogProduct.toProduct] Result customFields: \(product.customFields ?? [:])")
+        return product
     }
 }
 
@@ -486,7 +595,7 @@ extension CatalogProductVariant {
             options: [],
             facetValues: [],
             translations: [],
-            customFields: nil,
+            customFields: self.customFields,
             createdAt: Date(),
             updatedAt: Date()
         )
@@ -496,8 +605,12 @@ extension CatalogProductVariant {
 extension CatalogProductList {
     /// Convert to full ProductList for backwards compatibility
     public func toProductList() -> ProductList {
+        let products = self.items.map { catalogProduct in
+            print("[toProductList] Converting product: \(catalogProduct.id), customFields: \(catalogProduct.customFields)")
+            return catalogProduct.toProduct()
+        }
         return ProductList(
-            items: self.items.map { $0.toProduct() },
+            items: products,
             totalItems: self.totalItems
         )
     }
@@ -522,7 +635,7 @@ public final class Collection: Codable, Hashable, Identifiable, @unchecked Senda
     public let filters: [ConfigurableOperation]
     public let translations: [CollectionTranslation]
     public let productVariants: ProductVariantList
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let languageCode: LanguageCode
     public let createdAt: Date
     public let updatedAt: Date
@@ -553,6 +666,60 @@ public final class Collection: Codable, Hashable, Identifiable, @unchecked Senda
         self.languageCode = languageCode
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.slug = try container.decode(String.self, forKey: .slug)
+        self.description = try container.decode(String.self, forKey: .description)
+        self.breadcrumbs = try container.decode([CollectionBreadcrumb].self, forKey: .breadcrumbs)
+        self.position = try container.decode(Int.self, forKey: .position)
+        self.isRoot = try container.decode(Bool.self, forKey: .isRoot)
+        self.parent = try container.decodeIfPresent(Collection.self, forKey: .parent)
+        self.parentId = try container.decodeIfPresent(String.self, forKey: .parentId)
+        self.children = try container.decodeIfPresent([Collection].self, forKey: .children)
+        self.featuredAsset = try container.decodeIfPresent(Asset.self, forKey: .featuredAsset)
+        self.assets = try container.decode([Asset].self, forKey: .assets)
+        self.filters = try container.decode([ConfigurableOperation].self, forKey: .filters)
+        self.translations = try container.decode([CollectionTranslation].self, forKey: .translations)
+        self.productVariants = try container.decode(ProductVariantList.self, forKey: .productVariants)
+        self.languageCode = try container.decode(LanguageCode.self, forKey: .languageCode)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        var decodedCustomFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields) ?? [:]
+        
+        // Capture extended fields by checking for unknown keys
+        if let allKeysContainer = try? decoder.container(keyedBy: DynamicCodingKeys.self) {
+            print("[Collection] All keys: \(allKeysContainer.allKeys.map { $0.stringValue })")
+            for key in allKeysContainer.allKeys {
+                // Skip known standard fields
+                let knownKeys = CodingKeys.allCases.map { $0.rawValue }
+                if !knownKeys.contains(key.stringValue) {
+                    print("[Collection] Found extended field: \(key.stringValue)")
+                    // This is likely an extended field - capture it
+                    if let value = try? allKeysContainer.decode(AnyCodable.self, forKey: key) {
+                        decodedCustomFields[key.stringValue] = value
+                        print("[Collection] Captured extended field: \(key.stringValue) = \(value)")
+                    } else {
+                        print("[Collection] Failed to decode extended field: \(key.stringValue)")
+                    }
+                }
+            }
+        }
+        
+        self.customFields = decodedCustomFields.isEmpty ? nil : decodedCustomFields
+        print("[Collection] Final customFields: \(self.customFields ?? [:])")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, slug, description, breadcrumbs, position, isRoot, parent, parentId, children, featuredAsset, assets, filters, translations, productVariants, customFields, languageCode, createdAt, updatedAt
     }
     
     // MARK: - Hashable
@@ -596,14 +763,14 @@ public struct CollectionTranslation: Codable, Hashable, Sendable {
 // MARK: - Facet Types
 
 /// Represents a facet
-public struct Facet: Codable, Hashable, Identifiable, Sendable {
+public struct Facet: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let name: String
     public let code: String
     public let isPrivate: Bool
     public let values: [FacetValue]
     public let translations: [FacetTranslation]
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let languageCode: LanguageCode
     public let createdAt: Date
     public let updatedAt: Date
@@ -622,17 +789,43 @@ public struct Facet: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.code = try container.decode(String.self, forKey: .code)
+        self.isPrivate = try container.decode(Bool.self, forKey: .isPrivate)
+        self.values = try container.decode([FacetValue].self, forKey: .values)
+        self.translations = try container.decode([FacetTranslation].self, forKey: .translations)
+        self.languageCode = try container.decode(LanguageCode.self, forKey: .languageCode)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "Facet")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, code, isPrivate, values, translations, customFields, languageCode, createdAt, updatedAt
+    }
 }
 
 /// Represents a facet value
-public struct FacetValue: Codable, Hashable, Identifiable, Sendable {
+public struct FacetValue: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let name: String
     public let code: String
     public let facet: Facet
     public let facetId: String
     public let translations: [FacetValueTranslation]
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -648,6 +841,31 @@ public struct FacetValue: Codable, Hashable, Identifiable, Sendable {
         self.customFields = customFields
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.code = try container.decode(String.self, forKey: .code)
+        self.facet = try container.decode(Facet.self, forKey: .facet)
+        self.facetId = try container.decode(String.self, forKey: .facetId)
+        self.translations = try container.decode([FacetValueTranslation].self, forKey: .translations)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "FacetValue")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, code, facet, facetId, translations, customFields, createdAt, updatedAt
     }
 }
 

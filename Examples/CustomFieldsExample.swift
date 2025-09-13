@@ -35,23 +35,36 @@ class CustomFieldsExample {
             .vendureCustomField(name: "loyaltyLevel", applicableTypes: ["Customer"])
         )
         
+        // Custom fields for shipping methods
+        VendureConfiguration.shared.addCustomField(
+            .vendureCustomFields(names: ["maxWeight", "trackingEnabled", "estimatedDays"], applicableTypes: ["ShippingMethod"])
+        )
+        
+        // Custom fields for payment methods
+        VendureConfiguration.shared.addCustomField(
+            .vendureCustomFields(names: ["stripeSettings", "processingFee"], applicableTypes: ["PaymentMethod"])
+        )
+        
+        // Custom fields for tax categories
+        VendureConfiguration.shared.addCustomField(
+            .vendureCustomField(name: "taxCode", applicableTypes: ["TaxCategory"])
+        )
+        
+        // Custom fields for promotions
+        VendureConfiguration.shared.addCustomField(
+            .vendureCustomFields(names: ["category", "targetAudience"], applicableTypes: ["Promotion"])
+        )
+        
         // Display configuration
         let summary = VendureConfiguration.shared.getConfigurationSummary()
         print(summary)
         
-        // Configuration validation
-        let warnings = VendureConfiguration.shared.validateConfiguration()
-        if !warnings.isEmpty {
-            print("⚠️ Configuration warnings:")
-            warnings.forEach { print("   - \($0)") }
-        } else {
-            print("✅ Configuration validated successfully")
-        }
+        print("✅ Custom fields configuration completed")
     }
     
     /// Vendure SDK initialization
     func initializeVendure() async throws {
-        vendure = try await VendureSwiftSDK.initialize(
+        vendure = try await Vendure.initialize(
             endpoint: "https://demo.vendure.io/shop-api",
             useGuestSession: true
         )
@@ -77,43 +90,49 @@ class CustomFieldsExample {
         
         print("\n🎯 Analyzing product: \(productDetail.name)")
         
-        // Access extended fields via convenience extensions
-        if let usdzAsset = productDetail.mainUsdzAsset {
-            print("  📱 USDZ asset found: \(usdzAsset.source)")
-            print("     - Type: \(usdzAsset.type)")
-            print("     - Size: \(usdzAsset.fileSize) bytes")
+        // Access custom fields via customFields dictionary
+        if let customFields = productDetail.customFields {
+            print("  🔧 Available custom fields: \(Array(customFields.keys))")
+            
+            // Access mainUsdzAsset if configured
+            if let usdzAssetData = customFields["mainUsdzAsset"]?.value as? [String: Any],
+               let assetId = usdzAssetData["id"] as? String,
+               let source = usdzAssetData["source"] as? String {
+                print("  📱 USDZ asset found: \(source)")
+                print("     - Asset ID: \(assetId)")
+                if let mimeType = usdzAssetData["mimeType"] as? String {
+                    print("     - Type: \(mimeType)")
+                }
+            }
+            
+            // Access other custom fields
+            if let score = customFields["calculatedScore"]?.value as? Double {
+                print("  ⭐ Calculated score: \(score)")
+            }
+            
+            if let priority = customFields["priority"]?.value as? Int {
+                print("  🚨 Priority: \(priority)")
+            }
         } else {
-            print("  ❌ No USDZ asset available")
-        }
-        
-        // Access extended fields via generic methods
-        if let score = productDetail.getExtendedScalar("calculatedScore", type: Double.self) {
-            print("  ⭐ Calculated score: \(score)")
-        }
-        
-        if let category = productDetail.getExtendedRelation("category", type: ProductCategory.self) {
-            print("  📁 Category: \(category.name) (\(category.slug))")
-        }
-        
-        // Check available fields
-        let availableFields = productDetail.getAvailableExtendedFields()
-        print("  🔧 Available extended fields: \(availableFields)")
-        
-        // Access native Vendure custom fields
-        if let priority = productDetail.getCustomField("priority", type: Int.self) {
-            print("  🚨 Priority: \(priority)")
+            print("  ❌ No custom fields available")
         }
         
         // Test with variants
         if let firstVariant = productDetail.variants.first {
             print("\n  🔄 Variant: \(firstVariant.name)")
             
-            if let variantUsdz = firstVariant.mainUsdzAsset {
-                print("    📱 Variant USDZ asset: \(variantUsdz.source)")
-            }
-            
-            if let customValue = firstVariant.getCustomField("size", type: String.self) {
-                print("    📏 Size: \(customValue)")
+            if let variantCustomFields = firstVariant.customFields {
+                print("    🔧 Variant custom fields: \(Array(variantCustomFields.keys))")
+                
+                // Access USDZ asset from variant if configured
+                if let usdzAssetData = variantCustomFields["mainUsdzAsset"]?.value as? [String: Any],
+                   let source = usdzAssetData["source"] as? String {
+                    print("    📱 Variant USDZ asset: \(source)")
+                }
+                
+                if let size = variantCustomFields["size"]?.value as? String {
+                    print("    📏 Size: \(size)")
+                }
             }
         }
     }
@@ -126,22 +145,26 @@ class CustomFieldsExample {
         if let activeOrder = try await vendure.order.getActiveOrder() {
             print("Active order found: \(activeOrder.code)")
             
-            // Access native Vendure custom fields
-            if let priority = activeOrder.getCustomField("priority", type: Int.self) {
-                print("  🚨 Priority: \(priority)")
-            }
-            
-            if let notes = activeOrder.getCustomField("internalNotes", type: String.self) {
-                print("  📝 Notes: \(notes)")
-            }
-            
-            if let source = activeOrder.getCustomField("source", type: String.self) {
-                print("  🌐 Source: \(source)")
-            }
-            
-            // Check existence of other fields
-            if activeOrder.hasCustomField("trackingNumber") {
-                print("  📦 Tracking number available")
+            // Access native Vendure custom fields via customFields dictionary
+            if let customFields = activeOrder.customFields {
+                print("  🔧 Order custom fields: \(Array(customFields.keys))")
+                
+                if let priority = customFields["priority"]?.value as? Int {
+                    print("  🚨 Priority: \(priority)")
+                }
+                
+                if let notes = customFields["internalNotes"]?.value as? String {
+                    print("  📝 Notes: \(notes)")
+                }
+                
+                if let source = customFields["source"]?.value as? String {
+                    print("  🌐 Source: \(source)")
+                }
+                
+                // Check existence of other fields
+                if customFields["trackingNumber"] != nil {
+                    print("  📦 Tracking number available")
+                }
             }
             
         } else {
@@ -156,19 +179,102 @@ class CustomFieldsExample {
         if let customer = try await vendure.customer.getActiveCustomer() {
             print("Customer found: \(customer.firstName) \(customer.lastName)")
             
-            // Access native Vendure custom fields
-            if let loyaltyLevel = customer.getCustomField("loyaltyLevel", type: String.self) {
-                print("  🏆 Loyalty level: \(loyaltyLevel)")
-            }
-            
-            // Extended fields (if configured)
-            if let preferences = customer.getExtendedField("preferences", type: [String: String].self) {
-                print("  ⚙️ Preferences: \(preferences)")
+            // Access native Vendure custom fields via customFields dictionary
+            if let customFields = customer.customFields {
+                print("  🔧 Customer custom fields: \(Array(customFields.keys))")
+                
+                if let loyaltyLevel = customFields["loyaltyLevel"]?.value as? String {
+                    print("  🏆 Loyalty level: \(loyaltyLevel)")
+                }
+                
+                if let preferences = customFields["preferences"]?.value as? [String: String] {
+                    print("  ⚙️ Preferences: \(preferences)")
+                }
             }
             
         } else {
             print("❌ No active customer")
         }
+    }
+    
+    /// Example usage with shipping methods and custom fields
+    func demonstrateShippingMethodsWithCustomFields() async throws {
+        print("\n🚚 Fetching eligible shipping methods...")
+        
+        do {
+            let shippingMethods = try await vendure.order.getEligibleShippingMethods()
+            print("Found \(shippingMethods.count) shipping methods")
+            
+            for method in shippingMethods {
+                print("\n  📦 Shipping Method: \(method.name) (\(method.code))")
+                
+                if let customFields = method.customFields {
+                    print("    🔧 Custom fields: \(Array(customFields.keys))")
+                    
+                    if let maxWeight = customFields["maxWeight"]?.value as? Double {
+                        print("    ⚖️ Max weight: \(maxWeight) kg")
+                    }
+                    
+                    if let trackingEnabled = customFields["trackingEnabled"]?.value as? Bool {
+                        print("    📍 Tracking enabled: \(trackingEnabled ? "Yes" : "No")")
+                    }
+                    
+                    if let estimatedDays = customFields["estimatedDays"]?.value as? Int {
+                        print("    📅 Estimated delivery: \(estimatedDays) days")
+                    }
+                } else {
+                    print("    ❌ No custom fields")
+                }
+            }
+        } catch {
+            print("❌ Error fetching shipping methods: \(error)")
+        }
+    }
+    
+    /// Example usage with payment methods and custom fields
+    func demonstratePaymentMethodsWithCustomFields() async throws {
+        print("\n💳 Fetching eligible payment methods...")
+        
+        do {
+            let paymentMethods = try await vendure.order.getEligiblePaymentMethods()
+            print("Found \(paymentMethods.count) payment methods")
+            
+            for method in paymentMethods {
+                print("\n  💰 Payment Method: \(method.name) (\(method.code))")
+                
+                if let customFields = method.customFields {
+                    print("    🔧 Custom fields: \(Array(customFields.keys))")
+                    
+                    if let stripeSettings = customFields["stripeSettings"]?.value as? [String: Any] {
+                        print("    🔵 Stripe settings: \(stripeSettings)")
+                    }
+                    
+                    if let processingFee = customFields["processingFee"]?.value as? Double {
+                        print("    💰 Processing fee: \(processingFee)%")
+                    }
+                } else {
+                    print("    ❌ No custom fields")
+                }
+            }
+        } catch {
+            print("❌ Error fetching payment methods: \(error)")
+        }
+    }
+    
+    /// Example usage with system data (tax categories) and custom fields
+    func demonstrateSystemTypesWithCustomFields() async throws {
+        print("\n🏛️ Fetching system types with custom fields...")
+        
+        // Note: This would require system operations to be available
+        // For demonstration purposes, we'll show the concept
+        print("  📊 Tax Categories (demo concept):")
+        print("    Would fetch tax categories and access their custom fields")
+        print("    Example custom fields: taxCode, description, applicableRegions")
+        
+        // Promotions example (if available)
+        print("\n  🎯 Promotions (demo concept):")
+        print("    Would fetch active promotions and access their custom fields")
+        print("    Example custom fields: category, targetAudience, marketingChannel")
     }
     
     /// Advanced usage example with custom fields control
@@ -188,16 +294,21 @@ class CustomFieldsExample {
             print("Detailed product fetched: \(detailedProduct.name)")
         }
         
-        // Dynamically check which types have configured fields
-        let typesWithFields = VendureConfiguration.shared.getTypesWithCustomFields()
-        print("Types with custom fields: \(typesWithFields)")
-        
         // Get configured fields for a specific type
         let productFields = VendureConfiguration.shared.getCustomFieldsFor(type: "Product")
-        print("Configured fields for Product:")
+        print("Configured fields for Product (\(productFields.count) fields):")
         productFields.forEach { field in
             let fieldType = field.isExtendedField ? "Extended" : "CustomField"
             print("  - [\(fieldType)] \(field.fieldName)")
+        }
+        
+        // Check if there are custom fields for different types
+        let types = ["Product", "ProductVariant", "Order", "Customer", "ShippingMethod", "PaymentMethod", "TaxCategory", "Promotion"]
+        for type in types {
+            let fields = VendureConfiguration.shared.getCustomFieldsFor(type: type)
+            if !fields.isEmpty {
+                print("\(type) has \(fields.count) configured fields")
+            }
         }
     }
     
@@ -231,6 +342,9 @@ class CustomFieldsExample {
                 VendureConfiguration.shared.addCustomFields([
                     .vendureCustomFields(names: ["status", "featured", "priority"], applicableTypes: ["Product"]),
                     .vendureCustomFields(names: ["priority", "internalNotes", "source"], applicableTypes: ["Order"]),
+                    .vendureCustomFields(names: ["maxWeight", "trackingEnabled"], applicableTypes: ["ShippingMethod"]),
+                    .vendureCustomFields(names: ["processingFee", "enabled"], applicableTypes: ["PaymentMethod"]),
+                    .vendureCustomField(name: "taxCode", applicableTypes: ["TaxCategory"]),
                     .extendedScalar(name: "lastModifiedBy", applicableTypes: ["Product", "Order"])
                 ])
                 
@@ -271,6 +385,9 @@ class CustomFieldsExample {
             try await demonstrateProductsWithExtendedFields()
             try await demonstrateOrdersWithCustomFields()
             try await demonstrateCustomersWithCustomFields()
+            try await demonstrateShippingMethodsWithCustomFields()
+            try await demonstratePaymentMethodsWithCustomFields()
+            try await demonstrateSystemTypesWithCustomFields()
             try await demonstrateAdvancedUsage()
             
             // Dynamic configuration

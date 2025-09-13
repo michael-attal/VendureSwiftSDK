@@ -4,13 +4,35 @@ import SkipFoundation
 // MARK: - Tax Category
 
 /// Represents a tax category
-public struct TaxCategory: Codable, Hashable, Identifiable {
+public struct TaxCategory: Codable, Hashable, Identifiable, CustomFieldsDecodable {
     public let id: String
     public let name: String
     public let isDefault: Bool
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        isDefault = try container.decode(Bool.self, forKey: .isDefault)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "TaxCategory")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, isDefault, customFields, createdAt, updatedAt
+    }
     
     public init(id: String, name: String, isDefault: Bool = false,
                 customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
@@ -26,7 +48,7 @@ public struct TaxCategory: Codable, Hashable, Identifiable {
 // MARK: - Tax Rate
 
 /// Represents a tax rate
-public struct TaxRate: Codable, Hashable, Identifiable {
+public struct TaxRate: Codable, Hashable, Identifiable, CustomFieldsDecodable {
     public let id: String
     public let name: String
     public let enabled: Bool
@@ -34,9 +56,35 @@ public struct TaxRate: Codable, Hashable, Identifiable {
     public let category: TaxCategory
     public let zone: Zone
     public let customerGroup: CustomerGroup?
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        enabled = try container.decode(Bool.self, forKey: .enabled)
+        value = try container.decode(Double.self, forKey: .value)
+        category = try container.decode(TaxCategory.self, forKey: .category)
+        zone = try container.decode(Zone.self, forKey: .zone)
+        customerGroup = try container.decodeIfPresent(CustomerGroup.self, forKey: .customerGroup)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "TaxRate")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, enabled, value, category, zone, customerGroup, customFields, createdAt, updatedAt
+    }
     
     public init(id: String, name: String, enabled: Bool, value: Double,
                 category: TaxCategory, zone: Zone, customerGroup: CustomerGroup? = nil,

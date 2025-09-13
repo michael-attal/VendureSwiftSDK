@@ -4,7 +4,7 @@ import SkipFoundation
 // MARK: - Payment Method
 
 /// Represents a payment method
-public struct PaymentMethod: Codable, Hashable, Identifiable, Sendable {
+public struct PaymentMethod: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let code: String
     public let name: String
@@ -13,9 +13,36 @@ public struct PaymentMethod: Codable, Hashable, Identifiable, Sendable {
     public let checker: ConfigurableOperation?
     public let handler: ConfigurableOperation
     public let translations: [PaymentMethodTranslation]
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        id = try container.decode(String.self, forKey: .id)
+        code = try container.decode(String.self, forKey: .code)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decode(String.self, forKey: .description)
+        enabled = try container.decode(Bool.self, forKey: .enabled)
+        checker = try container.decodeIfPresent(ConfigurableOperation.self, forKey: .checker)
+        handler = try container.decode(ConfigurableOperation.self, forKey: .handler)
+        translations = try container.decode([PaymentMethodTranslation].self, forKey: .translations)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "PaymentMethod")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, code, name, description, enabled, checker, handler, translations, customFields, createdAt, updatedAt
+    }
     
     public init(id: String, code: String, name: String, description: String, enabled: Bool,
                 checker: ConfigurableOperation? = nil, handler: ConfigurableOperation,
@@ -49,14 +76,37 @@ public struct PaymentMethodTranslation: Codable, Hashable, Sendable {
 }
 
 /// Payment method quote for an order
-public struct PaymentMethodQuote: Codable, Hashable, Identifiable, Sendable {
+public struct PaymentMethodQuote: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let code: String
     public let name: String
     public let description: String
     public let isEligible: Bool
     public let eligibilityMessage: String?
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        id = try container.decode(String.self, forKey: .id)
+        code = try container.decode(String.self, forKey: .code)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decode(String.self, forKey: .description)
+        isEligible = try container.decode(Bool.self, forKey: .isEligible)
+        eligibilityMessage = try container.decodeIfPresent(String.self, forKey: .eligibilityMessage)
+        
+        // Decode existing customFields if present
+        customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "PaymentMethodQuote")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, code, name, description, isEligible, eligibilityMessage, customFields
+    }
     
     public init(id: String, code: String, name: String, description: String,
                 isEligible: Bool, eligibilityMessage: String? = nil,

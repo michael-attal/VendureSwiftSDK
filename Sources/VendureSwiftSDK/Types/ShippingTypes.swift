@@ -4,7 +4,7 @@ import SkipFoundation
 // MARK: - Shipping Method
 
 /// Represents a shipping method
-public struct ShippingMethod: Codable, Hashable, Identifiable, Sendable {
+public struct ShippingMethod: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let code: String
     public let name: String
@@ -13,9 +13,36 @@ public struct ShippingMethod: Codable, Hashable, Identifiable, Sendable {
     public let checker: ConfigurableOperation
     public let calculator: ConfigurableOperation
     public let translations: [ShippingMethodTranslation]
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        id = try container.decode(String.self, forKey: .id)
+        code = try container.decode(String.self, forKey: .code)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decode(String.self, forKey: .description)
+        fulfillmentHandlerCode = try container.decode(String.self, forKey: .fulfillmentHandlerCode)
+        checker = try container.decode(ConfigurableOperation.self, forKey: .checker)
+        calculator = try container.decode(ConfigurableOperation.self, forKey: .calculator)
+        translations = try container.decode([ShippingMethodTranslation].self, forKey: .translations)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "ShippingMethod")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, code, name, description, fulfillmentHandlerCode, checker, calculator, translations, customFields, createdAt, updatedAt
+    }
     
     public init(id: String, code: String, name: String, description: String,
                 fulfillmentHandlerCode: String, checker: ConfigurableOperation,
@@ -49,7 +76,7 @@ public struct ShippingMethodTranslation: Codable, Hashable, Sendable {
 }
 
 /// Shipping method quote for an order
-public struct ShippingMethodQuote: Codable, Hashable, Identifiable, Sendable {
+public struct ShippingMethodQuote: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let price: Double
     public let priceWithTax: Double
@@ -57,7 +84,31 @@ public struct ShippingMethodQuote: Codable, Hashable, Identifiable, Sendable {
     public let name: String
     public let description: String
     public let metadata: [String: AnyCodable]?
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        id = try container.decode(String.self, forKey: .id)
+        price = try container.decode(Double.self, forKey: .price)
+        priceWithTax = try container.decode(Double.self, forKey: .priceWithTax)
+        code = try container.decode(String.self, forKey: .code)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decode(String.self, forKey: .description)
+        metadata = try container.decodeIfPresent([String: AnyCodable].self, forKey: .metadata)
+        
+        // Decode existing customFields if present
+        customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "ShippingMethodQuote")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, price, priceWithTax, code, name, description, metadata, customFields
+    }
     
     public init(id: String, price: Double, priceWithTax: Double, code: String,
                 name: String, description: String, metadata: [String: AnyCodable]? = nil,

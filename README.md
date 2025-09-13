@@ -46,7 +46,7 @@ targets: [
 import VendureSwiftSDK
 
 // Initialize with token
-let vendure = try await VendureSwiftSDK.initialize(
+let vendure = try await Vendure.initialize(
     endpoint: "https://your-vendure-api.com/shop-api",
     token: "your-auth-token"
 )
@@ -54,40 +54,36 @@ let vendure = try await VendureSwiftSDK.initialize(
 
 ### Authentication Methods
 
-#### Native Authentication
+#### Guest Session
 ```swift
-let vendure = try await VendureSwiftSDK.initializeWithNativeAuth(
+let vendure = try await Vendure.initialize(
     endpoint: "https://your-vendure-api.com/shop-api",
+    useGuestSession: true
+)
+```
+
+#### With Channel Token
+```swift
+let vendure = try await Vendure.initialize(
+    endpoint: "https://your-vendure-api.com/shop-api",
+    channelToken: "your-channel-token",
+    token: "your-auth-token"
+)
+```
+
+#### Authentication After Initialization
+```swift
+// Initialize first
+let vendure = try await Vendure.initialize(
+    endpoint: "https://your-vendure-api.com/shop-api",
+    useGuestSession: true
+)
+
+// Then authenticate
+let authResult = try await vendure.auth.login(
     username: "customer@example.com",
     password: "password123",
-    sessionDuration: TimeInterval(60 * 60 * 24) // 1 day
-)
-```
-
-#### Firebase Authentication
-```swift
-let vendure = try await VendureSwiftSDK.initializeWithFirebaseAuth(
-    endpoint: "https://your-vendure-api.com/shop-api",
-    uid: "firebase-user-id",
-    jwt: "firebase-jwt-token",
-    sessionDuration: TimeInterval(60 * 60), // 1 hour
-    languageCode: "en",
-    channelToken: "your-channel-token"
-)
-```
-
-#### Custom Authentication
-```swift
-let vendure = try await VendureSwiftSDK.initializeWithCustomAuth(
-    endpoint: "https://your-vendure-api.com/shop-api",
-    fetchToken: { params in
-        // Your custom token fetching logic
-        return try await yourCustomTokenFetcher(params)
-    },
-    tokenParams: [
-        "customParam1": "value1",
-        "customParam2": "value2"
-    ]
+    rememberMe: true
 )
 ```
 
@@ -280,6 +276,37 @@ let result = try await vendure.custom.query(
 
 VendureSwiftSDK supports an extensible custom fields system that allows you to dynamically add custom fields to all GraphQL queries. The system supports both **Extended GraphQL Fields** (added via Vendure plugins) and **Native Vendure Custom Fields** (configured in vendure-config.ts).
 
+### Supported Types
+
+The following types support the `CustomFieldsDecodable` protocol and can automatically capture custom fields:
+
+**Product & Catalog Types:**
+- `Product`
+- `ProductVariant` 
+- `Collection`
+- `Asset`
+- `Address`
+
+**Order & Commerce Types:**
+- `Order`
+- `OrderLine`
+- `PaymentMethod`
+- `PaymentMethodQuote`
+- `ShippingMethod`
+- `ShippingMethodQuote`
+- `Promotion`
+
+**Customer & Auth Types:**
+- `Customer`
+- `CustomerGroup`
+
+**System & Tax Types:**
+- `TaxCategory`
+- `TaxRate`
+- `Channel`
+
+All these types will automatically decode and store custom fields in their `customFields` property.
+
 ### Configuration
 
 Configure custom fields at application startup:
@@ -309,6 +336,19 @@ func configureCustomFields() {
     
     VendureConfiguration.shared.addCustomField(
         .vendureCustomField(name: "loyaltyLevel", applicableTypes: ["Customer"])
+    )
+    
+    // Custom fields for other types
+    VendureConfiguration.shared.addCustomField(
+        .vendureCustomFields(names: ["maxWeight", "trackingEnabled"], applicableTypes: ["ShippingMethod"])
+    )
+    
+    VendureConfiguration.shared.addCustomField(
+        .vendureCustomField(name: "taxCode", applicableTypes: ["TaxCategory"])
+    )
+    
+    VendureConfiguration.shared.addCustomField(
+        .vendureCustomFields(names: ["stripeSettings", "enabled"], applicableTypes: ["PaymentMethod"])
     )
 }
 ```
@@ -365,25 +405,64 @@ Once configured, custom fields are automatically included in all relevant querie
 let products = try await vendure.catalog.getProducts()
 let product = try await vendure.catalog.getProductById(id: "123")
 
-// Access extended GraphQL fields directly
-if let usdzAsset = product.mainUsdzAsset {
-    let url = URL(string: usdzAsset.source)
-    // Load USDZ file for AR
+// Access custom fields via customFields dictionary
+if let customFields = product.customFields {
+    print("Available custom fields: \(Array(customFields.keys))")
+    
+    // Access USDZ asset (if configured as extended asset)
+    if let usdzAssetData = customFields["mainUsdzAsset"]?.value as? [String: Any],
+       let source = usdzAssetData["source"] as? String {
+        let url = URL(string: source)
+        // Load USDZ file for AR
+    }
+    
+    // Access scalar values
+    if let rating = customFields["rating"]?.value as? Double {
+        print("Product rating: \(rating)")
+    }
+    
+    // Access Vendure custom fields
+    if let priority = customFields["priority"]?.value as? Int {
+        print("Product priority: \(priority)")
+    }
 }
 
-// Access extended fields generically
-if let rating = product.getExtendedScalar("rating", type: Double.self) {
-    print("Product rating: \(rating)")
+// Note: Typed extensions like .mainUsdzAsset are provided by client modules
+// that import VendureSwiftSDK and add specific functionality
+
+// Access custom fields on other types
+
+// Shipping methods with custom fields
+let shippingMethods = try await vendure.order.getEligibleShippingMethods()
+for method in shippingMethods {
+    if let customFields = method.customFields {
+        if let maxWeight = customFields["maxWeight"]?.value as? Double {
+            print("Max weight: \(maxWeight) kg")
+        }
+        if let trackingEnabled = customFields["trackingEnabled"]?.value as? Bool {
+            print("Tracking enabled: \(trackingEnabled)")
+        }
+    }
 }
 
-// Access native Vendure custom fields with type safety
-if let priority = order.getCustomField("priority", type: Int.self) {
-    print("Order priority: \(priority)")
+// Payment methods with custom fields
+let paymentMethods = try await vendure.order.getEligiblePaymentMethods()
+for method in paymentMethods {
+    if let customFields = method.customFields {
+        if let stripeSettings = customFields["stripeSettings"]?.value as? [String: Any] {
+            print("Stripe configuration: \(stripeSettings)")
+        }
+    }
 }
 
-// Check if custom fields exist
-if product.hasExtendedField("mainUsdzAsset") {
-    // Field is available
+// Tax categories with custom fields
+let taxCategories = try await vendure.system.getTaxCategories()
+for category in taxCategories {
+    if let customFields = category.customFields {
+        if let taxCode = customFields["taxCode"]?.value as? String {
+            print("Tax code: \(taxCode)")
+        }
+    }
 }
 ```
 
@@ -409,15 +488,17 @@ let customer = try await vendure.customer.getActiveCustomer(includeCustomFields:
 let summary = VendureConfiguration.shared.getConfigurationSummary()
 print(summary)
 
-// Validate configuration for production
-let warnings = VendureConfiguration.shared.validateConfiguration()
-for warning in warnings {
-    print("Warning: \(warning)")
+// Check what fields are configured for specific types
+let productFields = VendureConfiguration.shared.getCustomFieldsFor(type: "Product")
+print("Product custom fields: \(productFields.count)")
+
+// Check if custom fields are configured
+if VendureConfiguration.shared.hasCustomFields(for: "Product") {
+    print("Product has custom fields configured")
 }
 
-// Check what types have custom fields
-let typesWithFields = VendureConfiguration.shared.getTypesWithCustomFields()
-print("Types with custom fields: \(typesWithFields)")
+// Clear all custom fields (useful for dynamic reconfiguration)
+VendureConfiguration.shared.clearCustomFields()
 ```
 
 ### Use Cases
@@ -490,7 +571,7 @@ import VendureSwiftSDK
 
 func routes(_ app: Application) throws {
     app.get("products") { req async throws -> [Product] in
-        let vendure = try await VendureSwiftSDK.initialize(
+        let vendure = try await Vendure.initialize(
             endpoint: "https://your-vendure-api.com/shop-api",
             token: "your-server-token"
         )
@@ -500,7 +581,7 @@ func routes(_ app: Application) throws {
     }
     
     app.post("cart", "add") { req async throws -> Order in
-        let vendure = try await VendureSwiftSDK.initialize(
+        let vendure = try await Vendure.initialize(
             endpoint: "https://your-vendure-api.com/shop-api",
             token: req.headers.bearerAuthorization?.token
         )

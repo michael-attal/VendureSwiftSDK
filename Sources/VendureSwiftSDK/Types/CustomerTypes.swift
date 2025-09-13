@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Customer Types
 
 /// Represents a customer
-public struct Customer: Codable, Hashable, Identifiable, Sendable {
+public struct Customer: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let firstName: String
     public let lastName: String
@@ -13,7 +13,7 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
     public let addresses: [Address]?
     public let orders: OrderList?
     public let user: User?
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -33,6 +33,34 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
         self.customFields = customFields
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.firstName = try container.decode(String.self, forKey: .firstName)
+        self.lastName = try container.decode(String.self, forKey: .lastName)
+        self.emailAddress = try container.decode(String.self, forKey: .emailAddress)
+        self.title = try container.decodeIfPresent(String.self, forKey: .title)
+        self.phoneNumber = try container.decodeIfPresent(String.self, forKey: .phoneNumber)
+        self.addresses = try container.decodeIfPresent([Address].self, forKey: .addresses)
+        self.orders = try container.decodeIfPresent(OrderList.self, forKey: .orders)
+        self.user = try container.decodeIfPresent(User.self, forKey: .user)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "Customer")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, firstName, lastName, emailAddress, title, phoneNumber, addresses, orders, user, customFields, createdAt, updatedAt
     }
 }
 
@@ -145,11 +173,11 @@ public struct CurrentUserChannel: Codable, Hashable, Identifiable, Sendable {
 }
 
 /// Represents a customer group
-public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
+public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable, CustomFieldsDecodable {
     public let id: String
     public let name: String
     public let customers: CustomerList
-    public let customFields: [String: AnyCodable]?
+    public var customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -161,6 +189,28 @@ public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
         self.customFields = customFields
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+    
+    // Custom decoding to capture extended fields
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode standard fields
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.customers = try container.decode(CustomerList.self, forKey: .customers)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Decode existing customFields if present
+        self.customFields = try container.decodeIfPresent([String: AnyCodable].self, forKey: .customFields)
+        
+        // Use generic custom fields decoder
+        try self.decodeCustomFields(from: decoder, typeName: "CustomerGroup")
+    }
+    
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, customers, customFields, createdAt, updatedAt
     }
 }
 
