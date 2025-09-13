@@ -12,6 +12,7 @@ A Swift SDK for interacting with the Vendure e-commerce framework's GraphQL API.
 - ✅ **Complete API Coverage**: Support for all major Vendure operations
 - ✅ **Error Handling**: Comprehensive error handling with descriptive error types
 - ✅ **Extensible**: Support for custom GraphQL operations
+- ✅ **Custom Fields**: Extensible custom fields system for both extended GraphQL fields and native Vendure custom fields
 - ✅ **SKIP.tools Compatible**: Cross-platform support for Android development
 
 ## Installation
@@ -273,6 +274,210 @@ let result = try await vendure.custom.query(
     responseType: CustomProductResponse.self,
     expectedDataType: "product"
 )
+```
+
+## Custom Fields
+
+VendureSwiftSDK supports an extensible custom fields system that allows you to dynamically add custom fields to all GraphQL queries. The system supports both **Extended GraphQL Fields** (added via Vendure plugins) and **Native Vendure Custom Fields** (configured in vendure-config.ts).
+
+### Configuration
+
+Configure custom fields at application startup:
+
+```swift
+import VendureSwiftSDK
+
+// Configure custom fields at app startup
+func configureCustomFields() {
+    // Extended GraphQL fields (from Vendure plugins)
+    VendureConfiguration.shared.addCustomField(
+        .extendedAsset(name: "mainUsdzAsset", applicableTypes: ["Product", "ProductVariant"])
+    )
+    
+    VendureConfiguration.shared.addCustomField(
+        .extendedRelation(name: "category", fields: ["id", "name", "slug"], applicableTypes: ["Product"])
+    )
+    
+    VendureConfiguration.shared.addCustomField(
+        .extendedScalar(name: "rating", applicableTypes: ["Product"])
+    )
+    
+    // Native Vendure custom fields
+    VendureConfiguration.shared.addCustomField(
+        .vendureCustomFields(names: ["priority", "notes"], applicableTypes: ["Order"])
+    )
+    
+    VendureConfiguration.shared.addCustomField(
+        .vendureCustomField(name: "loyaltyLevel", applicableTypes: ["Customer"])
+    )
+}
+```
+
+### Factory Methods
+
+The SDK provides convenient factory methods for common use cases:
+
+```swift
+// Extended GraphQL fields
+.extendedAsset(name: "mainUsdzAsset", applicableTypes: ["Product"])
+.extendedAssetDetailed(name: "heroImage", applicableTypes: ["Product"])  
+.extendedRelation(name: "brand", fields: ["id", "name"], applicableTypes: ["Product"])
+.extendedScalar(name: "calculatedScore", applicableTypes: ["Product"])
+
+// Native Vendure custom fields
+.vendureCustomField(name: "priority", applicableTypes: ["Order"])
+.vendureCustomFields(names: ["priority", "notes"], applicableTypes: ["Order"])
+```
+
+### Advanced Configuration
+
+For complex use cases, you can use custom GraphQL fragments:
+
+```swift
+VendureConfiguration.shared.addCustomField(
+    CustomField(
+        fieldName: "analytics",
+        graphQLFragment: """
+        analytics {
+            views {
+                today
+                week
+                month
+            }
+            sales {
+                count
+                revenue
+            }
+        }
+        """,
+        applicableTypes: ["Product"],
+        isExtendedField: true
+    )
+)
+```
+
+### Using Custom Fields
+
+Once configured, custom fields are automatically included in all relevant queries:
+
+```swift
+// Custom fields are automatically included
+let products = try await vendure.catalog.getProducts()
+let product = try await vendure.catalog.getProductById(id: "123")
+
+// Access extended GraphQL fields directly
+if let usdzAsset = product.mainUsdzAsset {
+    let url = URL(string: usdzAsset.source)
+    // Load USDZ file for AR
+}
+
+// Access extended fields generically
+if let rating = product.getExtendedScalar("rating", type: Double.self) {
+    print("Product rating: \(rating)")
+}
+
+// Access native Vendure custom fields with type safety
+if let priority = order.getCustomField("priority", type: Int.self) {
+    print("Order priority: \(priority)")
+}
+
+// Check if custom fields exist
+if product.hasExtendedField("mainUsdzAsset") {
+    // Field is available
+}
+```
+
+### Performance Control
+
+You can control whether custom fields are included for performance optimization:
+
+```swift
+// Include custom fields (default behavior)
+let products = try await vendure.catalog.getProducts(includeCustomFields: true)
+
+// Exclude custom fields for better performance
+let fastProducts = try await vendure.catalog.getProducts(includeCustomFields: false)
+
+// Per-operation control
+let customer = try await vendure.customer.getActiveCustomer(includeCustomFields: false)
+```
+
+### Validation and Debugging
+
+```swift
+// Get configuration summary
+let summary = VendureConfiguration.shared.getConfigurationSummary()
+print(summary)
+
+// Validate configuration for production
+let warnings = VendureConfiguration.shared.validateConfiguration()
+for warning in warnings {
+    print("Warning: \(warning)")
+}
+
+// Check what types have custom fields
+let typesWithFields = VendureConfiguration.shared.getTypesWithCustomFields()
+print("Types with custom fields: \(typesWithFields)")
+```
+
+### Use Cases
+
+**E-commerce with AR (Augmented Reality)**
+```swift
+// Configure USDZ assets for AR
+VendureConfiguration.shared.addCustomField(
+    .extendedAsset(name: "mainUsdzAsset", applicableTypes: ["Product", "ProductVariant"])
+)
+
+// Use in your AR implementation
+if let usdzAsset = product.mainUsdzAsset {
+    // Initialize ARKit with USDZ model
+    let url = URL(string: usdzAsset.source)
+}
+```
+
+**Admin Dashboard with Analytics**
+```swift
+// Configure analytics fields
+VendureConfiguration.shared.addCustomField(
+    .extendedComplexRelation(
+        name: "analytics",
+        nestedFields: [
+            "views": ["today", "week", "month"],
+            "sales": ["count", "revenue"]
+        ],
+        applicableTypes: ["Product"]
+    )
+)
+```
+
+**Multi-tenant Configuration**
+```swift
+// Different configurations based on context
+enum TenantType {
+    case fashion, electronics, food
+}
+
+func configureTenant(_ type: TenantType) {
+    VendureConfiguration.shared.clearCustomFields()
+    
+    switch type {
+    case .fashion:
+        VendureConfiguration.shared.addCustomFields([
+            .extendedRelation(name: "brand", fields: ["id", "name", "logo"], applicableTypes: ["Product"]),
+            .vendureCustomFields(names: ["size", "color"], applicableTypes: ["ProductVariant"])
+        ])
+    case .electronics:
+        VendureConfiguration.shared.addCustomFields([
+            .extendedAsset(name: "manualPdf", applicableTypes: ["Product"]),
+            .vendureCustomFields(names: ["warranty", "specs"], applicableTypes: ["Product"])
+        ])
+    case .food:
+        VendureConfiguration.shared.addCustomFields([
+            .vendureCustomFields(names: ["ingredients", "allergens"], applicableTypes: ["Product"])
+        ])
+    }
+}
 ```
 
 ## Vapor Integration

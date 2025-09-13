@@ -11,131 +11,47 @@ public actor CatalogOperations {
     }
     
     /// Get collections
-    public func getCollections(options: CollectionListOptions? = nil) async throws -> CollectionList {
-        let query = """
-        query collections($options: CollectionListOptions) {
-          collections(options: $options) {
-            items {
-              id
-              name
-              slug
-              description
-              parent {
-                id
-                name
-              }
-              children {
-                id
-                name
-                slug
-              }
-              featuredAsset {
-                id
-                preview
-                source
-              }
-            }
-            totalItems
-          }
-        }
-        """
+    public func getCollections(options: CollectionListOptions? = nil, includeCustomFields: Bool? = nil) async throws -> CollectionList {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Collection", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildCollectionQuery(includeCustomFields: shouldIncludeCustomFields)
         
         let variables: [String: Any] = ["options": options as Any]
         return try await vendure.custom.query(query, variables: variables, expectedDataType: "collections", responseType: CollectionList.self)
     }
     
     /// Get collection by ID
-    public func getCollectionById(id: String) async throws -> Collection {
-        let query = """
-        query collection($id: ID!) {
-          collection(id: $id) {
-            id
-            name
-            slug
-            description
-            parent {
-              id
-              name
-            }
-            children {
-              id
-              name
-              slug
-            }
-            featuredAsset {
-              id
-              preview
-              source
-            }
-          }
-        }
-        """
+    public func getCollectionById(id: String, includeCustomFields: Bool? = nil, includeProducts: Bool = false) async throws -> Collection {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Collection", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildSingleCollectionQuery(
+            byId: true,
+            includeCustomFields: shouldIncludeCustomFields,
+            includeProducts: includeProducts
+        )
         
         let variables = ["id": id]
         return try await vendure.custom.query(query, variables: variables, expectedDataType: "collection", responseType: Collection.self)
     }
     
     /// Get collection by slug
-    public func getCollectionBySlug(slug: String) async throws -> Collection {
-        let query = """
-        query collection($slug: String!) {
-          collection(slug: $slug) {
-            id
-            name
-            slug
-            description
-            parent {
-              id
-              name
-            }
-            children {
-              id
-              name
-              slug
-            }
-            featuredAsset {
-              id
-              preview
-              source
-            }
-          }
-        }
-        """
+    public func getCollectionBySlug(slug: String, includeCustomFields: Bool? = nil, includeProducts: Bool = false) async throws -> Collection {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Collection", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildSingleCollectionQuery(
+            byId: false,
+            includeCustomFields: shouldIncludeCustomFields,
+            includeProducts: includeProducts
+        )
         
         let variables = ["slug": slug]
         return try await vendure.custom.query(query, variables: variables, expectedDataType: "collection", responseType: Collection.self)
     }
     
     /// Get products
-    public func getProducts(options: ProductListOptions? = nil) async throws -> CatalogProductList {
-        let query = """
-        query products($options: ProductListOptions) {
-          products(options: $options) {
-            items {
-              id
-              name
-              slug
-              description
-              enabled
-              featuredAsset {
-                id
-                preview
-                source
-              }
-              variants {
-                id
-                name
-                price
-                priceWithTax
-                currencyCode
-                sku
-                stockLevel
-              }
-            }
-            totalItems
-          }
-        }
-        """
+    public func getProducts(options: ProductListOptions? = nil, includeCustomFields: Bool? = nil) async throws -> CatalogProductList {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Product", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildProductQuery(
+            includeCustomFields: shouldIncludeCustomFields,
+            options: options
+        )
         
         // Handle nil options properly to avoid JSONSerialization issues
         let variables: [String: Any]
@@ -148,117 +64,33 @@ public actor CatalogOperations {
     }
     
     /// Get product by ID
-    public func getProductById(id: String) async throws -> Product {
-        let query = """
-        query product($id: ID!) {
-          product(id: $id) {
-            id
-            name
-            slug
-            description
-            featuredAsset {
-              id
-              preview
-              source
-            }
-            variants {
-              id
-              name
-              price
-              priceWithTax
-              currencyCode
-              sku
-              stockLevel
-            }
-          }
-        }
-        """
+    public func getProductById(id: String, includeCustomFields: Bool? = nil) async throws -> Product {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Product", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildSingleProductQuery(
+            byId: true,
+            includeCustomFields: shouldIncludeCustomFields
+        )
         
         let variables = ["id": id]
         return try await vendure.custom.query(query, variables: variables, expectedDataType: "product", responseType: Product.self)
     }
     
     /// Get product by slug
-    public func getProductBySlug(slug: String) async throws -> Product {
-        let query = """
-        query product($slug: String!) {
-          product(slug: $slug) {
-            id
-            name
-            slug
-            description
-            featuredAsset {
-              id
-              preview
-              source
-            }
-            variants {
-              id
-              name
-              price
-              priceWithTax
-              currencyCode
-              sku
-              stockLevel
-            }
-          }
-        }
-        """
+    public func getProductBySlug(slug: String, includeCustomFields: Bool? = nil) async throws -> Product {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Product", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildSingleProductQuery(
+            byId: false,
+            includeCustomFields: shouldIncludeCustomFields
+        )
         
         let variables = ["slug": slug]
         return try await vendure.custom.query(query, variables: variables, expectedDataType: "product", responseType: Product.self)
     }
     
     /// Search catalog
-    public func searchCatalog(input: SearchInput) async throws -> SearchResult {
-        let query = """
-        query search($input: SearchInput!) {
-          search(input: $input) {
-            items {
-              productId
-              productName
-              productAsset {
-                id
-                preview
-              }
-              price {
-                ... on PriceRange {
-                  min
-                  max
-                }
-                ... on SinglePrice {
-                  value
-                }
-              }
-              priceWithTax {
-                ... on PriceRange {
-                  min
-                  max
-                }
-                ... on SinglePrice {
-                  value
-                }
-              }
-              sku
-              slug
-              collectionIds
-              score
-            }
-            totalItems
-            facetValues {
-              count
-              facetValue {
-                id
-                name
-                facet {
-                  id
-                  name
-                }
-              }
-            }
-          }
-        }
-        """
+    public func searchCatalog(input: SearchInput, includeCustomFields: Bool? = nil) async throws -> SearchResult {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "SearchResult", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildSearchQuery(includeCustomFields: shouldIncludeCustomFields)
         
         let variables = ["input": input]
         return try await vendure.custom.query(query, variables: variables, expectedDataType: "search", responseType: SearchResult.self)

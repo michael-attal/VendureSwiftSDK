@@ -11,53 +11,9 @@ public actor OrderOperations {
     }
     
     /// Add item to order
-    public func addItemToOrder(productVariantId: String, quantity: Int) async throws -> UpdateOrderItemsResult {
-        let query = """
-        mutation addItemToOrder($productVariantId: ID!, $quantity: Int!) {
-          addItemToOrder(productVariantId: $productVariantId, quantity: $quantity) {
-            __typename
-            ... on Order {
-              id
-              code
-              active
-              lines {
-                id
-                quantity
-                linePrice
-                linePriceWithTax
-                productVariant {
-                  id
-                  name
-                  price
-                  priceWithTax
-                  sku
-                }
-              }
-              totalQuantity
-              subTotal
-              subTotalWithTax
-              shipping
-              shippingWithTax
-              total
-              totalWithTax
-            }
-            ... on InsufficientStockError {
-              errorCode
-              message
-              quantityAvailable
-            }
-            ... on NegativeQuantityError {
-              errorCode
-              message
-            }
-            ... on OrderLimitError {
-              errorCode
-              message
-              maxItems
-            }
-          }
-        }
-        """
+    public func addItemToOrder(productVariantId: String, quantity: Int, includeCustomFields: Bool? = nil) async throws -> UpdateOrderItemsResult {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Order", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildAddItemToOrderMutation(includeCustomFields: shouldIncludeCustomFields)
         
         let variables: [String: Any] = ["productVariantId": productVariantId, "quantity": quantity]
         return try await vendure.custom.mutate(query, variables: variables, responseType: Order.self)
@@ -132,78 +88,9 @@ public actor OrderOperations {
     }
     
     /// Get active order
-    public func getActiveOrder() async throws -> Order? {
-        let query = """
-        query activeOrder {
-          activeOrder {
-            id
-            code
-            active
-            createdAt
-            updatedAt
-            orderPlacedAt
-            state
-            currencyCode
-            totalQuantity
-            subTotal
-            subTotalWithTax
-            shipping
-            shippingWithTax
-            total
-            totalWithTax
-            customer {
-              id
-              firstName
-              lastName
-              emailAddress
-            }
-            shippingAddress {
-              id
-              fullName
-              company
-              streetLine1
-              streetLine2
-              city
-              province
-              postalCode
-              country
-              phoneNumber
-            }
-            billingAddress {
-              id
-              fullName
-              company
-              streetLine1
-              streetLine2
-              city
-              province
-              postalCode
-              country
-              phoneNumber
-            }
-            lines {
-              id
-              quantity
-              linePrice
-              linePriceWithTax
-              productVariant {
-                id
-                name
-                price
-                priceWithTax
-                sku
-                product {
-                  id
-                  name
-                  slug
-                  description
-                }
-              }
-            }
-            couponCodes
-          }
-        }
-        """
+    public func getActiveOrder(includeCustomFields: Bool? = nil) async throws -> Order? {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Order", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildActiveOrderQuery(includeCustomFields: shouldIncludeCustomFields)
         
         return try await vendure.custom.query(query, responseType: Order?.self)
     }

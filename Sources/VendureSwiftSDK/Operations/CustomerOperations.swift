@@ -11,34 +11,9 @@ public actor CustomerOperations {
     }
     
     /// Get active customer
-    public func getActiveCustomer() async throws -> Customer? {
-        let query = """
-        query activeCustomer {
-          activeCustomer {
-            id
-            title
-            firstName
-            lastName
-            phoneNumber
-            emailAddress
-            addresses {
-              id
-              fullName
-              company
-              streetLine1
-              streetLine2
-              city
-              province
-              postalCode
-              country
-              phoneNumber
-              defaultShippingAddress
-              defaultBillingAddress
-            }
-            customFields
-          }
-        }
-        """
+    public func getActiveCustomer(includeCustomFields: Bool? = nil) async throws -> Customer? {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Customer", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildActiveCustomerQuery(includeCustomFields: shouldIncludeCustomFields)
         
         return try await vendure.custom.query(query, expectedDataType: "activeCustomer", responseType: Customer?.self)
     }
@@ -82,19 +57,9 @@ public actor CustomerOperations {
     }
     
     /// Update customer
-    public func updateCustomer(input: UpdateCustomerInput) async throws -> Customer {
-        let query = """
-        mutation updateCustomer($input: UpdateCustomerInput!) {
-          updateCustomer(input: $input) {
-            id
-            title
-            firstName
-            lastName
-            phoneNumber
-            emailAddress
-          }
-        }
-        """
+    public func updateCustomer(input: UpdateCustomerInput, includeCustomFields: Bool? = nil) async throws -> Customer {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Customer", userRequested: includeCustomFields)
+        let query = GraphQLQueryBuilder.buildUpdateCustomerMutation(includeCustomFields: shouldIncludeCustomFields)
         
         let variables = ["input": input]
         return try await vendure.custom.mutate(query, variables: variables, responseType: Customer.self, expectedDataType: "updateCustomer")
