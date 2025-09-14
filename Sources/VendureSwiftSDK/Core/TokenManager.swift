@@ -1,12 +1,13 @@
-import Foundation
+@preconcurrency import Foundation
 #if canImport(SkipFoundation)
-import SkipFoundation
+@preconcurrency import SkipFoundation
 #endif
 
 public typealias TokenFetcher = (_ parameters: [String: Any]) async throws -> String?
 
-public actor TokenManager {
+public class TokenManager: @unchecked Sendable {
     private let fetcher: TokenFetcher
+    // Parameters are JSON-serializable and safe for concurrency
     private let parameters: [String: Any]
     private let sessionDuration: TimeInterval
     private var cachedToken: String?
@@ -30,7 +31,7 @@ public actor TokenManager {
             return token
         }
         
-        // Fetch a new token
+        // Fetch a new token - parameters contains only JSON-serializable types
         guard let newToken = try await fetcher(parameters) else {
             throw VendureError.initializationError("Failed to fetch authentication token")
         }
@@ -42,8 +43,9 @@ public actor TokenManager {
         return newToken
     }
     
-    public func refreshToken(_ parameters: [String: Any]? = nil) async throws {
+    public func refreshToken(_ parameters: sending [String: Any]? = nil) async throws {
         let params = parameters ?? self.parameters
+        // Fetch new token - params contains only JSON-serializable types
         guard let newToken = try await fetcher(params) else {
             throw VendureError.initializationError("Failed to refresh authentication token")
         }

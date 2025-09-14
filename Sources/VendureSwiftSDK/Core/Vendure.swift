@@ -7,7 +7,7 @@ import SkipModel
 #endif
 
 public actor Vendure {
-    public static var shared: Vendure?
+    nonisolated(unsafe) public static var shared: Vendure?
     
     private let endpoint: URL
     private let baseClient: GraphQLClient
@@ -28,8 +28,8 @@ public actor Vendure {
     
     private init(
         endpoint: URL,
-        tokenFetcher: TokenFetcher?,
-        tokenParams: [String: Any]?,
+        tokenFetcher: sending TokenFetcher?,
+        tokenParams: sending [String: Any]?,
         sessionDuration: TimeInterval,
         token: String?,
         useGuestSession: Bool = false,
@@ -53,8 +53,8 @@ public actor Vendure {
     
     public static func initialize(
         endpoint: String,
-        tokenFetcher: TokenFetcher? = nil,
-        tokenParams: [String: Any]? = nil,
+        tokenFetcher: sending TokenFetcher? = nil,
+        tokenParams: sending [String: Any]? = nil,
         sessionDuration: TimeInterval = 60 * 60 * 24 * 365,
         token: String? = nil,
         useGuestSession: Bool = false,
@@ -128,8 +128,8 @@ public actor Vendure {
     
     public static func initializeWithCustomAuth(
         endpoint: String,
-        fetchToken: @escaping TokenFetcher,
-        tokenParams: [String: Any],
+        fetchToken: sending @escaping TokenFetcher,
+        tokenParams: sending [String: Any],
         sessionDuration: TimeInterval = 60 * 60 * 24 * 365,
         languageCode: String? = nil,
         channelToken: String? = nil,
@@ -169,7 +169,7 @@ public actor Vendure {
         await shared.setChannel(channelToken)
     }
     
-    public static func refreshToken(_ params: [String: Any]? = nil) async throws {
+    public static func refreshToken(_ params: sending [String: Any]? = nil) async throws {
         guard let shared = Vendure.shared else {
             throw VendureError.initializationError("Vendure has not been initialized. Call initialize() first.")
         }
@@ -257,7 +257,7 @@ public actor Vendure {
     }
     
     /// Refresh token using token manager
-    private func _refreshToken(_ params: [String: Any]? = nil) async throws {
+    private func _refreshToken(_ params: sending [String: Any]? = nil) async throws {
         guard let tm = tokenManager else {
             throw VendureError.initializationError("No token manager configured")
         }

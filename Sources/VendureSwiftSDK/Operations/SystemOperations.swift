@@ -28,7 +28,8 @@ public actor SystemOperations {
         }
         """
         
-        return try await vendure.custom.queryList(query, responseType: Country.self, expectedDataType: "availableCountries")
+        let emptyVariables: [String: Any] = [:]
+        return try await vendure.custom.queryList(query, variables: emptyVariables, responseType: Country.self, expectedDataType: "availableCountries")
     }
     
     /// Get facets

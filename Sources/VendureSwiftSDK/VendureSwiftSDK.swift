@@ -14,8 +14,8 @@ public struct VendureSwiftSDK {
     /// Initialize Vendure with endpoint and token
     public static func initialize(
         endpoint: String,
-        tokenFetcher: TokenFetcher? = nil,
-        tokenParams: [String: Any]? = nil,
+        tokenFetcher: sending TokenFetcher? = nil,
+        tokenParams: sending [String: Any]? = nil,
         sessionDuration: TimeInterval = 60 * 60 * 24 * 365,
         token: String? = nil,
         useGuestSession: Bool = false,
@@ -77,8 +77,8 @@ public struct VendureSwiftSDK {
     /// Initialize Vendure with custom authentication
     public static func initializeWithCustomAuth(
         endpoint: String,
-        fetchToken: @escaping TokenFetcher,
-        tokenParams: [String: Any],
+        fetchToken: sending @escaping TokenFetcher,
+        tokenParams: sending [String: Any],
         sessionDuration: TimeInterval = 60 * 60 * 24 * 365,
         languageCode: String? = nil,
         channelToken: String? = nil,

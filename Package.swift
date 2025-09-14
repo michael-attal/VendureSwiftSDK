@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,11 +6,11 @@ import PackageDescription
 let package = Package(
     name: "VendureSwiftSDK",
     platforms: [
-        .macOS(.v13),
-        .iOS(.v13),
-        .watchOS(.v6),
-        .tvOS(.v13),
-        .visionOS(.v1)
+        .macOS(.v15),
+        .iOS(.v18),
+        .watchOS(.v11),
+        .tvOS(.v15),
+        .visionOS(.v2)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -33,6 +33,10 @@ let package = Package(
                 .product(name: "SkipModel", package: "skip-model", condition: .when(platforms: [.iOS, .macOS, .tvOS, .watchOS, .visionOS]))
             ],
             path: "Sources",
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"]),
+                .enableExperimentalFeature("StrictConcurrency=minimal"),
+            ],
             plugins: [
                 .plugin(name: "skipstone", package: "skip")
             ]

@@ -19,18 +19,20 @@ public class BaseOperations {
     /// Execute a GraphQL query
     internal func query<T: Codable>(
         _ queryString: String,
-        variables: [String: Any] = [:],
+        variables: sending [String: Any] = [:],
         responseType: T.Type
     ) async throws -> GraphQLResponse<T> {
+        // Variables contain only JSON-serializable Sendable types
         return try await graphQLClient.query(queryString, variables: variables, responseType: responseType)
     }
     
     /// Execute a GraphQL mutation
     internal func mutate<T: Codable>(
         _ mutationString: String,
-        variables: [String: Any] = [:],
+        variables: sending [String: Any] = [:],
         responseType: T.Type
     ) async throws -> GraphQLResponse<T> {
+        // Variables contain only JSON-serializable Sendable types
         return try await graphQLClient.query(mutationString, variables: variables, responseType: responseType)
     }
 }
@@ -39,7 +41,7 @@ public class BaseOperations {
 // MARK: - Query and Mutation Result Handling
 
 /// Success response wrapper
-public struct Success: Codable, Hashable {
+public struct Success: Codable, Hashable, Sendable {
     public let success: Bool
     
     public init(success: Bool = true) {
@@ -48,7 +50,7 @@ public struct Success: Codable, Hashable {
 }
 
 /// Deletion response
-public struct DeletionResponse: Codable, Hashable {
+public struct DeletionResponse: Codable, Hashable, Sendable {
     public let result: DeletionResult
     public let message: String?
     
@@ -59,14 +61,14 @@ public struct DeletionResponse: Codable, Hashable {
 }
 
 /// Deletion result enum
-public enum DeletionResult: String, Codable, CaseIterable {
+public enum DeletionResult: String, Codable, CaseIterable, Sendable {
     case DELETED, NOT_DELETED
 }
 
 // MARK: - Authentication Result Types
 
 /// Authentication result
-public struct AuthenticationResult: Codable, Hashable, Identifiable {
+public struct AuthenticationResult: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let identifier: String
     public let channels: [CurrentUserChannel]
@@ -79,7 +81,7 @@ public struct AuthenticationResult: Codable, Hashable, Identifiable {
 }
 
 /// Native authentication result
-public struct NativeAuthenticationResult: Codable, Hashable {
+public struct NativeAuthenticationResult: Codable, Hashable, Sendable {
     public let authenticationResult: AuthenticationResult?
     public let errorCode: ErrorCode?
     public let message: String?
@@ -92,7 +94,7 @@ public struct NativeAuthenticationResult: Codable, Hashable {
 }
 
 /// Register customer account result
-public struct RegisterCustomerAccountResult: Codable, Hashable {
+public struct RegisterCustomerAccountResult: Codable, Hashable, Sendable {
     public let success: Bool
     public let errorCode: ErrorCode?
     public let message: String?
@@ -105,7 +107,7 @@ public struct RegisterCustomerAccountResult: Codable, Hashable {
 }
 
 /// Verify customer account result
-public struct VerifyCustomerAccountResult: Codable, Hashable {
+public struct VerifyCustomerAccountResult: Codable, Hashable, Sendable {
     public let currentUser: CurrentUser?
     public let errorCode: ErrorCode?
     public let message: String?
@@ -118,7 +120,7 @@ public struct VerifyCustomerAccountResult: Codable, Hashable {
 }
 
 /// Update customer password result
-public struct UpdateCustomerPasswordResult: Codable, Hashable {
+public struct UpdateCustomerPasswordResult: Codable, Hashable, Sendable {
     public let success: Bool
     public let errorCode: ErrorCode?
     public let message: String?
@@ -131,7 +133,7 @@ public struct UpdateCustomerPasswordResult: Codable, Hashable {
 }
 
 /// Request password reset result
-public struct RequestPasswordResetResult: Codable, Hashable {
+public struct RequestPasswordResetResult: Codable, Hashable, Sendable {
     public let success: Bool
     public let errorCode: ErrorCode?
     public let message: String?
@@ -144,7 +146,7 @@ public struct RequestPasswordResetResult: Codable, Hashable {
 }
 
 /// Reset password result
-public struct ResetPasswordResult: Codable, Hashable {
+public struct ResetPasswordResult: Codable, Hashable, Sendable {
     public let currentUser: CurrentUser?
     public let errorCode: ErrorCode?
     public let message: String?
@@ -157,7 +159,7 @@ public struct ResetPasswordResult: Codable, Hashable {
 }
 
 /// Request update customer email address result
-public struct RequestUpdateCustomerEmailAddressResult: Codable, Hashable {
+public struct RequestUpdateCustomerEmailAddressResult: Codable, Hashable, Sendable {
     public let success: Bool
     public let errorCode: ErrorCode?
     public let message: String?
@@ -170,7 +172,7 @@ public struct RequestUpdateCustomerEmailAddressResult: Codable, Hashable {
 }
 
 /// Update customer email address result
-public struct UpdateCustomerEmailAddressResult: Codable, Hashable {
+public struct UpdateCustomerEmailAddressResult: Codable, Hashable, Sendable {
     public let success: Bool
     public let errorCode: ErrorCode?
     public let message: String?
@@ -185,7 +187,7 @@ public struct UpdateCustomerEmailAddressResult: Codable, Hashable {
 // MARK: - Order Result Types
 
 /// Active order result union
-public enum ActiveOrderResult: Codable, Hashable {
+public enum ActiveOrderResult: Codable, Hashable, Sendable {
     case order(Order)
     case noActiveOrderError(NoActiveOrderError)
     
@@ -216,7 +218,7 @@ public enum ActiveOrderResult: Codable, Hashable {
 }
 
 /// Add payment to order result union
-public enum AddPaymentToOrderResult: Codable, Hashable {
+public enum AddPaymentToOrderResult: Codable, Hashable, Sendable {
     case order(Order)
     case orderPaymentStateError(OrderPaymentStateError)
     case ineligiblePaymentMethodError(IneligiblePaymentMethodError)

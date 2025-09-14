@@ -11,7 +11,7 @@ public protocol CustomFieldProvider {
 }
 
 /// Concrete implementation of CustomFieldProvider
-public struct CustomField: CustomFieldProvider {
+public struct CustomField: CustomFieldProvider, Sendable {
     public let fieldName: String
     public let graphQLFragment: String
     public let applicableTypes: [String]

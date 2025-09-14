@@ -50,8 +50,8 @@ internal class ExtendedFieldContainer {
 
 extension Product: ExtendedFieldAccess {
     /// Private container for extended fields (using objc/runtime would be ideal, but let's keep it simple)
-    private static var extendedFieldContainers: [String: ExtendedFieldContainer] = [:]
-    private static var containerLock = NSLock()
+    nonisolated(unsafe) private static var extendedFieldContainers: [String: ExtendedFieldContainer] = [:]
+    nonisolated(unsafe) private static var containerLock = NSLock()
     
     private var extendedFieldContainer: ExtendedFieldContainer {
         Product.containerLock.lock()
@@ -89,8 +89,8 @@ extension Product: ExtendedFieldAccess {
 }
 
 extension ProductVariant: ExtendedFieldAccess {
-    private static var extendedFieldContainers: [String: ExtendedFieldContainer] = [:]
-    private static var containerLock = NSLock()
+    nonisolated(unsafe) private static var extendedFieldContainers: [String: ExtendedFieldContainer] = [:]
+    nonisolated(unsafe) private static var containerLock = NSLock()
     
     private var extendedFieldContainer: ExtendedFieldContainer {
         ProductVariant.containerLock.lock()
@@ -124,8 +124,8 @@ extension ProductVariant: ExtendedFieldAccess {
 }
 
 extension Collection: ExtendedFieldAccess {
-    private static var extendedFieldContainers: [String: ExtendedFieldContainer] = [:]
-    private static var containerLock = NSLock()
+    nonisolated(unsafe) private static var extendedFieldContainers: [String: ExtendedFieldContainer] = [:]
+    nonisolated(unsafe) private static var containerLock = NSLock()
     
     private var extendedFieldContainer: ExtendedFieldContainer {
         Collection.containerLock.lock()

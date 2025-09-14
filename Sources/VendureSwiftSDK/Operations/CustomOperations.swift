@@ -13,7 +13,7 @@ public actor CustomOperations {
     /// Execute a custom GraphQL mutation
     public func mutate<T: Codable>(
         _ mutation: String,
-        variables: [String: Any] = [:],
+        variables: sending [String: Any] = [:],
         responseType: T.Type,
         expectedDataType: String? = nil
     ) async throws -> T {
@@ -43,7 +43,7 @@ public actor CustomOperations {
     /// Execute a custom GraphQL query
     public func query<T: Codable>(
         _ query: String,
-        variables: [String: Any]? = nil,
+        variables: sending [String: Any]? = nil,
         expectedDataType: String? = nil,
         responseType: T.Type
     ) async throws -> T {
@@ -77,7 +77,7 @@ public actor CustomOperations {
     /// Execute a custom GraphQL query that returns a list
     public func queryList<T: Codable>(
         _ query: String,
-        variables: [String: Any] = [:],
+        variables: sending [String: Any] = [:],
         responseType: T.Type,
         expectedDataType: String? = nil
     ) async throws -> [T] {
@@ -107,7 +107,7 @@ public actor CustomOperations {
     /// Execute a custom GraphQL mutation that returns a list
     public func mutateList<T: Codable>(
         _ mutation: String,
-        variables: [String: Any] = [:],
+        variables: sending [String: Any] = [:],
         responseType: T.Type,
         expectedDataType: String? = nil
     ) async throws -> [T] {
@@ -138,7 +138,7 @@ public actor CustomOperations {
     
     private func executeOperation(
         _ operation: String,
-        variables: [String: Any],
+        variables: sending [String: Any],
         isMutation: Bool,
         expectedDataType: String?
     ) async throws -> GraphQLResponse<AnyCodable> {

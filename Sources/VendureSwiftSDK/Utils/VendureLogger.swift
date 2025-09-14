@@ -1,7 +1,7 @@
 import Foundation
 
 /// Logging levels for VendureSwiftSDK
-public enum VendureLogLevel: Int, CaseIterable {
+public enum VendureLogLevel: Int, CaseIterable, Sendable {
     case none = 0
     case error = 1
     case warning = 2
@@ -122,7 +122,7 @@ public func vendureLog(
     function: String = #function,
     line: Int = #line
 ) {
-    Task {
+    Task { @Sendable in
         await VendureLogger.shared.log(level, category: category, message, file: file, function: function, line: line)
     }
 }
@@ -136,8 +136,12 @@ public func vendureLog(
     function: String = #function,
     line: Int = #line
 ) {
-    Task {
-        await VendureLogger.shared.log(level, category: category, message, context: context, file: file, function: function, line: line)
+    // Convert context to sendable string representation before capturing in closure
+    let contextString = context.map { "\($0.key): \($0.value)" }.joined(separator: ", ")
+    let enhancedMessage = contextString.isEmpty ? message : "\(message) | \(contextString)"
+    
+    Task { @Sendable in
+        await VendureLogger.shared.log(level, category: category, enhancedMessage, file: file, function: function, line: line)
     }
 }
 

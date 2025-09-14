@@ -257,7 +257,8 @@ public actor OrderOperations {
         }
         """
         
-        return try await vendure.custom.queryList(query, responseType: PaymentMethodQuote.self, expectedDataType: "eligiblePaymentMethods")
+        let emptyVariables: [String: Any] = [:]
+        return try await vendure.custom.queryList(query, variables: emptyVariables, responseType: PaymentMethodQuote.self, expectedDataType: "eligiblePaymentMethods")
     }
     
     /// Get eligible shipping methods
@@ -275,7 +276,8 @@ public actor OrderOperations {
         }
         """
         
-        return try await vendure.custom.queryList(query, responseType: ShippingMethodQuote.self, expectedDataType: "eligibleShippingMethods")
+        let emptyVariables: [String: Any] = [:]
+        return try await vendure.custom.queryList(query, variables: emptyVariables, responseType: ShippingMethodQuote.self, expectedDataType: "eligibleShippingMethods")
     }
     
     /// Set customer for order

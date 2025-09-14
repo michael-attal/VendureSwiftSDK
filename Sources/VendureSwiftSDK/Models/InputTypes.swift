@@ -1,7 +1,7 @@
 import Foundation
 
 // MARK: - Address Input
-public struct CreateAddressInput: Codable {
+public struct CreateAddressInput: Codable, Sendable {
     public let fullName: String?
     public let company: String?
     public let streetLine1: String
@@ -44,7 +44,7 @@ public struct CreateAddressInput: Codable {
     }
 }
 
-public struct UpdateAddressInput: Codable {
+public struct UpdateAddressInput: Codable, Sendable {
     public let id: String
     public let fullName: String?
     public let company: String?
@@ -91,7 +91,7 @@ public struct UpdateAddressInput: Codable {
 }
 
 // MARK: - Customer Input
-public struct CreateCustomerInput: Codable {
+public struct CreateCustomerInput: Codable, Sendable {
     public let title: String?
     public let firstName: String
     public let lastName: String
@@ -116,7 +116,7 @@ public struct CreateCustomerInput: Codable {
     }
 }
 
-public struct UpdateCustomerInput: Codable {
+public struct UpdateCustomerInput: Codable, Sendable {
     public let title: String?
     public let firstName: String?
     public let lastName: String?
@@ -139,7 +139,7 @@ public struct UpdateCustomerInput: Codable {
 }
 
 // MARK: - Authentication Input
-public struct RegisterCustomerInput: Codable {
+public struct RegisterCustomerInput: Codable, Sendable {
     public let emailAddress: String
     public let title: String?
     public let firstName: String?
@@ -169,7 +169,7 @@ public struct RegisterCustomerInput: Codable {
 
 
 // MARK: - Order Input
-public struct UpdateOrderInput: Codable {
+public struct UpdateOrderInput: Codable, Sendable {
     public let customFields: [String: AnyCodable]?
     
     public init(customFields: [String: AnyCodable]? = nil) {

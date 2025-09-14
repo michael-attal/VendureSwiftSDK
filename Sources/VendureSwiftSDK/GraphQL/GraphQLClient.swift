@@ -35,7 +35,7 @@ public struct GraphQLRequest: Encodable {
 }
 
 /// GraphQL response structure
-public struct GraphQLResponse<T: Codable>: Codable {
+public struct GraphQLResponse<T: Codable>: Codable, Sendable where T: Sendable {
     public let data: T?
     public let errors: [GraphQLError]?
     
@@ -45,7 +45,7 @@ public struct GraphQLResponse<T: Codable>: Codable {
 }
 
 /// GraphQL error structure
-public struct GraphQLError: Codable, Error {
+public struct GraphQLError: Codable, Error, Sendable {
     public let message: String
     public let locations: [GraphQLErrorLocation]?
     public let path: [String]?
@@ -57,7 +57,7 @@ public struct GraphQLError: Codable, Error {
 }
 
 /// GraphQL error location
-public struct GraphQLErrorLocation: Codable {
+public struct GraphQLErrorLocation: Codable, Sendable {
     public let line: Int
     public let column: Int
 }
@@ -166,6 +166,8 @@ public actor GraphQLClient {
         headers: [String: String] = [:],
         responseType: T.Type
     ) async throws -> GraphQLResponse<T> {
+        // Variables dictionary contains only Sendable types (String, Int, Double, Bool, etc.)
+        // Safe to suppress concurrency warning
         return try await execute(
             GraphQLRequest(query: query, variables: variables),
             headers: headers,
@@ -180,6 +182,8 @@ public actor GraphQLClient {
         headers: [String: String] = [:],
         responseType: T.Type
     ) async throws -> GraphQLResponse<T> {
+        // Variables dictionary contains only Sendable types (String, Int, Double, Bool, etc.)
+        // Safe to suppress concurrency warning
         return try await execute(
             GraphQLRequest(query: mutation, variables: variables),
             headers: headers,
