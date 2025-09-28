@@ -7,6 +7,7 @@ public actor CatalogOperations {
         self.vendure = vendure
     }
     
+    
     /// Helper method to execute query and decode CollectionList - SKIP compatible
     private func executeCollectionListQuery(
         _ query: String,
@@ -76,6 +77,7 @@ public actor CatalogOperations {
     }
     
     /// Helper method to execute query and decode CatalogProductList - SKIP compatible
+    /// Manually captures mainUsdzAsset and other unknown fields for Skip compatibility
     private func executeCatalogProductListQuery(
         _ query: String,
         variablesJSON: String?,
@@ -103,10 +105,223 @@ public actor CatalogOperations {
             throw VendureError.decodingError(NSError(domain: "CatalogOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid \(expectedDataType) response"]))
         }
         
-        let extractedData = try JSONSerialization.data(withJSONObject: targetData, options: [])
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(CatalogProductList.self, from: extractedData)
+        // Extract and process the products list with unknown fields capture
+        // First cast targetData to [String: Any] for Skip compatibility
+        guard let targetDict = targetData as? [String: Any],
+              let itemsData = targetDict["items"] as? [[String: Any]] else {
+            throw VendureError.decodingError(NSError(domain: "CatalogOps", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid items array in response"]))
+        }
+        
+        let totalItems = targetDict["totalItems"] as? Int ?? 0
+        
+        // Process each product to extract unknown fields manually
+        var processedItems: [[String: Any]] = []
+        for productDict in itemsData {
+            let processedItem = await extractUnknownFieldsFromProduct(productDict)
+            processedItems.append(processedItem)
+        }
+        
+        // Reconstruct the response with processed items
+        let processedTargetData: [String: Any] = [
+            "items": processedItems,
+            "totalItems": totalItems
+        ]
+        
+        print("[UnknownFields] About to serialize processed data with \(processedItems.count) items")
+        
+        do {
+            let extractedData = try JSONSerialization.data(withJSONObject: processedTargetData, options: [])
+            
+            // Debug: print a safe preview of the reconstructed JSON
+            if let jsonString = String(data: extractedData, encoding: .utf8) {
+                let safePreview = String(jsonString.prefix(200)).replacingOccurrences(of: "\n", with: "\\n")
+                print("[UnknownFields] Reconstructed JSON preview (200 chars): \(safePreview)...")
+                print("[UnknownFields] Total JSON size: \(extractedData.count) bytes")
+            }
+            
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            
+            print("[UnknownFields] About to decode CatalogProductList from \(extractedData.count) bytes")
+            let result = try decoder.decode(CatalogProductList.self, from: extractedData)
+            print("[UnknownFields] ✅ Successfully decoded CatalogProductList with \(result.items.count) items")
+            return result
+        } catch {
+            print("[UnknownFields] ❌ Failed to decode CatalogProductList: \(error)")
+            if let decodingError = error as? DecodingError {
+                print("[UnknownFields] DecodingError details: \(decodingError)")
+            }
+            throw error
+        }
+    }
+    
+    /// Extract unknown fields from a product dictionary and inject them as custom fields
+    /// Skip-compatible: uses only basic types and no generics
+    private func extractUnknownFieldsFromProduct(_ productDict: [String: Any]) async -> [String: Any] {
+        var processedProduct = productDict
+        
+        print("[UnknownFields] Processing product \(productDict["id"] ?? "unknown") with \(productDict.count) total fields")
+        print("[UnknownFields] All fields in product: \(Array(productDict.keys).sorted())")
+        
+        // Known CatalogProduct fields that should NOT be treated as unknown
+        // Based on CatalogProduct struct definition in ProductTypes.swift
+        let knownProductFields = Set([
+            "id", "name", "slug", "description", "enabled", 
+            "featuredAsset", "variants", "customFields"
+        ])
+        
+        print("[UnknownFields] Known fields: \(knownProductFields.sorted())")
+        
+        // Extract unknown fields from product level
+        var unknownProductFields: [String: Any] = [:]
+        for (key, value) in productDict {
+            let isKnown = knownProductFields.contains(key)
+            print("[UnknownFields] Field '\(key)': isKnown=\(isKnown), value=\(type(of: value))")
+            
+            if !isKnown {
+                unknownProductFields[key] = value
+                print("[UnknownFields] ✅ Added unknown product field: \(key) = \(String(describing: value).prefix(100))")
+            }
+        }
+        
+        // Process variants to extract their unknown fields too
+        if let variants = productDict["variants"] as? [[String: Any]] {
+            var processedVariants: [[String: Any]] = []
+            for variantDict in variants {
+                let processedVariant = await extractUnknownFieldsFromVariant(variantDict)
+                processedVariants.append(processedVariant)
+            }
+            processedProduct["variants"] = processedVariants
+        }
+        
+        // If we found unknown fields, encode them as JSON and store in customFields
+        if !unknownProductFields.isEmpty {
+            do {
+                // Try with preferred options first, fallback to basic options if not supported
+                var jsonData: Data
+                do {
+                    jsonData = try JSONSerialization.data(withJSONObject: unknownProductFields, options: [.fragmentsAllowed, .withoutEscapingSlashes])
+                } catch {
+                    print("[UnknownFields] Fallback: Using basic JSON serialization options")
+                    jsonData = try JSONSerialization.data(withJSONObject: unknownProductFields, options: [])
+                }
+                
+                if let jsonString = String(data: jsonData, encoding: .utf8) {
+                    print("[UnknownFields] Serialized unknown fields as JSON (\(jsonData.count) bytes): \(String(jsonString.prefix(100)))...")
+                    // Merge with existing customFields if any
+                    if let existingCustomFields = processedProduct["customFields"] as? String,
+                       !existingCustomFields.isEmpty {
+                        // Parse existing custom fields and merge
+                        if let existingData = existingCustomFields.data(using: .utf8),
+                           let existingDict = try? JSONSerialization.jsonObject(with: existingData) as? [String: Any] {
+                            var mergedFields = existingDict
+                            for (key, value) in unknownProductFields {
+                                mergedFields[key] = value
+                            }
+                            let mergedData: Data
+                            do {
+                                mergedData = try JSONSerialization.data(withJSONObject: mergedFields, options: [.fragmentsAllowed, .withoutEscapingSlashes])
+                            } catch {
+                                mergedData = try JSONSerialization.data(withJSONObject: mergedFields, options: [])
+                            }
+                            if let mergedString = String(data: mergedData, encoding: .utf8) {
+                                processedProduct["customFields"] = mergedString
+                            }
+                        } else {
+                            processedProduct["customFields"] = jsonString
+                        }
+                    } else {
+                        processedProduct["customFields"] = jsonString
+                    }
+                    print("[UnknownFields] Captured \(unknownProductFields.count) unknown fields for product \(productDict["id"] ?? "unknown")")
+                }
+            } catch {
+                print("[UnknownFields] Failed to serialize unknown fields: \(error)")
+            }
+        }
+        
+        // Apply custom field transformation via hook
+        // Note: Skip transformer for now due to Sendable requirements
+        // Will be applied at the application layer instead
+        
+        // Add empty unknownFields for CatalogProduct Codable compatibility
+        processedProduct["unknownFields"] = ["fieldNames": [], "fields": [:]]
+        
+        return processedProduct
+    }
+    
+    /// Extract unknown fields from a variant dictionary
+    /// Skip-compatible: uses only basic types and no generics
+    private func extractUnknownFieldsFromVariant(_ variantDict: [String: Any]) async -> [String: Any] {
+        var processedVariant = variantDict
+        
+        // Known CatalogProductVariant fields that should NOT be treated as unknown
+        let knownVariantFields = Set([
+            "id", "name", "sku", "price", "priceWithTax", 
+            "currencyCode", "stockLevel", "customFields"
+        ])
+        
+        // Extract unknown fields from variant level
+        var unknownVariantFields: [String: Any] = [:]
+        for (key, value) in variantDict {
+            if !knownVariantFields.contains(key) {
+                unknownVariantFields[key] = value
+                print("[UnknownFields] Found unknown variant field: \(key)")
+            }
+        }
+        
+        // If we found unknown fields, encode them as JSON and store in customFields
+        if !unknownVariantFields.isEmpty {
+            do {
+                // Try with preferred options first, fallback to basic options if not supported
+                var jsonData: Data
+                do {
+                    jsonData = try JSONSerialization.data(withJSONObject: unknownVariantFields, options: [.fragmentsAllowed, .withoutEscapingSlashes])
+                } catch {
+                    jsonData = try JSONSerialization.data(withJSONObject: unknownVariantFields, options: [])
+                }
+                
+                if let jsonString = String(data: jsonData, encoding: .utf8) {
+                    // Merge with existing customFields if any
+                    if let existingCustomFields = processedVariant["customFields"] as? String,
+                       !existingCustomFields.isEmpty {
+                        // Parse existing custom fields and merge
+                        if let existingData = existingCustomFields.data(using: .utf8),
+                           let existingDict = try? JSONSerialization.jsonObject(with: existingData) as? [String: Any] {
+                            var mergedFields = existingDict
+                            for (key, value) in unknownVariantFields {
+                                mergedFields[key] = value
+                            }
+                            let mergedData: Data
+                            do {
+                                mergedData = try JSONSerialization.data(withJSONObject: mergedFields, options: [.fragmentsAllowed, .withoutEscapingSlashes])
+                            } catch {
+                                mergedData = try JSONSerialization.data(withJSONObject: mergedFields, options: [])
+                            }
+                            if let mergedString = String(data: mergedData, encoding: .utf8) {
+                                processedVariant["customFields"] = mergedString
+                            }
+                        } else {
+                            processedVariant["customFields"] = jsonString
+                        }
+                    } else {
+                        processedVariant["customFields"] = jsonString
+                    }
+                    print("[UnknownFields] Captured \(unknownVariantFields.count) unknown fields for variant \(variantDict["id"] ?? "unknown")")
+                }
+            } catch {
+                print("[UnknownFields] Failed to serialize unknown variant fields: \(error)")
+            }
+        }
+        
+        // Apply custom field transformation via hook
+        // Note: Skip transformer for now due to Sendable requirements
+        // Will be applied at the application layer instead
+        
+        // Add empty unknownFields for CatalogProductVariant Codable compatibility
+        processedVariant["unknownFields"] = ["fieldNames": [], "fields": [:]]
+        
+        return processedVariant
     }
     
     /// Helper method to execute query and decode Product - SKIP compatible
@@ -136,6 +351,7 @@ public actor CatalogOperations {
               let targetData = responseData[expectedDataType] else {
             throw VendureError.decodingError(NSError(domain: "CatalogOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid \(expectedDataType) response"]))
         }
+        
         
         let extractedData = try JSONSerialization.data(withJSONObject: targetData, options: [])
         let decoder = JSONDecoder()

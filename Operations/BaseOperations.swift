@@ -478,8 +478,11 @@ struct CustomerWrapper: Codable, Sendable {
         // Try to decode from "data" key first, then directly
         if let dataContainer = try? container.nestedContainer(keyedBy: DynamicCodingKey.self, forKey: .data) {
             // Look for activeCustomer key
-            let activeCustomerKey = DynamicCodingKey(stringValue: "activeCustomer")
-            customer = try dataContainer.decodeIfPresent(Customer.self, forKey: activeCustomerKey)
+            if let activeCustomerKey = DynamicCodingKey(stringValue: "activeCustomer") {
+                customer = try dataContainer.decodeIfPresent(Customer.self, forKey: activeCustomerKey)
+            } else {
+                customer = nil
+            }
         } else {
             // Fallback: decode directly as Customer
             customer = try? Customer(from: decoder)
@@ -489,35 +492,13 @@ struct CustomerWrapper: Codable, Sendable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         var dataContainer = container.nestedContainer(keyedBy: DynamicCodingKey.self, forKey: .data)
-        let activeCustomerKey = DynamicCodingKey(stringValue: "activeCustomer")
-        try dataContainer.encodeIfPresent(customer, forKey: activeCustomerKey)
+        if let activeCustomerKey = DynamicCodingKey(stringValue: "activeCustomer") {
+            try dataContainer.encodeIfPresent(customer, forKey: activeCustomerKey)
+        }
     }
 }
 
-/// Dynamic coding key for nested decoding (used in other contexts if needed)
-public struct DynamicCodingKey: CodingKey {
-    public var stringValue: String
-    public var intValue: Int?
-    
-    /// Raw value required by SKIP Kotlin transpilation
-    public var rawValue: String {
-        return stringValue
-    }
-    
-    /// Create a DynamicCodingKey from a string value (required by CodingKey)
-    public init(stringValue: String) {
-        self.stringValue = stringValue
-        self.intValue = Int(stringValue)
-    }
-    
-    /// Create a DynamicCodingKey from an int value (required by CodingKey, can fail)
-    public init?(intValue: Int) {
-        self.stringValue = "\(intValue)"
-        self.intValue = intValue
-    }
-}
-
-/// Wrapper for nullable CurrentUser to avoid CurrentUser?.self in decode calls
+/// Wrapper for nullable CurrentUser
 struct CurrentUserWrapper: Codable, Sendable {
     let currentUser: CurrentUser?
     
@@ -531,8 +512,11 @@ struct CurrentUserWrapper: Codable, Sendable {
         // Try to decode from "data" key first, then directly
         if let dataContainer = try? container.nestedContainer(keyedBy: DynamicCodingKey.self, forKey: .data) {
             // Look for me key
-            let meKey = DynamicCodingKey(stringValue: "me")
-            currentUser = try dataContainer.decodeIfPresent(CurrentUser.self, forKey: meKey)
+            if let meKey = DynamicCodingKey(stringValue: "me") {
+                currentUser = try dataContainer.decodeIfPresent(CurrentUser.self, forKey: meKey)
+            } else {
+                currentUser = nil
+            }
         } else {
             // Fallback: decode directly as CurrentUser
             currentUser = try? CurrentUser(from: decoder)
@@ -542,7 +526,8 @@ struct CurrentUserWrapper: Codable, Sendable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         var dataContainer = container.nestedContainer(keyedBy: DynamicCodingKey.self, forKey: .data)
-        let meKey = DynamicCodingKey(stringValue: "me")
-        try dataContainer.encodeIfPresent(currentUser, forKey: meKey)
+        if let meKey = DynamicCodingKey(stringValue: "me") {
+            try dataContainer.encodeIfPresent(currentUser, forKey: meKey)
+        }
     }
 }

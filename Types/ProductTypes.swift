@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Product Types
 
 /// Represents a product in the catalog
-public struct Product: Codable, Hashable, Identifiable, Sendable {
+public struct Product: Codable, Hashable, Identifiable, Sendable, UnknownJSONAccessible {
     public let id: String
     public let name: String
     public let slug: String
@@ -20,11 +20,15 @@ public struct Product: Codable, Hashable, Identifiable, Sendable {
     public let createdAt: Date
     public let updatedAt: Date
     
+    // Unknown fields support for extensions
+    public let unknownFields: UnknownJSONFieldsContainer
+    
     public init(id: String, name: String, slug: String, description: String, enabled: Bool,
                 featuredAsset: Asset? = nil, assets: [Asset] = [], variants: [ProductVariant] = [],
                 optionGroups: [ProductOptionGroup] = [], facetValues: [FacetValue] = [],
                 translations: [ProductTranslation] = [], customFields: String? = nil,
-                languageCode: LanguageCode, createdAt: Date, updatedAt: Date) {
+                languageCode: LanguageCode, createdAt: Date, updatedAt: Date,
+                unknownFields: UnknownJSONFieldsContainer = UnknownJSONFieldsContainer()) {
         self.id = id
         self.name = name
         self.slug = slug
@@ -40,11 +44,12 @@ public struct Product: Codable, Hashable, Identifiable, Sendable {
         self.languageCode = languageCode
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.unknownFields = unknownFields
     }
 }
 
 /// Represents a product variant
-public struct ProductVariant: Codable, Hashable, Identifiable, Sendable {
+public struct ProductVariant: Codable, Hashable, Identifiable, Sendable, UnknownJSONAccessible {
     public let id: String
     public let name: String
     public let sku: String
@@ -67,13 +72,17 @@ public struct ProductVariant: Codable, Hashable, Identifiable, Sendable {
     public let createdAt: Date
     public let updatedAt: Date
     
+    // Unknown fields support for extensions
+    public let unknownFields: UnknownJSONFieldsContainer
+    
     public init(id: String, name: String, sku: String, price: Double, priceWithTax: Double,
                 currencyCode: CurrencyCode, enabled: Bool, stockLevel: String,
                 trackInventory: String, stockOnHand: Int, stockAllocated: Int,
                 outOfStockThreshold: Int, useGlobalOutOfStockThreshold: Bool,
                 featuredAsset: Asset? = nil, assets: [Asset] = [], options: [ProductOption] = [],
                 facetValues: [FacetValue] = [], translations: [ProductVariantTranslation] = [],
-                customFields: String? = nil, createdAt: Date, updatedAt: Date) {
+                customFields: String? = nil, createdAt: Date, updatedAt: Date,
+                unknownFields: UnknownJSONFieldsContainer = UnknownJSONFieldsContainer()) {
         self.id = id
         self.name = name
         self.sku = sku
@@ -95,6 +104,7 @@ public struct ProductVariant: Codable, Hashable, Identifiable, Sendable {
         self.customFields = customFields
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.unknownFields = unknownFields
     }
 }
 
@@ -195,8 +205,216 @@ public struct ProductOptionGroupTranslation: Codable, Hashable, Sendable {
     }
 }
 
-// MARK: - Search Types
+// MARK: - Custom Codable Implementation for Unknown Fields Support
 
+// Product CodingKeys - all known fields
+private enum ProductCodingKeys: String, CodingKey, CaseIterable {
+    case id, name, slug, description, enabled
+    case featuredAsset, assets, variants, optionGroups
+    case facetValues, translations, customFields
+    case languageCode, createdAt, updatedAt
+}
+
+// ProductVariant CodingKeys - all known fields  
+private enum ProductVariantCodingKeys: String, CodingKey {
+    case id, name, sku, price, priceWithTax, currencyCode
+    case enabled, stockLevel, trackInventory, stockOnHand
+    case stockAllocated, outOfStockThreshold, useGlobalOutOfStockThreshold
+    case featuredAsset, assets, options, facetValues
+    case translations, customFields, createdAt, updatedAt
+}
+
+// Custom Codable implementation for Product
+extension Product {
+    public init(from decoder: Decoder) throws {
+        // Decode known fields with standard approach
+        let container = try decoder.container(keyedBy: ProductCodingKeys.self)
+        
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.slug = try container.decode(String.self, forKey: .slug)
+        self.description = try container.decode(String.self, forKey: .description)
+        self.enabled = try container.decode(Bool.self, forKey: .enabled)
+        self.featuredAsset = try container.decodeIfPresent(Asset.self, forKey: .featuredAsset)
+        self.assets = try container.decode([Asset].self, forKey: .assets)
+        self.variants = try container.decode([ProductVariant].self, forKey: .variants)
+        self.optionGroups = try container.decode([ProductOptionGroup].self, forKey: .optionGroups)
+        self.facetValues = try container.decode([FacetValue].self, forKey: .facetValues)
+        self.translations = try container.decode([ProductTranslation].self, forKey: .translations)
+        self.customFields = try container.decodeIfPresent(String.self, forKey: .customFields)
+        self.languageCode = try container.decode(LanguageCode.self, forKey: .languageCode)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Capture unknown fields
+        let dynamicContainer = try decoder.container(keyedBy: DynamicCodingKey.self)
+        var unknownFieldsDict: [String: RawJSON] = [:]
+        
+        // DEBUG: Print all available keys
+        let allKeys = dynamicContainer.allKeys.map { $0.stringValue }
+        print("[UnknownFields] Product \(self.id) - All keys in JSON: \(allKeys)")
+        print("[UnknownFields] Product \(self.id) - Known keys: \(ProductCodingKeys.allCases.map { $0.rawValue })")
+        
+        for key in dynamicContainer.allKeys {
+            let keyString = key.stringValue
+            let isKnownKey = ProductCodingKeys(rawValue: keyString) != nil
+            print("[UnknownFields] Processing key '\(keyString)' - isKnown: \(isKnownKey)")
+            
+            // Skip known fields
+            if !isKnownKey {
+                print("[UnknownFields] Found unknown field in Product: \(keyString)")
+                
+                // Extract raw JSON for this unknown field
+                if let rawJSON = RawJSONExtractor.extractRawJSON(from: dynamicContainer, forKey: key) {
+                    unknownFieldsDict[keyString] = RawJSON(rawJSON)
+                    print("[UnknownFields] ✅ Captured \(keyString): \(String(rawJSON.prefix(100)))")
+                } else {
+                    print("[UnknownFields] ⚠️ Failed to capture raw JSON for \(keyString)")
+                }
+            }
+        }
+        
+        self.unknownFields = UnknownJSONFieldsContainer(unknownFieldsDict)
+        print("[UnknownFields] Product \(self.id) captured \(unknownFieldsDict.count) unknown fields")
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        // Encode known fields
+        var container = encoder.container(keyedBy: ProductCodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(slug, forKey: .slug)
+        try container.encode(description, forKey: .description)
+        try container.encode(enabled, forKey: .enabled)
+        try container.encodeIfPresent(featuredAsset, forKey: .featuredAsset)
+        try container.encode(assets, forKey: .assets)
+        try container.encode(variants, forKey: .variants)
+        try container.encode(optionGroups, forKey: .optionGroups)
+        try container.encode(facetValues, forKey: .facetValues)
+        try container.encode(translations, forKey: .translations)
+        try container.encodeIfPresent(customFields, forKey: .customFields)
+        try container.encode(languageCode, forKey: .languageCode)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        
+        // Encode unknown fields back to preserve round-trip compatibility
+        var dynamicContainer = encoder.container(keyedBy: DynamicCodingKey.self)
+        for fieldName in unknownFields.fieldNames {
+            if let key = DynamicCodingKey(stringValue: fieldName),
+               let rawJSON = unknownFields[fieldName] {
+                // Re-encode the raw JSON string as the original value
+                if let data = rawJSON.jsonString.data(using: .utf8),
+                   let jsonObject = try? JSONSerialization.jsonObject(with: data) {
+                    // Create a temporary decoder with the raw JSON to initialize AnyCodableValue
+                    let tempDecoder = JSONDecoder()
+                    if let tempData = rawJSON.jsonString.data(using: .utf8),
+                       let anyCodable = try? tempDecoder.decode(AnyCodableValue.self, from: tempData) {
+                        try dynamicContainer.encode(anyCodable, forKey: key)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Custom Codable implementation for ProductVariant
+extension ProductVariant {
+    public init(from decoder: Decoder) throws {
+        // Decode known fields with standard approach
+        let container = try decoder.container(keyedBy: ProductVariantCodingKeys.self)
+        
+        self.id = try container.decode(String.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.sku = try container.decode(String.self, forKey: .sku)
+        self.price = try container.decode(Double.self, forKey: .price)
+        self.priceWithTax = try container.decode(Double.self, forKey: .priceWithTax)
+        self.currencyCode = try container.decode(CurrencyCode.self, forKey: .currencyCode)
+        self.enabled = try container.decode(Bool.self, forKey: .enabled)
+        self.stockLevel = try container.decode(String.self, forKey: .stockLevel)
+        self.trackInventory = try container.decode(String.self, forKey: .trackInventory)
+        self.stockOnHand = try container.decode(Int.self, forKey: .stockOnHand)
+        self.stockAllocated = try container.decode(Int.self, forKey: .stockAllocated)
+        self.outOfStockThreshold = try container.decode(Int.self, forKey: .outOfStockThreshold)
+        self.useGlobalOutOfStockThreshold = try container.decode(Bool.self, forKey: .useGlobalOutOfStockThreshold)
+        self.featuredAsset = try container.decodeIfPresent(Asset.self, forKey: .featuredAsset)
+        self.assets = try container.decode([Asset].self, forKey: .assets)
+        self.options = try container.decode([ProductOption].self, forKey: .options)
+        self.facetValues = try container.decode([FacetValue].self, forKey: .facetValues)
+        self.translations = try container.decode([ProductVariantTranslation].self, forKey: .translations)
+        self.customFields = try container.decodeIfPresent(String.self, forKey: .customFields)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Capture unknown fields
+        let dynamicContainer = try decoder.container(keyedBy: DynamicCodingKey.self)
+        var unknownFieldsDict: [String: RawJSON] = [:]
+        
+        for key in dynamicContainer.allKeys {
+            // Skip known fields
+            if ProductVariantCodingKeys(rawValue: key.stringValue) == nil {
+                print("[UnknownFields] Found unknown field in ProductVariant: \(key.stringValue)")
+                
+                // Extract raw JSON for this unknown field
+                if let rawJSON = RawJSONExtractor.extractRawJSON(from: dynamicContainer, forKey: key) {
+                    unknownFieldsDict[key.stringValue] = RawJSON(rawJSON)
+                    print("[UnknownFields] ✅ Captured \(key.stringValue): \(String(rawJSON.prefix(100)))")
+                } else {
+                    print("[UnknownFields] ⚠️ Failed to capture raw JSON for \(key.stringValue)")
+                }
+            }
+        }
+        
+        self.unknownFields = UnknownJSONFieldsContainer(unknownFieldsDict)
+        print("[UnknownFields] ProductVariant \(self.id) captured \(unknownFieldsDict.count) unknown fields")
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        // Encode known fields
+        var container = encoder.container(keyedBy: ProductVariantCodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(sku, forKey: .sku)
+        try container.encode(price, forKey: .price)
+        try container.encode(priceWithTax, forKey: .priceWithTax)
+        try container.encode(currencyCode, forKey: .currencyCode)
+        try container.encode(enabled, forKey: .enabled)
+        try container.encode(stockLevel, forKey: .stockLevel)
+        try container.encode(trackInventory, forKey: .trackInventory)
+        try container.encode(stockOnHand, forKey: .stockOnHand)
+        try container.encode(stockAllocated, forKey: .stockAllocated)
+        try container.encode(outOfStockThreshold, forKey: .outOfStockThreshold)
+        try container.encode(useGlobalOutOfStockThreshold, forKey: .useGlobalOutOfStockThreshold)
+        try container.encodeIfPresent(featuredAsset, forKey: .featuredAsset)
+        try container.encode(assets, forKey: .assets)
+        try container.encode(options, forKey: .options)
+        try container.encode(facetValues, forKey: .facetValues)
+        try container.encodeIfPresent(customFields, forKey: .customFields)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        
+        // Encode unknown fields back to preserve round-trip compatibility
+        var dynamicContainer = encoder.container(keyedBy: DynamicCodingKey.self)
+        for fieldName in unknownFields.fieldNames {
+            if let key = DynamicCodingKey(stringValue: fieldName),
+               let rawJSON = unknownFields[fieldName] {
+                // Re-encode the raw JSON string as the original value
+                if let data = rawJSON.jsonString.data(using: .utf8),
+                   let jsonObject = try? JSONSerialization.jsonObject(with: data) {
+                    // Create a temporary decoder with the raw JSON to initialize AnyCodableValue
+                    let tempDecoder = JSONDecoder()
+                    if let tempData = rawJSON.jsonString.data(using: .utf8),
+                       let anyCodable = try? tempDecoder.decode(AnyCodableValue.self, from: tempData) {
+                        try dynamicContainer.encode(anyCodable, forKey: key)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Search Types
 
 /// Search input for catalog search
 public struct SearchInput: Codable, Sendable {
@@ -362,8 +580,8 @@ public struct CatalogAsset: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
-/// Simplified product for catalog listing
-public struct CatalogProduct: Codable, Hashable, Identifiable, Sendable {
+/// Simplified product for catalog listing with unknown fields support
+public struct CatalogProduct: Codable, Hashable, Identifiable, Sendable, UnknownJSONAccessible {
     public let id: String
     public let name: String
     public let slug: String
@@ -373,9 +591,13 @@ public struct CatalogProduct: Codable, Hashable, Identifiable, Sendable {
     public let variants: [CatalogProductVariant]
     public let customFields: String? // JSON string instead of [String: AnyCodable]
     
+    // Unknown fields support for extended GraphQL fields
+    public let unknownFields: UnknownJSONFieldsContainer
+    
     public init(id: String, name: String, slug: String, description: String, enabled: Bool,
                 featuredAsset: CatalogAsset? = nil, variants: [CatalogProductVariant] = [],
-                customFields: String? = nil) {
+                customFields: String? = nil,
+                unknownFields: UnknownJSONFieldsContainer = UnknownJSONFieldsContainer()) {
         self.id = id
         self.name = name
         self.slug = slug
@@ -384,11 +606,12 @@ public struct CatalogProduct: Codable, Hashable, Identifiable, Sendable {
         self.featuredAsset = featuredAsset
         self.variants = variants
         self.customFields = customFields
+        self.unknownFields = unknownFields
     }
 }
 
-/// Simplified product variant for catalog listing
-public struct CatalogProductVariant: Codable, Hashable, Identifiable, Sendable {
+/// Simplified product variant for catalog listing with unknown fields support
+public struct CatalogProductVariant: Codable, Hashable, Identifiable, Sendable, UnknownJSONAccessible {
     public let id: String
     public let name: String
     public let sku: String
@@ -398,8 +621,12 @@ public struct CatalogProductVariant: Codable, Hashable, Identifiable, Sendable {
     public let stockLevel: String
     public let customFields: String? // JSON string instead of [String: AnyCodable]
     
+    // Unknown fields support for extended GraphQL fields
+    public let unknownFields: UnknownJSONFieldsContainer
+    
     public init(id: String, name: String, sku: String, price: Double, priceWithTax: Double,
-                currencyCode: CurrencyCode, stockLevel: String, customFields: String? = nil) {
+                currencyCode: CurrencyCode, stockLevel: String, customFields: String? = nil,
+                unknownFields: UnknownJSONFieldsContainer = UnknownJSONFieldsContainer()) {
         self.id = id
         self.name = name
         self.sku = sku
@@ -408,6 +635,7 @@ public struct CatalogProductVariant: Codable, Hashable, Identifiable, Sendable {
         self.currencyCode = currencyCode
         self.stockLevel = stockLevel
         self.customFields = customFields
+        self.unknownFields = unknownFields
     }
 }
 
@@ -448,8 +676,12 @@ extension CatalogAsset {
 
 extension CatalogProduct {
     /// Convert to full Product model with default values for missing fields
+    /// Now preserves unknownFields during conversion
     public func toProduct() -> Product {
-        return Product(
+        print("[CONVERSION] CatalogProduct.toProduct() - Product \(self.id)")
+        print("[CONVERSION] CatalogProduct.unknownFields has \(self.unknownFields.fieldNames.count) fields: \(self.unknownFields.fieldNames)")
+        
+        let product = Product(
             id: self.id,
             name: self.name,
             slug: self.slug,
@@ -464,13 +696,18 @@ extension CatalogProduct {
             customFields: self.customFields,
             languageCode: LanguageCode.en,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
+            unknownFields: self.unknownFields // Preserve unknown fields!
         )
+        
+        print("[CONVERSION] Resulting Product.unknownFields has \(product.unknownFields.fieldNames.count) fields: \(product.unknownFields.fieldNames)")
+        return product
     }
 }
 
 extension CatalogProductVariant {
     /// Convert to full ProductVariant model with default values for missing fields
+    /// Now preserves unknownFields during conversion
     public func toProductVariant() -> ProductVariant {
         return ProductVariant(
             id: self.id,
@@ -493,10 +730,12 @@ extension CatalogProductVariant {
             translations: [],
             customFields: self.customFields,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
+            unknownFields: self.unknownFields // Preserve unknown fields!
         )
     }
 }
+
 
 extension CatalogProductList {
     /// Convert to full ProductList for backwards compatibility
