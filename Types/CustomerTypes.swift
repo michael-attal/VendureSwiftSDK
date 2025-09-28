@@ -13,13 +13,13 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
     public let addresses: [Address]?
     public let orders: OrderList?
     public let user: User?
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
     public init(id: String, firstName: String, lastName: String, emailAddress: String,
                 title: String? = nil, phoneNumber: String? = nil, addresses: [Address]? = nil,
-                orders: OrderList? = nil, user: User? = nil, customFields: String? = nil,
+                orders: OrderList? = nil, user: User? = nil, customFields: [String: AnyCodable]? = nil,
                 createdAt: Date, updatedAt: Date) {
         self.id = id
         self.firstName = firstName
@@ -43,12 +43,7 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
         customFieldsDict: [String: Any]? = nil,
         createdAt: Date, updatedAt: Date
     ) -> Customer {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
+        let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
         
         return Customer(
             id: id,
@@ -60,7 +55,7 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
             addresses: addresses,
             orders: orders,
             user: user,
-            customFields: customFieldsJSON,
+            customFields: customFields,
             createdAt: createdAt,
             updatedAt: updatedAt
         )
@@ -86,13 +81,13 @@ public struct User: Codable, Hashable, Identifiable, Sendable {
     public let roles: [Role]
     public let lastLogin: Date?
     public let authenticationMethods: [AuthenticationMethod]
-    public let customFields: String? // JSON string instead of UserCustomFields
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
     public init(id: String, identifier: String, verified: Bool, roles: [Role] = [],
                 lastLogin: Date? = nil, authenticationMethods: [AuthenticationMethod] = [],
-                customFields: String? = nil, createdAt: Date, updatedAt: Date) {
+                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
         self.id = id
         self.identifier = identifier
         self.verified = verified
@@ -110,12 +105,7 @@ public struct User: Codable, Hashable, Identifiable, Sendable {
         lastLogin: Date? = nil, authenticationMethods: [AuthenticationMethod] = [],
         customFieldsDict: [String: Any]? = nil, createdAt: Date, updatedAt: Date
     ) -> User {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
+        let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
         
         return User(
             id: id,
@@ -124,7 +114,7 @@ public struct User: Codable, Hashable, Identifiable, Sendable {
             roles: roles,
             lastLogin: lastLogin,
             authenticationMethods: authenticationMethods,
-            customFields: customFieldsJSON,
+            customFields: customFields,
             createdAt: createdAt,
             updatedAt: updatedAt
         )
@@ -197,11 +187,11 @@ public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let customers: CustomerList
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
-    public init(id: String, name: String, customers: CustomerList, customFields: String? = nil,
+    public init(id: String, name: String, customers: CustomerList, customFields: [String: AnyCodable]? = nil,
                 createdAt: Date, updatedAt: Date) {
         self.id = id
         self.name = name
@@ -217,18 +207,13 @@ public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
         customFieldsDict: [String: Any]? = nil,
         createdAt: Date, updatedAt: Date
     ) -> CustomerGroup {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
+        let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
         
         return CustomerGroup(
             id: id,
             name: name,
             customers: customers,
-            customFields: customFieldsJSON,
+            customFields: customFields,
             createdAt: createdAt,
             updatedAt: updatedAt
         )
@@ -260,37 +245,25 @@ public struct RoleList: Codable, Hashable, Sendable {
 // MARK: - Extensions for Custom Fields Access
 
 extension Customer {
-    /// Parse custom fields from JSON string
-    public func getCustomFields() -> [String: Any]? {
-        guard let customFields = customFields,
-              let data = customFields.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-            return nil
-        }
-        return json
+    /// Get custom fields as Any dictionary
+    public func getCustomFields() -> [String: Any] {
+        return CustomFieldsUtility.toAnyDictionary(customFields)
     }
 }
 
 extension User {
-    /// Parse custom fields from JSON string
-    public func getCustomFields() -> [String: Any]? {
-        guard let customFields = customFields,
-              let data = customFields.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-            return nil
-        }
-        return json
+    /// Get custom fields as Any dictionary
+    public func getCustomFields() -> [String: Any] {
+        return CustomFieldsUtility.toAnyDictionary(customFields)
     }
 }
 
 extension CustomerGroup {
-    /// Parse custom fields from JSON string
-    public func getCustomFields() -> [String: Any]? {
-        guard let customFields = customFields,
-              let data = customFields.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-            return nil
-        }
-        return json
+    /// Get custom fields as Any dictionary
+    public func getCustomFields() -> [String: Any] {
+        return CustomFieldsUtility.toAnyDictionary(customFields)
     }
 }
+
+// Note: These types now fully support AnyCodable custom fields.
+// Use the extension methods from CustomFieldExtensions.swift for type-safe access.

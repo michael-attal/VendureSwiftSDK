@@ -7,12 +7,12 @@ public struct TaxCategory: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let isDefault: Bool
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
     public init(id: String, name: String, isDefault: Bool = false,
-                customFields: String? = nil, createdAt: Date, updatedAt: Date) {
+                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
         self.id = id
         self.name = name
         self.isDefault = isDefault
@@ -30,18 +30,13 @@ public struct TaxCategory: Codable, Hashable, Identifiable, Sendable {
         createdAt: Date,
         updatedAt: Date
     ) -> TaxCategory {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
+        let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
         
         return TaxCategory(
             id: id,
             name: name,
             isDefault: isDefault,
-            customFields: customFieldsJSON,
+            customFields: customFields,
             createdAt: createdAt,
             updatedAt: updatedAt
         )
@@ -59,13 +54,13 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
     public let category: TaxCategory
     public let zone: Zone
     public let customerGroup: CustomerGroup?
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
     public init(id: String, name: String, enabled: Bool, value: Double,
                 category: TaxCategory, zone: Zone, customerGroup: CustomerGroup? = nil,
-                customFields: String? = nil, createdAt: Date, updatedAt: Date) {
+                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
         self.id = id
         self.name = name
         self.enabled = enabled
@@ -91,12 +86,7 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
         createdAt: Date,
         updatedAt: Date
     ) -> TaxRate {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
+        let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
         
         return TaxRate(
             id: id,
@@ -106,7 +96,7 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
             category: category,
             zone: zone,
             customerGroup: customerGroup,
-            customFields: customFieldsJSON,
+            customFields: customFields,
             createdAt: createdAt,
             updatedAt: updatedAt
         )

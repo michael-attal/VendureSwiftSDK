@@ -12,13 +12,13 @@ public struct PaymentMethod: Codable, Hashable, Identifiable, Sendable {
     public let checker: ConfigurableOperation?
     public let handler: ConfigurableOperation
     public let translations: [PaymentMethodTranslation]
-    public let customFields: String?
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
     public init(id: String, code: String, name: String, description: String, enabled: Bool,
                 checker: ConfigurableOperation? = nil, handler: ConfigurableOperation,
-                translations: [PaymentMethodTranslation] = [], customFields: String? = nil,
+                translations: [PaymentMethodTranslation] = [], customFields: [String: AnyCodable]? = nil,
                 createdAt: Date, updatedAt: Date) {
         self.id = id
         self.code = code
@@ -55,11 +55,11 @@ public struct PaymentMethodQuote: Codable, Hashable, Identifiable, Sendable {
     public let description: String
     public let isEligible: Bool
     public let eligibilityMessage: String?
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
+    public let customFields: [String: AnyCodable]?
     
     public init(id: String, code: String, name: String, description: String,
                 isEligible: Bool, eligibilityMessage: String? = nil,
-                customFields: String? = nil) {
+                customFields: [String: AnyCodable]? = nil) {
         self.id = id
         self.code = code
         self.name = name
@@ -92,14 +92,14 @@ public struct Refund: Codable, Hashable, Identifiable, Sendable {
     public let shipping: Double
     public let adjustment: Double
     public let paymentId: String
-    public let metadata: String? // JSON string instead of [String: AnyCodable]
+    public let metadata: [String: AnyCodable]?
     public let method: String?
     public let createdAt: Date
     public let updatedAt: Date
     
     public init(id: String, total: Double, reason: String? = nil, state: String,
                 items: Double, shipping: Double, adjustment: Double, paymentId: String,
-                metadata: String? = nil, method: String? = nil,
+                metadata: [String: AnyCodable]? = nil, method: String? = nil,
                 createdAt: Date, updatedAt: Date) {
         self.id = id
         self.total = total
@@ -122,12 +122,7 @@ public struct Refund: Codable, Hashable, Identifiable, Sendable {
         metadataDict: [String: Any]? = nil, method: String? = nil,
         createdAt: Date, updatedAt: Date
     ) -> Refund {
-        var metadataJSON: String? = nil
-        if let dict = metadataDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                metadataJSON = String(data: data, encoding: .utf8)
-            }
-        }
+        let metadata: [String: AnyCodable]? = metadataDict?.mapValues { AnyCodable(anyValue: $0) }
         
         return Refund(
             id: id,
@@ -138,7 +133,7 @@ public struct Refund: Codable, Hashable, Identifiable, Sendable {
             shipping: shipping,
             adjustment: adjustment,
             paymentId: paymentId,
-            metadata: metadataJSON,
+            metadata: metadata,
             method: method,
             createdAt: createdAt,
             updatedAt: updatedAt
@@ -154,13 +149,13 @@ public struct Payment: Codable, Hashable, Identifiable, Sendable {
     public let method: String
     public let state: PaymentState
     public let errorMessage: String?
-    public let metadata: String?
+    public let metadata: [String: AnyCodable]?
     public let refunds: [Refund]
     public let createdAt: Date
     public let updatedAt: Date
     
     public init(id: String, transactionId: String? = nil, amount: Double, method: String,
-                state: PaymentState, errorMessage: String? = nil, metadata: String? = nil,
+                state: PaymentState, errorMessage: String? = nil, metadata: [String: AnyCodable]? = nil,
                 refunds: [Refund] = [], createdAt: Date, updatedAt: Date) {
         self.id = id
         self.transactionId = transactionId
@@ -180,12 +175,7 @@ public struct Payment: Codable, Hashable, Identifiable, Sendable {
         state: PaymentState, errorMessage: String? = nil, metadataDict: [String: Any]? = nil,
         refunds: [Refund] = [], createdAt: Date, updatedAt: Date
     ) -> Payment {
-        var metadataJSON: String? = nil
-        if let dict = metadataDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                metadataJSON = String(data: data, encoding: .utf8)
-            }
-        }
+        let metadata: [String: AnyCodable]? = metadataDict?.mapValues { AnyCodable(anyValue: $0) }
         
         return Payment(
             id: id,
@@ -194,7 +184,7 @@ public struct Payment: Codable, Hashable, Identifiable, Sendable {
             method: method,
             state: state,
             errorMessage: errorMessage,
-            metadata: metadataJSON,
+            metadata: metadata,
             refunds: refunds,
             createdAt: createdAt,
             updatedAt: updatedAt
@@ -207,23 +197,18 @@ public struct Payment: Codable, Hashable, Identifiable, Sendable {
 /// Input for creating a payment
 public struct PaymentInput: Codable, Sendable {
     public let method: String
-    public let metadata: String? // JSON string instead of [String: AnyCodable]
+    public let metadata: [String: AnyCodable]?
     
-    public init(method: String, metadata: String? = nil) {
+    public init(method: String, metadata: [String: AnyCodable]? = nil) {
         self.method = method
         self.metadata = metadata
     }
     
     // Helper to create with metadata dictionary
     public static func withMetadata(method: String, metadataDict: [String: Any]? = nil) -> PaymentInput {
-        var metadataJSON: String? = nil
-        if let dict = metadataDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                metadataJSON = String(data: data, encoding: .utf8)
-            }
-        }
+        let metadata: [String: AnyCodable]? = metadataDict?.mapValues { AnyCodable(anyValue: $0) }
         
-        return PaymentInput(method: method, metadata: metadataJSON)
+        return PaymentInput(method: method, metadata: metadata)
     }
     
     /// Convert to JSON string for GraphQL variables
@@ -277,40 +262,3 @@ public struct IneligiblePaymentMethodError: Codable, Hashable, Error, Sendable {
     }
 }
 
-// MARK: - Helper Extensions
-
-extension PaymentMethod {
-    /// Parse custom fields from JSON string
-    public func getCustomFields() -> [String: Any]? {
-        guard let customFields = customFields,
-              let data = customFields.data(using: .utf8) else { return nil }
-        return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-    }
-}
-
-extension PaymentMethodQuote {
-    /// Parse custom fields from JSON string
-    public func getCustomFields() -> [String: Any]? {
-        guard let customFields = customFields,
-              let data = customFields.data(using: .utf8) else { return nil }
-        return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-    }
-}
-
-extension Payment {
-    /// Parse metadata from JSON string
-    public func getMetadata() -> [String: Any]? {
-        guard let metadata = metadata,
-              let data = metadata.data(using: .utf8) else { return nil }
-        return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-    }
-}
-
-extension Refund {
-    /// Parse metadata from JSON string
-    public func getMetadata() -> [String: Any]? {
-        guard let metadata = metadata,
-              let data = metadata.data(using: .utf8) else { return nil }
-        return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-    }
-}

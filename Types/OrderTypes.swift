@@ -13,7 +13,7 @@ public struct Order: Codable, Hashable, Identifiable, Sendable {
     public let couponCodes: [String]
     public let createdAt: Date
     public let currencyCode: CurrencyCode
-    public let customFields: String?
+    public let customFields: [String: AnyCodable]?
     public let customer: Customer?
     public let discounts: [Discount]
     public let fulfillments: [Fulfillment]?
@@ -52,7 +52,7 @@ public struct Order: Codable, Hashable, Identifiable, Sendable {
     public let updatedAt: Date
     
     public init(active: Bool, billingAddress: OrderAddress? = nil, code: String, couponCodes: [String] = [],
-                createdAt: Date, currencyCode: CurrencyCode, customFields: String? = nil,
+                createdAt: Date, currencyCode: CurrencyCode, customFields: [String: AnyCodable]? = nil,
                 customer: Customer? = nil, discounts: [Discount] = [], fulfillments: [Fulfillment]? = nil,
                 history: HistoryEntryList, id: String, lines: [OrderLine] = [], orderPlacedAt: Date? = nil,
                 payments: [Payment]? = nil, promotions: [Promotion] = [], shipping: Double,
@@ -137,14 +137,14 @@ public struct OrderLine: Codable, Hashable, Identifiable, Sendable {
     public let discountedLinePriceWithTax: Double
     public let discounts: [Discount]
     public let taxLines: [TaxLine]
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
     public init(id: String, productVariant: ProductVariant, featuredAsset: Asset? = nil,
                 unitPrice: Double, unitPriceWithTax: Double, quantity: Int, linePrice: Double,
                 linePriceWithTax: Double, discountedLinePrice: Double, discountedLinePriceWithTax: Double,
-                discounts: [Discount] = [], taxLines: [TaxLine] = [], customFields: String? = nil,
+                discounts: [Discount] = [], taxLines: [TaxLine] = [], customFields: [String: AnyCodable]? = nil,
                 createdAt: Date, updatedAt: Date) {
         self.id = id
         self.productVariant = productVariant
@@ -218,13 +218,13 @@ public struct Fulfillment: Codable, Hashable, Identifiable, Sendable {
     public let trackingCode: String?
     public let lines: [FulfillmentLine]
     public let summary: [FulfillmentLineSummary]
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
     public init(id: String, state: String, method: String, trackingCode: String? = nil,
                 lines: [FulfillmentLine] = [], summary: [FulfillmentLineSummary] = [],
-                customFields: String? = nil, createdAt: Date, updatedAt: Date) {
+                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
         self.id = id
         self.state = state
         self.method = method
@@ -276,11 +276,11 @@ public struct HistoryEntryList: Codable, Hashable, Sendable {
 public struct HistoryEntry: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let type: HistoryEntryType
-    public let data: String // JSON string instead of [String: AnyCodable]
+    public let data: [String: AnyCodable]
     public let createdAt: Date
     public let updatedAt: Date
     
-    public init(id: String, type: HistoryEntryType, data: String,
+    public init(id: String, type: HistoryEntryType, data: [String: AnyCodable],
                 createdAt: Date, updatedAt: Date) {
         self.id = id
         self.type = type
@@ -289,23 +289,18 @@ public struct HistoryEntry: Codable, Hashable, Identifiable, Sendable {
         self.updatedAt = updatedAt
     }
     
-    /// Helper to create from dictionary
+    /// Helper to create from Any dictionary
     public static func withDataDict(id: String, type: HistoryEntryType,
                                     dataDict: [String: Any],
                                     createdAt: Date, updatedAt: Date) -> HistoryEntry {
-        var dataJSON = "{}"
-        if let data = try? JSONSerialization.data(withJSONObject: dataDict, options: []) {
-            dataJSON = String(data: data, encoding: .utf8) ?? "{}"
-        }
-        
-        return HistoryEntry(id: id, type: type, data: dataJSON,
+        let anyCodableData = CustomFieldsUtility.create(dataDict)
+        return HistoryEntry(id: id, type: type, data: anyCodableData,
                           createdAt: createdAt, updatedAt: updatedAt)
     }
     
-    /// Get data as dictionary (for reading)
-    public func getDataDict() -> [String: Any]? {
-        guard let data = data.data(using: .utf8) else { return nil }
-        return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+    /// Get data as Any dictionary (for reading)
+    public func getDataDict() -> [String: Any] {
+        return CustomFieldsUtility.toAnyDictionary(data)
     }
 }
 

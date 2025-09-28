@@ -16,7 +16,7 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
     public let startsAt: Date?
     public let endsAt: Date?
     public let translations: [PromotionTranslation]
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -33,7 +33,7 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
         startsAt: Date? = nil,
         endsAt: Date? = nil,
         translations: [PromotionTranslation] = [],
-        customFields: String? = nil,
+        customFields: [String: AnyCodable]? = nil,
         createdAt: Date,
         updatedAt: Date
     ) {
@@ -54,14 +54,6 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
         self.updatedAt = updatedAt
     }
     
-    // Standard Codable implementation (no custom decoding needed for SKIP)
-    private enum CodingKeys: String, CodingKey {
-        case id, name, description, enabled, conditions, actions
-        case couponCode, perCustomerUsageLimit, usageLimit
-        case startsAt, endsAt, translations, customFields
-        case createdAt, updatedAt
-    }
-    
     // Helper to create with custom fields dictionary
     public static func withCustomFields(
         id: String,
@@ -80,12 +72,7 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
         createdAt: Date,
         updatedAt: Date
     ) -> Promotion {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
+        let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
         
         return Promotion(
             id: id,
@@ -100,7 +87,7 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
             startsAt: startsAt,
             endsAt: endsAt,
             translations: translations,
-            customFields: customFieldsJSON,
+            customFields: customFields,
             createdAt: createdAt,
             updatedAt: updatedAt
         )

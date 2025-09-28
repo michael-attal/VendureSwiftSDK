@@ -104,6 +104,16 @@ extension CustomField {
         )
     }
     
+    /// For a single native Vendure custom field that is an Asset relation
+    public static func vendureCustomFieldAsset(name: String, applicableTypes: [String]) -> CustomField {
+        return CustomField(
+            fieldName: "customFields",
+            graphQLFragment: "customFields { \(name) { id name type mimeType source preview } }",
+            applicableTypes: applicableTypes,
+            isExtendedField: false
+        )
+    }
+    
     /// For complex relationships with nesting
     public static func extendedComplexRelation(name: String, nestedFields: [String: [String]], applicableTypes: [String]) -> CustomField {
         var fragment = "\(name) {\n"
@@ -125,9 +135,9 @@ extension CustomField {
     }
 }
 
-// MARK: - Global Configuration (SKIP Compatible)
+// MARK: - Global Configuration
 
-/// Global SDK configuration for custom fields - Unified version for SKIP and Swift
+/// Global SDK configuration for custom fields
 public class VendureConfiguration: @unchecked Sendable {
     public static let shared = VendureConfiguration()
     
@@ -296,5 +306,57 @@ public class VendureConfiguration: @unchecked Sendable {
         Total Custom Fields: \(retrievedFields.count)
         \(summary.isEmpty ? "No custom fields configured." : summary)
         """
+    }
+    
+    // MARK: - AnyCodable Helper Methods
+    
+    /// Create a custom field value dictionary using AnyCodable for type safety
+    public static func createCustomFieldsDict(_ values: [String: any Encodable]) -> [String: AnyCodable] {
+        var result: [String: AnyCodable] = [:]
+        for (key, value) in values {
+            // Convert Encodable to AnyCodable through JSON serialization for safety
+            if let string = value as? String {
+                result[key] = AnyCodable(string)
+            } else if let int = value as? Int {
+                result[key] = AnyCodable(int)
+            } else if let double = value as? Double {
+                result[key] = AnyCodable(double)
+            } else if let bool = value as? Bool {
+                result[key] = AnyCodable(bool)
+            } else {
+                // For complex Encodable types, go through JSON encoding
+                let encoder = JSONEncoder()
+                if let data = try? encoder.encode(value),
+                   let json = try? JSONSerialization.jsonObject(with: data) {
+                    result[key] = AnyCodable(anyValue: json)
+                } else {
+                    result[key] = AnyCodable(anyValue: "")
+                }
+            }
+        }
+        return result
+    }
+    
+    /// Convert a custom fields dictionary to AnyCodable format
+    public static func toAnyCodable(_ customFields: [String: Any]?) -> [String: AnyCodable]? {
+        guard let customFields = customFields else { return nil }
+        return customFields.mapValues { AnyCodable(anyValue: $0) }
+    }
+    
+    /// Extract a typed value from AnyCodable custom fields
+    public static func extractValue<T>(_ customFields: [String: AnyCodable]?, key: String, type: T.Type) -> T? {
+        guard let customFields = customFields else { return nil }
+        
+        if T.self == String.self {
+            return customFields[key]?.stringValue as? T
+        } else if T.self == Int.self {
+            return customFields[key]?.intValue as? T
+        } else if T.self == Double.self {
+            return customFields[key]?.doubleValue as? T
+        } else if T.self == Bool.self {
+            return customFields[key]?.boolValue as? T
+        }
+        
+        return nil
     }
 }

@@ -7,7 +7,7 @@ public class GraphQLQueryBuilder {
     
     // MARK: - Helper Methods
     
-    /// Helper to handle dollar sign in GraphQL queries for SKIP compatibility
+    /// Helper to handle dollar sign in GraphQL queries for clean architecture
     private static func dollar(_ name: String) -> String {
         return "$" + name
     }
@@ -133,7 +133,6 @@ public class GraphQLQueryBuilder {
               currencyCode
               sku
               stockLevel
-              enabled
               featuredAsset {
                 id
                 preview

@@ -26,7 +26,7 @@ public actor CustomerOperations {
         
         let headers = try await vendure.defaultHeaders()
         let baseOps = await getBaseOps()
-        return try await baseOps.queryCustomer(query, variablesJSON: nil, headers: headers)
+        return try await baseOps.queryCustomer(query, variables: nil, headers: headers)
     }
     
     /// Get current user
@@ -47,7 +47,7 @@ public actor CustomerOperations {
         
         let headers = try await vendure.defaultHeaders()
         let baseOps = await getBaseOps()
-        return try await baseOps.queryCurrentUser(query, variablesJSON: nil, headers: headers)
+        return try await baseOps.queryCurrentUser(query, variables: nil, headers: headers)
     }
     
     /// Get active channel
@@ -68,7 +68,7 @@ public actor CustomerOperations {
         
         let headers = try await vendure.defaultHeaders()
         let baseOps = await getBaseOps()
-        return try await baseOps.queryChannel(query, variablesJSON: nil, headers: headers)
+        return try await baseOps.queryChannel(query, variables: nil, headers: headers)
     }
     
     /// Update customer
@@ -76,21 +76,13 @@ public actor CustomerOperations {
         let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Customer", userRequested: includeCustomFields)
         let query = await GraphQLQueryBuilder.buildUpdateCustomerMutation(includeCustomFields: shouldIncludeCustomFields)
         
-        // Convert input to JSON
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = []
-        let inputData = try encoder.encode(input)
-        let inputJSON = String(data: inputData, encoding: .utf8) ?? "{}"
-        
-        let variablesJSON = """
-        {
-            "input": \(inputJSON)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "input": AnyCodable(anyValue: input)
+        ]
         
         let headers = try await vendure.defaultHeaders()
         let baseOps = await getBaseOps()
-        return try await baseOps.mutateCustomer(query, variablesJSON: variablesJSON, headers: headers)
+        return try await baseOps.mutateCustomer(query, variables: variables, headers: headers)
     }
     
     /// Create customer address
@@ -118,21 +110,13 @@ public actor CustomerOperations {
         }
         """
         
-        // Convert input to JSON
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = []
-        let inputData = try encoder.encode(input)
-        let inputJSON = String(data: inputData, encoding: .utf8) ?? "{}"
-        
-        let variablesJSON = """
-        {
-            "input": \(inputJSON)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "input": AnyCodable(anyValue: input)
+        ]
         
         let headers = try await vendure.defaultHeaders()
         let baseOps = await getBaseOps()
-        return try await baseOps.mutateAddress(query, variablesJSON: variablesJSON, headers: headers)
+        return try await baseOps.mutateAddress(query, variables: variables, headers: headers)
     }
     
     /// Update customer address
@@ -160,21 +144,13 @@ public actor CustomerOperations {
         }
         """
         
-        // Convert input to JSON
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = []
-        let inputData = try encoder.encode(input)
-        let inputJSON = String(data: inputData, encoding: .utf8) ?? "{}"
-        
-        let variablesJSON = """
-        {
-            "input": \(inputJSON)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "input": AnyCodable(anyValue: input)
+        ]
         
         let headers = try await vendure.defaultHeaders()
         let baseOps = await getBaseOps()
-        return try await baseOps.mutateAddress(query, variablesJSON: variablesJSON, headers: headers)
+        return try await baseOps.mutateAddress(query, variables: variables, headers: headers)
     }
     
     /// Delete customer address
@@ -187,14 +163,12 @@ public actor CustomerOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "id": "\(id)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "id": AnyCodable(id)
+        ]
         
         let headers = try await vendure.defaultHeaders()
         let baseOps = await getBaseOps()
-        return try await baseOps.mutateSuccess(query, variablesJSON: variablesJSON, headers: headers)
+        return try await baseOps.mutateSuccess(query, variables: variables, headers: headers)
     }
 }

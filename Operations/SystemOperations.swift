@@ -7,15 +7,15 @@ public actor SystemOperations {
         self.vendure = vendure
     }
     
-    /// Helper method to execute query and decode FacetList - SKIP compatible
+    /// Helper method to execute query and decode FacetList
     private func executeFacetListQuery(
         _ query: String,
-        variablesJSON: String?,
+        variables: [String: AnyCodable]?,
         expectedDataType: String
     ) async throws -> FacetList {
         let response = try await vendure.custom.queryRaw(
             query,
-            variablesJSON: variablesJSON
+            variables: variables
         )
         
         if response.hasErrors {
@@ -40,15 +40,15 @@ public actor SystemOperations {
         return try decoder.decode(FacetList.self, from: extractedData)
     }
     
-    /// Helper method to execute query and decode Facet - SKIP compatible
+    /// Helper method to execute query and decode Facet
     private func executeFacetQuery(
         _ query: String,
-        variablesJSON: String?,
+        variables: [String: AnyCodable]?,
         expectedDataType: String
     ) async throws -> Facet {
         let response = try await vendure.custom.queryRaw(
             query,
-            variablesJSON: variablesJSON
+            variables: variables
         )
         
         if response.hasErrors {
@@ -73,15 +73,15 @@ public actor SystemOperations {
         return try decoder.decode(Facet.self, from: extractedData)
     }
     
-    /// Helper method to execute query and decode VendureCollection - SKIP compatible
+    /// Helper method to execute query and decode VendureCollection
     private func executeVendureCollectionQuery(
         _ query: String,
-        variablesJSON: String?,
+        variables: [String: AnyCodable]?,
         expectedDataType: String
     ) async throws -> VendureCollection {
         let response = try await vendure.custom.queryRaw(
             query,
-            variablesJSON: variablesJSON
+            variables: variables
         )
         
         if response.hasErrors {
@@ -106,15 +106,15 @@ public actor SystemOperations {
         return try decoder.decode(VendureCollection.self, from: extractedData)
     }
     
-    /// Helper method to execute query and decode CollectionList - SKIP compatible
+    /// Helper method to execute query and decode CollectionList
     private func executeSystemCollectionListQuery(
         _ query: String,
-        variablesJSON: String?,
+        variables: [String: AnyCodable]?,
         expectedDataType: String
     ) async throws -> CollectionList {
         let response = try await vendure.custom.queryRaw(
             query,
-            variablesJSON: variablesJSON
+            variables: variables
         )
         
         if response.hasErrors {
@@ -139,15 +139,15 @@ public actor SystemOperations {
         return try decoder.decode(CollectionList.self, from: extractedData)
     }
     
-    /// Helper method to execute query and decode SearchResult - SKIP compatible
+    /// Helper method to execute query and decode SearchResult
     private func executeSystemSearchResultQuery(
         _ query: String,
-        variablesJSON: String?,
+        variables: [String: AnyCodable]?,
         expectedDataType: String
     ) async throws -> SearchResult {
         let response = try await vendure.custom.queryRaw(
             query,
-            variablesJSON: variablesJSON
+            variables: variables
         )
         
         if response.hasErrors {
@@ -190,10 +190,10 @@ public actor SystemOperations {
         }
         """
         
-        // Use queryRaw and decode manually for SKIP compatibility
+        // Use queryRaw and decode manually for clean architecture
         let response = try await vendure.custom.queryRaw(
             query,
-            variablesJSON: nil
+            variables: nil
         )
         
         if response.hasErrors {
@@ -258,29 +258,20 @@ public actor SystemOperations {
         }
         """
         
-        var variablesJSON: String? = nil
+        var variables: [String: AnyCodable]? = nil
         if let options = options {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = []
-            if let optionsData = try? encoder.encode(options),
-               let optionsJSONString = String(data: optionsData, encoding: .utf8) {
-                variablesJSON = """
-                {
-                    "options": \(optionsJSONString)
-                }
-                """
-            }
+            variables = [
+                "options": AnyCodable(anyValue: options)
+            ]
         } else {
-            variablesJSON = """
-            {
-                "options": null
-            }
-            """
+            variables = [
+                "options": AnyCodable(anyValue: nil as String?)
+            ]
         }
         
         return try await executeFacetListQuery(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "facets"
         )
     }
@@ -314,15 +305,13 @@ public actor SystemOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "id": "\(id)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "id": AnyCodable(id)
+        ]
         
         return try await executeFacetQuery(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "facet"
         )
     }
@@ -368,29 +357,20 @@ public actor SystemOperations {
         }
         """
         
-        var variablesJSON: String? = nil
+        var variables: [String: AnyCodable]? = nil
         if let options = options {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = []
-            if let optionsData = try? encoder.encode(options),
-               let optionsJSONString = String(data: optionsData, encoding: .utf8) {
-                variablesJSON = """
-                {
-                    "options": \(optionsJSONString)
-                }
-                """
-            }
+            variables = [
+                "options": AnyCodable(anyValue: options)
+            ]
         } else {
-            variablesJSON = """
-            {
-                "options": null
-            }
-            """
+            variables = [
+                "options": AnyCodable(anyValue: nil as String?)
+            ]
         }
         
         return try await executeSystemCollectionListQuery(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "collections"
         )
     }
@@ -433,15 +413,13 @@ public actor SystemOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "id": "\(id)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "id": AnyCodable(id)
+        ]
         
         return try await executeVendureCollectionQuery(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "collection"
         )
     }
@@ -469,15 +447,13 @@ public actor SystemOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "id": "\(id)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "id": AnyCodable(id)
+        ]
         
         return try await executeVendureCollectionQuery(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "collection"
         )
     }
@@ -505,15 +481,13 @@ public actor SystemOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "id": "\(id)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "id": AnyCodable(id)
+        ]
         
         return try await executeVendureCollectionQuery(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "collection"
         )
     }
@@ -586,21 +560,13 @@ public actor SystemOperations {
         }
         """
         
-        // Convert SearchInput to JSON
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = []
-        let inputData = try encoder.encode(input)
-        let inputJSON = String(data: inputData, encoding: .utf8) ?? "{}"
-        
-        let variablesJSON = """
-        {
-            "input": \(inputJSON)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "input": AnyCodable(anyValue: input)
+        ]
         
         return try await executeSystemSearchResultQuery(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "search"
         )
     }

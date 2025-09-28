@@ -176,27 +176,26 @@ public struct LocalizedString: Codable, Hashable, Sendable {
 // MARK: - Asset Types
 
 /// Represents an asset (image, document, etc.)
-/// Represents an asset (image, document, etc.)
 public struct Asset: Codable, Hashable, Identifiable, Sendable {
     public let id: String
-    public let name: String
-    public let type: AssetType
-    public let fileSize: Int
+    public let name: String?
+    public let type: AssetType?
+    public let fileSize: Int?
     public let mimeType: String
     public let width: Int?
     public let height: Int?
     public let source: String
     public let preview: String
     public let focalPoint: Coordinate?
-    public let tags: [Tag]
-    public let customFields: String?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let tags: [Tag]?
+    public let customFields: [String: AnyCodable]?
+    public let createdAt: Date?
+    public let updatedAt: Date?
     
-    public init(id: String, name: String, type: AssetType, fileSize: Int, mimeType: String,
+    public init(id: String, name: String? = nil, type: AssetType? = nil, fileSize: Int? = nil, mimeType: String,
                 width: Int? = nil, height: Int? = nil, source: String, preview: String,
-                focalPoint: Coordinate? = nil, tags: [Tag] = [],
-                customFields: String? = nil, createdAt: Date, updatedAt: Date) {
+                focalPoint: Coordinate? = nil, tags: [Tag]? = nil,
+                customFields: [String: AnyCodable]? = nil, createdAt: Date? = nil, updatedAt: Date? = nil) {
         self.id = id
         self.name = name
         self.type = type
@@ -247,7 +246,7 @@ public struct Address: Codable, Hashable, Identifiable, Sendable {
     public let phoneNumber: String?
     public let defaultShippingAddress: Bool?
     public let defaultBillingAddress: Bool?
-    public let customFields: String?
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -255,7 +254,7 @@ public struct Address: Codable, Hashable, Identifiable, Sendable {
                 streetLine1: String, streetLine2: String? = nil, city: String? = nil,
                 province: String? = nil, postalCode: String? = nil, country: Country,
                 phoneNumber: String? = nil, defaultShippingAddress: Bool? = nil,
-                defaultBillingAddress: Bool? = nil, customFields: String? = nil,
+                defaultBillingAddress: Bool? = nil, customFields: [String: AnyCodable]? = nil,
                 createdAt: Date, updatedAt: Date) {
         self.id = id
         self.fullName = fullName
@@ -319,7 +318,7 @@ public struct Channel: Codable, Hashable, Identifiable, Sendable {
     public let defaultTaxZone: Zone?
     public let pricesIncludeTax: Bool
     public let seller: Seller?
-    public let customFields: String?
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -328,7 +327,7 @@ public struct Channel: Codable, Hashable, Identifiable, Sendable {
                 defaultCurrencyCode: CurrencyCode, availableCurrencyCodes: [CurrencyCode],
                 defaultShippingZone: Zone? = nil, defaultTaxZone: Zone? = nil,
                 pricesIncludeTax: Bool, seller: Seller? = nil,
-                customFields: String? = nil, createdAt: Date, updatedAt: Date) {
+                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
         self.id = id
         self.code = code
         self.token = token
@@ -352,12 +351,12 @@ public struct Zone: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let members: [Region]
-    public let customFields: String?
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
     public init(id: String, name: String, members: [Region] = [],
-                customFields: String? = nil, createdAt: Date, updatedAt: Date) {
+                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
         self.id = id
         self.name = name
         self.members = members
@@ -420,11 +419,11 @@ public struct RegionTranslation: Codable, Hashable, Sendable {
 public struct Seller: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
-    public let customFields: String?
+    public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
     
-    public init(id: String, name: String, customFields: String? = nil,
+    public init(id: String, name: String, customFields: [String: AnyCodable]? = nil,
                 createdAt: Date, updatedAt: Date) {
         self.id = id
         self.name = name

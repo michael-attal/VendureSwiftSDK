@@ -61,44 +61,14 @@ public actor VendureLogger {
         log(.info, category: "Logger", "Disabled logging for categories: \(categories)")
     }
     
-    #if SKIP
-    /// Log a message (Skip version without source location)
-    /// - Parameters:
-    ///   - level: The log level
-    ///   - category: The category for filtering (e.g., "GraphQL", "HTTP", "Decode")
-    ///   - message: The message to log
-    public func log(
-        _ level: VendureLogLevel,
-        category: String,
-        _ message: String
-    ) {
-        guard currentLevel != .none && level.rawValue <= currentLevel.rawValue else { return }
-        guard enabledCategories.contains("*") || enabledCategories.contains(category) else { return }
-        
-        let timestamp = DateFormatter.logTimestamp.string(from: Date())
-        
-        print("\(timestamp) \(level.prefix) [\(category)] \(message)")
-    }
-    
-    /// Log a message with additional context data (Skip version)
-    public func log(
-        _ level: VendureLogLevel,
-        category: String,
-        _ message: String,
-        context: [String: Any]
-    ) {
-        let contextString = context.map { "\($0.key): \($0.value)" }.joined(separator: ", ")
-        log(level, category: category, "\(message) | \(contextString)")
-    }
-    #else
     /// Log a message
     /// - Parameters:
     ///   - level: The log level
     ///   - category: The category for filtering (e.g., "GraphQL", "HTTP", "Decode")
     ///   - message: The message to log
-    ///   - file: Source file name
-    ///   - function: Source function name
-    ///   - line: Source line number
+    ///   - file: Source file name (optional)
+    ///   - function: Source function name (optional)
+    ///   - line: Source line number (optional)
     public func log(
         _ level: VendureLogLevel,
         category: String,
@@ -129,7 +99,6 @@ public actor VendureLogger {
         let contextString = context.map { "\($0.key): \($0.value)" }.joined(separator: ", ")
         log(level, category: category, "\(message) | \(contextString)", file: file, function: function, line: line)
     }
-    #endif
     
     /// Get current log level
     public func getLogLevel() -> VendureLogLevel {
@@ -144,33 +113,6 @@ public actor VendureLogger {
 
 // MARK: - Convenience functions for easier logging
 
-#if SKIP
-/// Global logging convenience functions (Skip version)
-public func vendureLog(
-    _ level: VendureLogLevel,
-    category: String,
-    _ message: String
-) {
-    Task { @Sendable in
-        await VendureLogger.shared.log(level, category: category, message)
-    }
-}
-
-public func vendureLog(
-    _ level: VendureLogLevel,
-    category: String,
-    _ message: String,
-    context: [String: Any]
-) {
-    // Convert context to sendable string representation before capturing in closure
-    let contextString = context.map { "\($0.key): \($0.value)" }.joined(separator: ", ")
-    let enhancedMessage = contextString.isEmpty ? message : "\(message) | \(contextString)"
-    
-    Task { @Sendable in
-        await VendureLogger.shared.log(level, category: category, enhancedMessage)
-    }
-}
-#else
 /// Global logging convenience functions
 public func vendureLog(
     _ level: VendureLogLevel,
@@ -202,27 +144,10 @@ public func vendureLog(
         await VendureLogger.shared.log(level, category: category, enhancedMessage, file: file, function: function, line: line)
     }
 }
-#endif
 
 // MARK: - Category-specific convenience functions
 
-#if SKIP
-public func vendureLogError(_ message: String) {
-    vendureLog(.error, category: "General", message)
-}
-
-public func vendureLogWarning(_ message: String) {
-    vendureLog(.warning, category: "General", message)
-}
-
-public func vendureLogInfo(_ message: String) {
-    vendureLog(.info, category: "General", message)
-}
-
-public func vendureLogDebug(_ message: String) {
-    vendureLog(.debug, category: "General", message)
-}
-#else
+/// Category-specific convenience functions 
 public func vendureLogError(_ message: String, file: String = #file, function: String = #function, line: Int = #line) {
     vendureLog(.error, category: "General", message, file: file, function: function, line: line)
 }
@@ -238,7 +163,6 @@ public func vendureLogInfo(_ message: String, file: String = #file, function: St
 public func vendureLogDebug(_ message: String, file: String = #file, function: String = #function, line: Int = #line) {
     vendureLog(.debug, category: "General", message, file: file, function: function, line: line)
 }
-#endif
 
 // MARK: - Date formatter extension
 

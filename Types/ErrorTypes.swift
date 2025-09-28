@@ -1,5 +1,4 @@
 import Foundation
-import SkipFoundation
 
 // MARK: - Order Related Errors
 
@@ -274,3 +273,4 @@ public struct NativeAuthStrategyError: Codable, Hashable {
         self.message = message
     }
 }
+ 

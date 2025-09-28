@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - SKIP Compatible List Wrapper (No Generics)
+// MARK: List Wrapper (No Generics)
 
 public actor CustomOperations {
     private let vendure: Vendure
@@ -9,10 +9,10 @@ public actor CustomOperations {
         self.vendure = vendure
     }
     
-    /// Execute a custom GraphQL mutation for Customer - SKIP compatible
+    /// Execute a custom GraphQL mutation for Customer
     public func mutateCustomer(
         _ mutation: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         expectedDataType: String? = nil
     ) async throws -> Customer {
         let client = await vendure.client()
@@ -20,7 +20,7 @@ public actor CustomOperations {
         
         let response = try await client.mutateRaw(
             mutation,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -43,10 +43,10 @@ public actor CustomOperations {
         }
     }
     
-    /// Execute a custom GraphQL query for Customer - SKIP compatible
+    /// Execute a custom GraphQL query for Customer
     public func queryCustomer(
         _ query: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         expectedDataType: String? = nil
     ) async throws -> Customer? {
         await VendureLogger.shared.log(.info, category: "CustomOps", "Executing custom customer query with expectedDataType: \(expectedDataType ?? "nil")")
@@ -56,7 +56,7 @@ public actor CustomOperations {
         
         let response = try await client.queryRaw(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -84,14 +84,14 @@ public actor CustomOperations {
     /// Execute a raw GraphQL query and return raw response
     public func queryRaw(
         _ query: String,
-        variablesJSON: String? = nil
+        variables: [String: AnyCodable]? = nil
     ) async throws -> GraphQLRawResponse {
         let client = await vendure.client()
         let headers = try await vendure.defaultHeaders()
         
         return try await client.queryRaw(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
     }
@@ -99,22 +99,22 @@ public actor CustomOperations {
     /// Execute a raw GraphQL mutation and return raw response
     public func mutateRaw(
         _ mutation: String,
-        variablesJSON: String? = nil
+        variables: [String: AnyCodable]? = nil
     ) async throws -> GraphQLRawResponse {
         let client = await vendure.client()
         let headers = try await vendure.defaultHeaders()
         
         return try await client.mutateRaw(
             mutation,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
     }
     
-    /// Execute a custom GraphQL mutation for Order - SKIP compatible
+    /// Execute a custom GraphQL mutation for Order
     public func mutateOrder(
         _ mutation: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         expectedDataType: String? = nil
     ) async throws -> Order {
         let client = await vendure.client()
@@ -122,7 +122,7 @@ public actor CustomOperations {
         
         let response = try await client.mutateRaw(
             mutation,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -145,10 +145,10 @@ public actor CustomOperations {
         }
     }
     
-    /// Execute a custom GraphQL query for Order - SKIP compatible
+    /// Execute a custom GraphQL query for Order
     public func queryOrder(
         _ query: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         expectedDataType: String? = nil
     ) async throws -> Order {
         let client = await vendure.client()
@@ -156,7 +156,7 @@ public actor CustomOperations {
         
         let response = try await client.queryRaw(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -181,7 +181,7 @@ public actor CustomOperations {
     
     // MARK: - Helper Methods with Variables Dictionary (for convenience)
     
-    /// Convert variables dictionary to JSON string (SKIP compatible - avoid Any type)
+    /// Convert variables dictionary to JSON string
     public func convertVariablesToJSON(_ variables: [String: String]) throws -> String? {
         guard !variables.isEmpty else { return nil }
         
@@ -189,9 +189,9 @@ public actor CustomOperations {
         return String(data: data, encoding: .utf8)
     }
     
-    // MARK: - Concrete decode methods for SKIP compatibility
+    // MARK: - Concrete decode methods for clean architecture
     
-    /// Decode Customer with expected data type - SKIP compatible
+    /// Decode Customer with expected data type
     private func decodeCustomerWithExpectedType(
         _ data: Data,
         expectedType: String
@@ -228,10 +228,10 @@ public actor CustomOperations {
         return try decoder.decode(Customer.self, from: extractedJsonData)
     }
     
-    /// Execute a custom GraphQL mutation for TransitionOrderToStateResult - SKIP compatible
+    /// Execute a custom GraphQL mutation for TransitionOrderToStateResult
     public func mutateTransitionOrderToStateResult(
         _ mutation: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         expectedDataType: String? = nil
     ) async throws -> TransitionOrderToStateResult {
         let client = await vendure.client()
@@ -239,7 +239,7 @@ public actor CustomOperations {
         
         let response = try await client.mutateRaw(
             mutation,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -262,10 +262,10 @@ public actor CustomOperations {
         }
     }
     
-    /// Execute a custom GraphQL mutation for ActiveOrderResult - SKIP compatible
+    /// Execute a custom GraphQL mutation for ActiveOrderResult
     public func mutateActiveOrderResult(
         _ mutation: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         expectedDataType: String? = nil
     ) async throws -> ActiveOrderResult {
         let client = await vendure.client()
@@ -273,7 +273,7 @@ public actor CustomOperations {
         
         let response = try await client.mutateRaw(
             mutation,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -296,7 +296,7 @@ public actor CustomOperations {
         }
     }
     
-    /// Decode Order with expected data type - SKIP compatible
+    /// Decode Order with expected data type
     private func decodeOrderWithExpectedType(
         _ data: Data,
         expectedType: String
@@ -333,7 +333,7 @@ public actor CustomOperations {
         return try decoder.decode(Order.self, from: extractedJsonData)
     }
     
-    /// Decode TransitionOrderToStateResult with expected data type - SKIP compatible
+    /// Decode TransitionOrderToStateResult with expected data type
     private func decodeTransitionOrderToStateResultWithExpectedType(
         _ data: Data,
         expectedType: String
@@ -362,7 +362,7 @@ public actor CustomOperations {
         return try decoder.decode(TransitionOrderToStateResult.self, from: extractedJsonData)
     }
     
-    /// Decode ActiveOrderResult with expected data type - SKIP compatible
+    /// Decode ActiveOrderResult with expected data type
     private func decodeActiveOrderResultWithExpectedType(
         _ data: Data,
         expectedType: String

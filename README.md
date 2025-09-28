@@ -1,27 +1,25 @@
 # VendureSwiftSDK
 
-A modern Swift SDK for interacting with the Vendure e-commerce framework's GraphQL API. This SDK is designed to work seamlessly across Apple platforms (iOS, macOS, watchOS, tvOS, visionOS) and Android through SKIP.tools transpilation.
+A modern Swift SDK for interacting with the Vendure e-commerce framework's GraphQL API. Built with Swift 6 and modern concurrency patterns, this SDK provides type-safe access to Vendure APIs with full AnyCodable support for flexible JSON handling.
 
 ## Features
 
-- ✅ **Cross-Platform**: Native iOS, macOS, watchOS, tvOS, visionOS support + Android via SKIP.tools
-- ✅ **Swift 6 Ready**: Built with modern concurrency, actors, and `sending` parameters
-- ✅ **Type-Safe**: Comprehensive type definitions for all Vendure API responses
-- ✅ **Skip Compatible**: Generics-free architecture optimized for Swift-to-Kotlin transpilation
-- ✅ **Modern Authentication**: Multiple auth strategies with secure token management
+- ✅ **Apple Platforms**: Native support for iOS, macOS, watchOS, tvOS, visionOS
+- ✅ **Swift 6 Ready**: Built with modern concurrency, actors, and structured concurrency
+- ✅ **Type-Safe**: Comprehensive type definitions with automatic Codable synthesis
+- ✅ **Modern Swift Patterns**: Uses AnyCodable for flexible JSON, computed properties, and clean APIs
+- ✅ **Custom Fields**: Flexible custom field system using `[String: AnyCodable]` dictionaries
+- ✅ **Authentication**: Multiple auth strategies with secure token management
 - ✅ **Complete API Coverage**: Support for all major Vendure operations (orders, products, customers, etc.)
-- ✅ **Robust Error Handling**: Comprehensive error handling with descriptive error types
-- ✅ **Custom Fields**: Extensible system for both GraphQL extensions and native Vendure custom fields
-- ✅ **Logging & Debugging**: Built-in logging system for development and production
+- ✅ **Error Handling**: Comprehensive error handling with descriptive error types
+- ✅ **Extensible**: Clean extension points for project-specific customizations
 - ✅ **Vapor Compatible**: Perfect integration with Vapor server-side Swift projects
 
 ## Requirements
 
 - **Swift**: 6.0 or later
 - **Platforms**: iOS 18.0+, macOS 15.0+, visionOS 2.0+, watchOS 11.0+, tvOS 18.0+
-- **Android**: Via SKIP.tools (requires Skip toolchain)
 - **Xcode**: 16.0 or later
-- **Android Studio**: Koala or later (for Android development)
 
 ## Installation
 
@@ -52,50 +50,14 @@ let package = Package(
 )
 ```
 
-### Skip.tools Setup (for Android Support)
+### Swift Package Manager
 
-1. **Install Skip toolchain:**
-```bash
-brew install skip-tools/skip/skip
-```
-
-2. **Configure your Package.swift for Skip:**
-```swift
-// swift-tools-version: 6.0
-// This is a Skip (https://skip.tools) package.
-import PackageDescription
-
-let package = Package(
-    name: "YourProject",
-    platforms: [.iOS(.v18), .macOS(.v15), .visionOS(.v2)],
-    products: [
-        .library(name: "YourTarget", type: .dynamic, targets: ["YourTarget"]),
-    ],
-    dependencies: [
-        .package(url: "https://source.skip.tools/skip.git", from: "1.6.21"),
-        .package(url: "https://source.skip.tools/skip-foundation.git", from: "1.0.0"),
-        .package(url: "https://github.com/michael-attal/VendureSwiftSDK.git", from: "1.0.0")
-    ],
-    targets: [
-        .target(
-            name: "YourTarget",
-            dependencies: [
-                "VendureSwiftSDK",
-                .product(name: "SkipFoundation", package: "skip-foundation")
-            ],
-            plugins: [
-                .plugin(name: "skipstone", package: "skip")
-            ]
-        )
-    ]
-)
-```
-
-3. **Add Skip configuration file at `Sources/YourTarget/Skip/skip.yml`:**
-```yaml
-# Configuration file for https://skip.tools project
-# Kotlin dependencies can be configured here if needed
-```
+This SDK uses modern Swift patterns including:
+- **Automatic Codable synthesis** for clean type definitions
+- **AnyCodable** for flexible JSON handling
+- **Structured concurrency** with async/await
+- **Computed properties** for clean APIs
+- **Extension-based customization** for project-specific needs
 
 ## Quick Start
 
@@ -257,7 +219,7 @@ do {
 
 #### Get Products
 ```swift
-let options = ProductListOptions(take: 20, skip: 0)
+let options = ProductListOptions(take: 20)
 let productList = try await vendure.catalog.getProducts(options: options)
 
 print("Found \(productList.totalItems) products")
@@ -422,7 +384,7 @@ query MyCustomQuery($id: ID!) {
 struct CustomProductResponse: Codable {
     let id: String
     let name: String
-    let customFields: String? // JSON string for Skip compatibility
+    let customFields: [String: AnyCodable]? // Modern AnyCodable approach
 }
 
 let result = try await vendure.custom.query(
@@ -433,87 +395,185 @@ let result = try await vendure.custom.query(
 )
 ```
 
-## Custom Fields
+## Modern Custom Fields with AnyCodable
 
-VendureSwiftSDK supports an extensible custom fields system that allows you to dynamically add custom fields to all GraphQL queries. The system supports both **Extended GraphQL Fields** (added via Vendure plugins) and **Native Vendure Custom Fields** (configured in vendure-config.ts).
+VendureSwiftSDK uses a modern approach to custom fields with `[String: AnyCodable]?` dictionaries, providing type-safe access while maintaining flexibility for dynamic JSON data.
 
-> **🔄 Skip.tools Compatibility**: Custom fields are stored as JSON strings rather than typed objects to ensure full compatibility with Skip's Swift-to-Kotlin transpilation. This approach provides the same functionality while maintaining cross-platform compatibility.
+### Benefits of AnyCodable Approach
+
+- **Type Safety**: Direct access to typed values without JSON parsing
+- **Performance**: No JSON serialization/deserialization overhead 
+- **Modern Swift**: Uses computed properties and clean APIs
+- **Flexible**: Handles any JSON structure with type safety
+- **Extensible**: Easy to add project-specific computed properties
 
 ### Supported Types
 
-The following types include a `customFields: String?` property that stores custom field data as JSON for Skip.tools compatibility:
+All major Vendure types now include `customFields: [String: AnyCodable]?`:
 
 **Product & Catalog Types:**
-- `Product` - includes extension methods (`getCustomFieldString`, `getCustomFieldInt`, etc.)
-- `ProductVariant` - includes extension methods
-- `ProductOption`
-- `ProductOptionGroup`
-- `VendureCollection` - includes extension methods
-- `Asset`
+- `Product`, `ProductVariant`, `ProductOption`, `ProductOptionGroup`
+- `VendureCollection`, `Asset`
 
 **Order & Commerce Types:**
-- `Order`
-- `OrderLine`
-- `PaymentMethod`
-- `ShippingMethod`
-- `Promotion`
+- `Order`, `OrderLine`, `Fulfillment`
+- `PaymentMethod`, `ShippingMethod`, `Promotion`
 
-**Customer & Auth Types:**
-- `Customer`
-- `Address`
+**Customer & System Types:**
+- `Customer`, `User`, `CustomerGroup`, `Address`
+- `TaxCategory`, `TaxRate`, `Channel`, `Zone`, `Seller`
 
-**System & Tax Types:**
-- `TaxCategory`
-- `TaxRate`
-- `Channel`
+### Using Custom Fields
 
-> **💡 Type-Safe Extensions**: `Product`, `ProductVariant`, and `VendureCollection` include convenient extension methods like `getCustomFieldString()`, `getCustomFieldInt()`, `getCustomFieldBool()`, and `hasCustomField()` for easy access to custom field values.
+The SDK provides multiple ways to access custom field data:
 
-### Configuration
-
-Configure custom fields at application startup:
-
+#### Extension Methods (Built-in)
 ```swift
-import VendureSwiftSDK
+let product = try await vendure.catalog.getProductById(id: "123")
 
-// Configure custom fields at app startup
-func configureCustomFields() {
-    // Extended GraphQL fields (from Vendure plugins)
-    VendureConfiguration.shared.addCustomField(
-        .extendedAsset(name: "mainUsdzAsset", applicableTypes: ["Product", "ProductVariant"])
-    )
+// Type-safe access using extension methods
+if let priority = product.getCustomFieldInt("priority") {
+    print("Priority: \(priority)")
+}
 
-    VendureConfiguration.shared.addCustomField(
-        .extendedRelation(name: "category", fields: ["id", "name", "slug"], applicableTypes: ["Product"])
-    )
+if let description = product.getCustomFieldString("extendedDescription") {
+    print("Description: \(description)")
+}
 
-    VendureConfiguration.shared.addCustomField(
-        .extendedScalar(name: "rating", applicableTypes: ["Product"])
-    )
+if let isActive = product.getCustomFieldBool("isActive") {
+    print("Active: \(isActive)")
+}
 
-    // Native Vendure custom fields
-    VendureConfiguration.shared.addCustomField(
-        .vendureCustomFields(names: ["priority", "notes"], applicableTypes: ["Order"])
-    )
-
-    VendureConfiguration.shared.addCustomField(
-        .vendureCustomField(name: "loyaltyLevel", applicableTypes: ["Customer"])
-    )
-
-    // Custom fields for other types
-    VendureConfiguration.shared.addCustomField(
-        .vendureCustomFields(names: ["maxWeight", "trackingEnabled"], applicableTypes: ["ShippingMethod"])
-    )
-
-    VendureConfiguration.shared.addCustomField(
-        .vendureCustomField(name: "taxCode", applicableTypes: ["TaxCategory"])
-    )
-
-    VendureConfiguration.shared.addCustomField(
-        .vendureCustomFields(names: ["stripeSettings", "enabled"], applicableTypes: ["PaymentMethod"])
-    )
+// Check field existence
+if product.hasCustomField("specialOffer") {
+    print("Has special offer")
 }
 ```
+
+#### Direct AnyCodable Access
+```swift
+// Direct dictionary access
+if let customFields = product.customFields {
+    // Access different types directly
+    let rating = customFields["rating"]?.doubleValue ?? 0.0
+    let tags = customFields["tags"]?.arrayValue ?? []
+    let metadata = customFields["metadata"]?.dictionaryValue ?? [:]
+    
+    // Handle nested structures
+    if let dimensions = customFields["dimensions"]?.dictionaryValue {
+        let width = dimensions["width"]?.doubleValue ?? 0.0
+        let height = dimensions["height"]?.doubleValue ?? 0.0
+        print("Dimensions: \(width) x \(height)")
+    }
+}
+```
+
+#### Project-Specific Extensions
+Create your own computed properties for project-specific custom fields:
+
+```swift
+// In your app/client module
+import VendureSwiftSDK
+
+extension Product {
+    /// Access mainUsdzAsset custom field for AR functionality
+    var mainUsdzAsset: Asset? {
+        // Try as nested object first
+        if let assetDict = customFields?["mainUsdzAsset"]?.dictionaryValue {
+            return parseAssetFromCustomField(assetDict)
+        }
+        // Fallback to asset ID lookup
+        if let assetId = getCustomFieldString("mainUsdzAsset") {
+            return assets.first { $0.id == assetId }
+        }
+        return nil
+    }
+    
+    /// Check if product supports AR
+    var supportsAR: Bool {
+        return mainUsdzAsset != nil
+    }
+}
+
+extension Asset {
+    /// Check if asset is a USDZ file
+    var isUSDZ: Bool {
+        return mimeType.lowercased().contains("usdz") ||
+               source.lowercased().hasSuffix(".usdz")
+    }
+}
+```
+
+### Utility Methods
+
+The SDK provides utility methods for working with custom fields:
+
+```swift
+// Create custom fields from Any dictionary
+let customData: [String: Any] = [
+    "rating": 4.5,
+    "tags": ["electronics", "mobile"],
+    "metadata": ["reviewed": true]
+]
+let customFields = CustomFieldsUtility.create(customData)
+
+// Update existing custom fields
+let updatedFields = CustomFieldsUtility.updateField(
+    in: product.customFields,
+    key: "lastViewed", 
+    value: Date()
+)
+
+// Convert to Any dictionary for external APIs
+let anyDict = CustomFieldsUtility.toAnyDictionary(product.customFields)
+```
+
+## Patterns
+
+This SDK embraces modern Swift development:
+
+- **Swift 6 Concurrency**: Full async/await and structured concurrency support
+- **Automatic Codable**: Clean type definitions without manual JSON parsing
+- **AnyCodable**: Flexible JSON handling with type safety
+- **Computed Properties**: Clean, intuitive APIs
+- **Extensions**: Easy customization and project-specific functionality
+
+## Error Handling
+
+```swift
+do {
+    let products = try await vendure.catalog.getProducts()
+    print("Found \(products.totalItems) products")
+} catch VendureError.networkError(let message) {
+    print("Network error: \(message)")
+} catch VendureError.graphqlError(let errors) {
+    print("GraphQL errors: \(errors.joined(separator: ", "))")
+} catch {
+    print("Unexpected error: \(error)")
+}
+```
+
+## Contributing
+
+Contributions are welcome! This SDK follows modern Swift patterns:
+
+- Use English for all comments and logs
+- Embrace Swift 6 concurrency patterns
+- Keep type definitions clean with automatic Codable synthesis
+- Use AnyCodable for flexible JSON handling
+- Create extensions for project-specific functionality
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/michael-attal/VendureSwiftSDK/issues)
+- **Documentation**: Inline code documentation
+- **Vendure**: [Official Vendure Documentation](https://www.vendure.io/docs/)
+
+---
 
 ### Factory Methods
 
@@ -567,7 +627,7 @@ Once configured, custom fields are automatically included in all relevant querie
 let products = try await vendure.catalog.getProducts()
 let product = try await vendure.catalog.getProductById(id: "123")
 
-// Access custom fields via JSON string parsing (Skip-compatible)
+// Access custom fields via modern AnyCodable approach
 if product.hasCustomField("priority") {
     if let priority = product.getCustomFieldInt("priority") {
         print("Product priority: \(priority)")
@@ -582,15 +642,13 @@ if let isEnabled = product.getCustomFieldBool("isEnabled") {
     print("Product is enabled: \(isEnabled)")
 }
 
-// Access raw JSON string if needed
-if let customFieldsJSON = product.customFields {
-    print("Raw custom fields JSON: \(customFieldsJSON)")
-    // Parse manually for complex structures
-    if let data = customFieldsJSON.data(using: .utf8),
-       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-        // Handle complex nested data
-        print("Parsed custom fields: \(json)")
-    }
+// Direct access to custom fields dictionary
+if let customFields = product.customFields {
+    print("Custom fields keys: \(customFields.keys.joined(separator: ", "))")
+    // Access any field directly with type safety
+    let rating = customFields["rating"]?.doubleValue ?? 0.0
+    let tags = customFields["tags"]?.arrayValue ?? []
+    print("Rating: \(rating), Tags: \(tags.count)")
 }
 
 // Note: Typed extensions like .mainUsdzAsset are provided by client modules
@@ -601,15 +659,12 @@ if let customFieldsJSON = product.customFields {
 // Shipping methods with custom fields
 let shippingMethods = try await vendure.order.getEligibleShippingMethods()
 for method in shippingMethods {
-    // Using JSON parsing for custom fields (Skip-compatible)
-    if let customFieldsJSON = method.customFields,
-       let data = customFieldsJSON.data(using: .utf8),
-       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-        
-        if let maxWeight = json["maxWeight"] as? Double {
+    // Using modern AnyCodable approach for custom fields
+    if let customFields = method.customFields {
+        if let maxWeight = customFields["maxWeight"]?.doubleValue {
             print("Max weight: \(maxWeight) kg")
         }
-        if let trackingEnabled = json["trackingEnabled"] as? Bool {
+        if let trackingEnabled = customFields["trackingEnabled"]?.boolValue {
             print("Tracking enabled: \(trackingEnabled)")
         }
     }
@@ -618,12 +673,9 @@ for method in shippingMethods {
 // Payment methods with custom fields
 let paymentMethods = try await vendure.order.getEligiblePaymentMethods()
 for method in paymentMethods {
-    if let customFieldsJSON = method.customFields,
-       let data = customFieldsJSON.data(using: .utf8),
-       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-        
-        if let stripeSettings = json["stripeSettings"] as? [String: Any] {
-            print("Stripe configuration: \(stripeSettings)")
+    if let customFields = method.customFields {
+        if let stripeSettings = customFields["stripeSettings"]?.dictionaryValue {
+            print("Stripe configuration: \(stripeSettings.keys.joined(separator: ", "))")
         }
     }
 }
@@ -631,11 +683,8 @@ for method in paymentMethods {
 // Tax categories with custom fields
 let taxCategories = try await vendure.system.getTaxCategories()
 for category in taxCategories {
-    if let customFieldsJSON = category.customFields,
-       let data = customFieldsJSON.data(using: .utf8),
-       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-        
-        if let taxCode = json["taxCode"] as? String {
+    if let customFields = category.customFields {
+        if let taxCode = customFields["taxCode"]?.stringValue {
             print("Tax code: \(taxCode)")
         }
     }
@@ -657,7 +706,7 @@ let fastProducts = try await vendure.catalog.getProducts(includeCustomFields: fa
 let customer = try await vendure.customer.getActiveCustomer(includeCustomFields: false)
 ```
 
-### Working with Custom Fields Data (Skip-Compatible)
+### Working with Custom Fields Data
 
 For ease of use, the SDK provides utility methods for working with custom fields JSON:
 
@@ -1022,73 +1071,66 @@ try await Vendure.setChannelToken("new-channel-token")
 try await Vendure.refreshToken(["key": "value"])
 ```
 
-## Skip.tools Android Development
+## Server-Side Swift Integration
 
-VendureSwiftSDK is fully compatible with Skip.tools, allowing you to write your e-commerce logic once in Swift and deploy to both iOS and Android.
+VendureSwiftSDK works perfectly with server-side Swift frameworks, allowing you to build complete e-commerce backends and APIs:
 
-### Android Usage Example
-
-The same Swift code you write for iOS works on Android through Skip's transpilation:
+### Vapor Integration Example
 
 ```swift
-// This Swift code works on both iOS and Android
+import Vapor
 import VendureSwiftSDK
 
 struct ECommerceService {
-    private var vendure: Vendure?
-
-    mutating func initialize() async throws {
-        self.vendure = try await VendureSwiftSDK.initialize(
-            endpoint: "https://demo.vendure.io/shop-api",
-            useGuestSession: true
-        )
-        print("Vendure SDK initialized for cross-platform use")
+    private let vendure: Vendure
+    
+    init(vendure: Vendure) {
+        self.vendure = vendure
     }
 
-    func loadProducts() async throws -> [CatalogProduct] {
-        guard let vendure = vendure else {
-            throw VendureError.initializationError("SDK not initialized")
-        }
-        
-        let productList = try await vendure.catalog.getProducts()
+    func initialize(endpoint: String, token: String) async throws {
+        // Vendure instance is already initialized in init
+        print("Vendure SDK ready for server-side use")
+    }
+
+    func loadProducts(take: Int = 20) async throws -> [CatalogProduct] {
+        let options = ProductListOptions(take: take)
+        let productList = try await vendure.catalog.getProducts(options: options)
         print("Loaded \(productList.items.count) of \(productList.totalItems) products")
         return productList.items
     }
 
-    func addToCart(productVariantId: String, quantity: Int) async throws {
-        guard let vendure = vendure else {
-            throw VendureError.initializationError("SDK not initialized")
-        }
-
+    func addToCart(productVariantId: String, quantity: Int) async throws -> Order {
         let order = try await vendure.order.addItemToOrder(
             productVariantId: productVariantId,
             quantity: quantity
         )
         print("Added \(quantity) items to cart")
+        return order
     }
 }
 ```
 
-### Building for Android
+### Building for Server-Side Swift
 
 ```bash
-# Build Android AAR
-swift skip build android
+# Build for server deployment
+swift build -c release
 
-# Run Android tests
-swift skip test android
+# Run tests
+swift test
 
-# Open Android Studio
-swift skip open android
+# Build with Vapor
+vapor build --release
 ```
 
-### Skip Compatibility Notes
+### Modern Swift Features
 
-- **No Generics**: The SDK avoids generics for optimal Skip transpilation
-- **Concrete Types**: All API responses use concrete types rather than generic wrappers
-- **Actor Safety**: Swift actors are transpiled to Kotlin coroutines
-- **Sendable Support**: `sending` parameters ensure thread safety across platforms
-- **JSON Handling**: Uses standard JSON serialization compatible with both Swift and Kotlin
+- **Swift 6 Concurrency**: Full async/await and structured concurrency support
+- **Type Safety**: Concrete types with automatic Codable synthesis
+- **Actor Safety**: Thread-safe operations using Swift actors
+- **AnyCodable Support**: Flexible JSON handling without manual parsing
+- **Clean APIs**: Modern Swift patterns with computed properties and extensions
 
 ## Concurrency & Thread Safety
 
@@ -1124,7 +1166,7 @@ let tokenFetcher: TokenFetcher = { (parameters: sending [String: Any]) in
 1. **Use await**: All SDK operations are async and should be called with `await`
 2. **Handle Errors**: Wrap calls in do-catch blocks for proper error handling
 3. **Actor Isolation**: Don't store mutable state outside actors
-4. **Logging**: Keep print statements for debugging (they're preserved in both Swift and Kotlin)
+4. **Logging**: Keep print statements for debugging - they provide valuable insights
 
 ## Platform Support
 
@@ -1135,21 +1177,21 @@ let tokenFetcher: TokenFetcher = { (parameters: sending [String: Any]) in
 | visionOS | 2.0+ | arm64 | ✅ Native |
 | watchOS | 11.0+ | arm64 | ✅ Native |
 | tvOS | 18.0+ | arm64, x86_64 | ✅ Native |
-| Android | API 24+ | arm64-v8a, x86_64 | ✅ Skip.tools |
+| Linux | Ubuntu 20.04+ | x86_64, arm64 | ✅ Server-side |
 
 ### Development Requirements
 
 - **Swift**: 6.0+
 - **Xcode**: 16.0+ (for Apple platforms)
-- **Android Studio**: Koala+ (for Android development)
-- **Skip Tools**: Latest (for Android transpilation)
-- **Kotlin**: 2.0+ (managed by Skip)
+- **Swift on Server**: Compatible with Vapor 4+, Perfect, Kitura
+- **Linux**: Ubuntu 20.04+ for server-side development
+- **Docker**: For containerized server deployments
 
 ## Requirements
 
-- Swift 5.9 or later
-- iOS 13.0+ / macOS 13.0+ / watchOS 6.0+ / tvOS 13.0+ / visionOS 1.0+
-- For Android: SKIP.tools framework
+- Swift 6.0 or later
+- iOS 18.0+ / macOS 15.0+ / watchOS 11.0+ / tvOS 18.0+ / visionOS 2.0+
+- Server-side: Ubuntu 20.04+ for Vapor/server deployment
 
 ## Troubleshooting
 
@@ -1178,34 +1220,34 @@ let vendure = try await VendureSwiftSDK.initialize(
 print("SDK initialized successfully")
 ```
 
-### Android/Skip Development
+### Server-Side Swift Development
 
 **Setup Issues:**
 ```bash
-# Verify Skip installation
-skip --version
+# Verify Swift installation
+swift --version
 
-# Update Skip tools
-brew upgrade skip-tools/skip/skip
+# Install Swift on Linux
+wget https://swift.org/builds/swift-6.0-release/ubuntu2004/swift-6.0-RELEASE/swift-6.0-RELEASE-ubuntu20.04.tar.gz
 
-# Clean Skip cache
-rm -rf ~/.skip
+# Update Swift tools (macOS)
+xcode-select --install
 ```
 
 **Build Issues:**
 ```bash
-# Clean Android build
-swift skip clean android
+# Clean Swift build
+swift package clean
 
 # Rebuild from scratch
-swift skip build android --verbose
+swift build --verbose
 ```
 
-**Common Skip Compatibility Issues:**
+**Common Development Patterns:**
 
-1. **Generic Types**: The SDK avoids generics - use concrete types in your code
-2. **Async/Await**: All async operations work the same on Android through Skip
-3. **JSON Decoding**: Use the provided `JSONDecoder()` extensions for compatibility
+1. **Modern Types**: The SDK uses concrete types with AnyCodable for flexibility
+2. **Async/Await**: All operations use structured concurrency
+3. **JSON Handling**: Automatic Codable synthesis with AnyCodable support
 
 ### Network & API Issues
 
@@ -1269,24 +1311,24 @@ We welcome contributions! Here's how to get started:
    - Use English for all comments and logs
    - Keep existing print statements for debugging
    - Follow Swift 6 concurrency patterns
-   - Ensure Skip compatibility (no generics)
-4. **Test on both platforms**:
+   - Use AnyCodable
+4. **Test on all platforms**:
    ```bash
-   # Test iOS
+   # Test Apple platforms
    swift test
 
-   # Test Android via Skip
-   swift skip test android
+   # Test server-side Linux
+   docker run --rm -v "$PWD":/workspace -w /workspace swift:6.0 swift test
    ```
 5. **Submit a pull request**
 
 ### Code Style
 
 - **Comments**: Always in English
-- **Logging**: Use `print()` statements for debugging (preserved in Kotlin)
-- **Concurrency**: Use `async/await` and actors
+- **Logging**: Use `print()` statements for debugging
+- **Concurrency**: Use `async/await` and actors for thread safety
 - **Error Handling**: Comprehensive error handling with descriptive messages
-- **Skip Compatibility**: Avoid generics, use concrete types
+- **Modern Swift**: Leverage Swift 6 features and AnyCodable for clean APIs
 
 ## License
 
@@ -1295,7 +1337,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Related Projects
 
 - **[Vendure](https://www.vendure.io/)** - The headless e-commerce framework this SDK is built for
-- **[Skip.tools](https://skip.tools/)** - Swift-to-Kotlin transpilation framework
+- **[Vapor](https://vapor.codes/)** - Server-side Swift framework for building APIs
 - **[Vendure Flutter SDK](https://pub.dev/packages/vendure)** - Flutter SDK that inspired this implementation
 
 ## Support
@@ -1307,6 +1349,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ for cross-platform e-commerce development**
+**Built with ❤️ for Vendure Swift e-commerce development**
 
 For detailed API documentation, check the inline code comments and the official [Vendure GraphQL API documentation](https://www.vendure.io/docs/graphql-api/).

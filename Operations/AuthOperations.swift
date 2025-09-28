@@ -30,14 +30,12 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "username": "\(username)",
-            "password": "\(password)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "username": AnyCodable(username),
+            "password": AnyCodable(password)
+        ]
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Authentication error"])
@@ -71,14 +69,12 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "uid": "\(uid)",
-            "jwt": "\(jwt)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "uid": AnyCodable(uid),
+            "jwt": AnyCodable(jwt)
+        ]
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Firebase authentication error"])
@@ -102,14 +98,12 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "username": "\(username)",
-            "password": "\(password)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "username": AnyCodable(username),
+            "password": AnyCodable(password)
+        ]
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Authentication error"])
@@ -133,14 +127,12 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "uid": "\(uid)",
-            "jwt": "\(jwt)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "uid": AnyCodable(uid),
+            "jwt": AnyCodable(jwt)
+        ]
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Firebase authentication error"])
@@ -178,15 +170,13 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "username": "\(username)",
-            "password": "\(password)",
-            "rememberMe": \(rememberMe)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "username": AnyCodable(username),
+            "password": AnyCodable(password),
+            "rememberMe": AnyCodable(rememberMe)
+        ]
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Login error"])
@@ -207,7 +197,7 @@ public actor AuthOperations {
         }
         """
         
-        let response = try await client.mutateRaw(query, variablesJSON: nil)
+        let response = try await client.mutateRaw(query, variables: nil)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Logout error"])
@@ -243,19 +233,11 @@ public actor AuthOperations {
         }
         """
         
-        // Encode input to JSON
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = []
-        let inputData = try encoder.encode(input)
-        let inputJSON = String(data: inputData, encoding: .utf8) ?? "{}"
+        let variables: [String: AnyCodable] = [
+            "input": AnyCodable(anyValue: input)
+        ]
         
-        let variablesJSON = """
-        {
-            "input": \(inputJSON)
-        }
-        """
-        
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Registration error"])
@@ -300,24 +282,20 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON: String
+        let variables: [String: AnyCodable]
         if let password = password {
-            variablesJSON = """
-            {
-                "token": "\(token)",
-                "password": "\(password)"
-            }
-            """
+            variables = [
+                "token": AnyCodable(token),
+                "password": AnyCodable(password)
+            ]
         } else {
-            variablesJSON = """
-            {
-                "token": "\(token)",
-                "password": null
-            }
-            """
+            variables = [
+                "token": AnyCodable(token),
+                "password": AnyCodable(anyValue: nil as String?)
+            ]
         }
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Verification error"])
@@ -349,14 +327,12 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "currentPassword": "\(currentPassword)",
-            "newPassword": "\(newPassword)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "currentPassword": AnyCodable(currentPassword),
+            "newPassword": AnyCodable(newPassword)
+        ]
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Password update error"])
@@ -380,13 +356,11 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "emailAddress": "\(emailAddress)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "emailAddress": AnyCodable(emailAddress)
+        ]
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Password reset request error"])
@@ -423,14 +397,12 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "token": "\(token)",
-            "password": "\(password)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "token": AnyCodable(token),
+            "password": AnyCodable(password)
+        ]
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Password reset error"])
@@ -462,14 +434,12 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "password": "\(password)",
-            "newEmailAddress": "\(newEmailAddress)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "password": AnyCodable(password),
+            "newEmailAddress": AnyCodable(newEmailAddress)
+        ]
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Email update request error"])
@@ -501,13 +471,11 @@ public actor AuthOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "token": "\(token)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "token": AnyCodable(token)
+        ]
         
-        let response = try await client.mutateRaw(query, variablesJSON: variablesJSON)
+        let response = try await client.mutateRaw(query, variables: variables)
         
         if response.hasErrors {
             throw VendureError.graphqlError(response.errors?.map { $0.message } ?? ["Email update error"])

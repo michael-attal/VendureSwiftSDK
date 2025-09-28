@@ -12,17 +12,15 @@ public actor OrderOperations {
         let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Order", userRequested: includeCustomFields)
         let query = await GraphQLQueryBuilder.buildAddItemToOrderMutation(includeCustomFields: shouldIncludeCustomFields)
         
-        let variablesJSON = """
-        {
-            "productVariantId": "\(productVariantId)",
-            "quantity": \(quantity)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "productVariantId": AnyCodable(productVariantId),
+            "quantity": AnyCodable(quantity)
+        ]
         
-        // Use mutateRaw and decode manually for SKIP compatibility
+        // Use mutateRaw and decode manually for clean architecture
         let response = try await vendure.custom.mutateRaw(
             query,
-            variablesJSON: variablesJSON
+            variables: variables
         )
         
         if response.hasErrors {
@@ -69,21 +67,13 @@ public actor OrderOperations {
         }
         """
         
-        // Convert input to JSON
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = []
-        let inputData = try encoder.encode(input)
-        let inputJSON = String(data: inputData, encoding: .utf8) ?? "{}"
-        
-        let variablesJSON = """
-        {
-            "input": \(inputJSON)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "input": AnyCodable(anyValue: input)
+        ]
         
         return try await vendure.custom.mutateOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "setOrderShippingAddress"
         )
     }
@@ -118,21 +108,13 @@ public actor OrderOperations {
         }
         """
         
-        // Convert input to JSON
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = []
-        let inputData = try encoder.encode(input)
-        let inputJSON = String(data: inputData, encoding: .utf8) ?? "{}"
-        
-        let variablesJSON = """
-        {
-            "input": \(inputJSON)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "input": AnyCodable(anyValue: input)
+        ]
         
         return try await vendure.custom.mutateOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "setOrderBillingAddress"
         )
     }
@@ -144,7 +126,7 @@ public actor OrderOperations {
         
         return try await vendure.custom.queryOrder(
             query,
-            variablesJSON: nil,
+            variables: nil,
             expectedDataType: nil
         )
     }
@@ -193,21 +175,13 @@ public actor OrderOperations {
         }
         """
         
-        // Convert input to JSON
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = []
-        let inputData = try encoder.encode(input)
-        let inputJSON = String(data: inputData, encoding: .utf8) ?? "{}"
-        
-        let variablesJSON = """
-        {
-            "input": \(inputJSON)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "input": AnyCodable(anyValue: input)
+        ]
         
         return try await vendure.custom.mutateOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "addPaymentToOrder"
         )
     }
@@ -286,15 +260,13 @@ public actor OrderOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "code": "\(code)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "code": AnyCodable(code)
+        ]
         
         return try await vendure.custom.queryOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "orderByCode"
         )
     }
@@ -314,10 +286,10 @@ public actor OrderOperations {
         }
         """
         
-        // Use queryRaw and decode manually for SKIP compatibility
+        // Use queryRaw and decode manually for clean architecture
         let response = try await vendure.custom.queryRaw(
             query,
-            variablesJSON: nil
+            variables: nil
         )
         
         if response.hasErrors {
@@ -365,10 +337,10 @@ public actor OrderOperations {
         }
         """
         
-        // Use queryRaw and decode manually for SKIP compatibility
+        // Use queryRaw and decode manually for clean architecture
         let response = try await vendure.custom.queryRaw(
             query,
-            variablesJSON: nil
+            variables: nil
         )
         
         if response.hasErrors {
@@ -432,21 +404,13 @@ public actor OrderOperations {
         }
         """
         
-        // Convert input to JSON
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = []
-        let inputData = try encoder.encode(input)
-        let inputJSON = String(data: inputData, encoding: .utf8) ?? "{}"
-        
-        let variablesJSON = """
-        {
-            "input": \(inputJSON)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "input": AnyCodable(anyValue: input)
+        ]
         
         return try await vendure.custom.mutateOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "setCustomerForOrder"
         )
     }
@@ -490,18 +454,13 @@ public actor OrderOperations {
             methodIds.append(contentsOf: additional)
         }
         
-        // Build array JSON
-        let methodIdsJSON = methodIds.map { "\"\($0)\"" }.joined(separator: ", ")
-        
-        let variablesJSON = """
-        {
-            "shippingMethodId": [\(methodIdsJSON)]
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "shippingMethodId": AnyCodable(methodIds)
+        ]
         
         return try await vendure.custom.mutateOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "setOrderShippingMethod"
         )
     }
@@ -531,15 +490,13 @@ public actor OrderOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "orderLineId": "\(orderLineId)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "orderLineId": AnyCodable(orderLineId)
+        ]
         
         return try await vendure.custom.mutateOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "removeOrderLine"
         )
     }
@@ -587,16 +544,14 @@ public actor OrderOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "orderLineId": "\(orderLineId)",
-            "quantity": \(quantity)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "orderLineId": AnyCodable(orderLineId),
+            "quantity": AnyCodable(quantity)
+        ]
         
         return try await vendure.custom.mutateOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "adjustOrderLine"
         )
     }
@@ -638,15 +593,13 @@ public actor OrderOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "couponCode": "\(couponCode)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "couponCode": AnyCodable(couponCode)
+        ]
         
         return try await vendure.custom.mutateOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "applyCouponCode"
         )
     }
@@ -673,15 +626,13 @@ public actor OrderOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "couponCode": "\(couponCode)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "couponCode": AnyCodable(couponCode)
+        ]
         
         return try await vendure.custom.mutateOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "removeCouponCode"
         )
     }
@@ -707,15 +658,13 @@ public actor OrderOperations {
         }
         """
         
-        let variablesJSON = """
-        {
-            "state": "\(state)"
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "state": AnyCodable(state)
+        ]
         
-        return try await vendure.custom.mutateTransitionOrderToStateResult(
+        return try await vendure.custom.mutateOrder(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "transitionOrderToState"
         )
     }
@@ -734,21 +683,13 @@ public actor OrderOperations {
         }
         """
         
-        // Convert input to JSON
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = []
-        let inputData = try encoder.encode(input)
-        let inputJSON = String(data: inputData, encoding: .utf8) ?? "{}"
-        
-        let variablesJSON = """
-        {
-            "input": \(inputJSON)
-        }
-        """
+        let variables: [String: AnyCodable] = [
+            "input": AnyCodable(anyValue: input)
+        ]
         
         return try await vendure.custom.mutateActiveOrderResult(
             query,
-            variablesJSON: variablesJSON,
+            variables: variables,
             expectedDataType: "setOrderCustomFields"
         )
     }

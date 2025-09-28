@@ -1,53 +1,30 @@
 import Foundation
 
-// MARK: - GraphQL Types - SKIP Compatible (No Generics)
+// MARK: - GraphQL Types
 
-/// GraphQL request structure without generics
-public struct GraphQLRequest: Codable, Sendable {
+/// GraphQL request structure with type-safe variables
+public struct GraphQLRequest<Variables: Codable & Sendable>: Codable, Sendable {
     public let query: String
-    public let variables: Data?  // JSON Data instead of generic type
+    public let variables: Variables?
     public let operationName: String?
     
-    public init(query: String, variables: Data? = nil, operationName: String? = nil) {
+    public init(query: String, variables: Variables? = nil, operationName: String? = nil) {
         self.query = query
         self.variables = variables
         self.operationName = operationName
     }
+}
+
+/// GraphQL request with dynamic variables using AnyCodable
+public struct GraphQLDynamicRequest: Codable, Sendable {
+    public let query: String
+    public let variables: [String: AnyCodable]?
+    public let operationName: String?
     
-    public init(query: String, variablesJSON: String? = nil, operationName: String? = nil) {
+    public init(query: String, variables: [String: AnyCodable]? = nil, operationName: String? = nil) {
         self.query = query
-        self.variables = variablesJSON?.data(using: .utf8)
+        self.variables = variables
         self.operationName = operationName
-    }
-    
-    // Standard Codable conformance for SKIP compatibility
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        query = try container.decode(String.self, forKey: .query)
-        operationName = try container.decodeIfPresent(String.self, forKey: .operationName)
-        
-        // Handle variables as JSON Data
-        if let variablesString = try container.decodeIfPresent(String.self, forKey: .variables) {
-            variables = variablesString.data(using: .utf8)
-        } else {
-            variables = nil
-        }
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(query, forKey: .query)
-        try container.encodeIfPresent(operationName, forKey: .operationName)
-        
-        // Encode variables as JSON string directly - SKIP compatible
-        if let variables = variables,
-           let jsonString = String(data: variables, encoding: .utf8) {
-            try container.encode(jsonString, forKey: .variables)
-        }
-    }
-    
-    private enum CodingKeys: String, CodingKey {
-        case query, variables, operationName
     }
 }
 
@@ -81,7 +58,26 @@ public struct GraphQLError: Codable, Error, Sendable {
     }
 }
 
-/// Raw GraphQL response for all queries
+/// GraphQL response with generics
+public struct GraphQLResponse<Data: Codable & Sendable>: Codable, Sendable {
+    public let data: Data?
+    public let errors: [GraphQLError]?
+    
+    public var hasErrors: Bool {
+        return errors?.isEmpty == false
+    }
+    
+    public var isSuccessful: Bool {
+        return !hasErrors && data != nil
+    }
+    
+    public init(data: Data? = nil, errors: [GraphQLError]? = nil) {
+        self.data = data
+        self.errors = errors
+    }
+}
+
+/// Raw GraphQL response for dynamic parsing
 public struct GraphQLRawResponse: Sendable {
     public let rawData: Data
     public let errors: [GraphQLError]?
@@ -101,6 +97,13 @@ public struct GraphQLRawResponse: Sendable {
         return rawData
     }
     
+    /// Parse to typed response
+    public func parseResponse<T: Codable & Sendable>(as type: T.Type) throws -> GraphQLResponse<T> {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(GraphQLResponse<T>.self, from: rawData)
+    }
+    
     public init(rawData: Data, errors: [GraphQLError]? = nil) {
         self.rawData = rawData
         self.errors = errors
@@ -114,10 +117,9 @@ struct ErrorOnlyResponse: Decodable {
     let errors: [GraphQLError]?
 }
 
-// MARK: - GraphQL Client (SKIP Compatible - No Generics)
+// MARK: - GraphQL Client
 
-/// Main GraphQL client for making requests  
-/// All decoding is done externally with concrete types for SKIP compatibility
+/// GraphQL client with type-safe operations
 public actor GraphQLClient {
     private let endpoint: URL
     private let session: URLSession
@@ -129,33 +131,134 @@ public actor GraphQLClient {
         self.timeout = timeout
     }
     
-    // MARK: - Raw Query Methods (Primary interface for SKIP)
+    // MARK: - Type-Safe Query Methods (Primary interface)
     
-    /// Execute a raw GraphQL query with JSON string variables
+    /// Execute a type-safe GraphQL query
+    public func query<Response: Codable & Sendable, Variables: Codable & Sendable>(
+        _ query: String,
+        variables: Variables? = nil,
+        operationName: String? = nil,
+        headers: [String: String] = [:]
+    ) async throws -> GraphQLResponse<Response> {
+        let request = GraphQLRequest(query: query, variables: variables, operationName: operationName)
+        return try await execute(request: request, headers: headers)
+    }
+    
+    /// Execute a type-safe GraphQL mutation
+    public func mutate<Response: Codable & Sendable, Variables: Codable & Sendable>(
+        _ mutation: String,
+        variables: Variables? = nil,
+        operationName: String? = nil,
+        headers: [String: String] = [:]
+    ) async throws -> GraphQLResponse<Response> {
+        let request = GraphQLRequest(query: mutation, variables: variables, operationName: operationName)
+        return try await execute(request: request, headers: headers)
+    }
+    
+    /// Execute a GraphQL query with dynamic variables using AnyCodable
+    public func queryDynamic<Response: Codable & Sendable>(
+        _ query: String,
+        variables: [String: AnyCodable]? = nil,
+        operationName: String? = nil,
+        headers: [String: String] = [:]
+    ) async throws -> GraphQLResponse<Response> {
+        let request = GraphQLDynamicRequest(query: query, variables: variables, operationName: operationName)
+        return try await executeDynamic(request: request, headers: headers)
+    }
+    
+    /// Execute a GraphQL mutation with dynamic variables using AnyCodable
+    public func mutateDynamic<Response: Codable & Sendable>(
+        _ mutation: String,
+        variables: [String: AnyCodable]? = nil,
+        operationName: String? = nil,
+        headers: [String: String] = [:]
+    ) async throws -> GraphQLResponse<Response> {
+        let request = GraphQLDynamicRequest(query: mutation, variables: variables, operationName: operationName)
+        return try await executeDynamic(request: request, headers: headers)
+    }
+    
+    // MARK: - Raw Query Methods (For compatibility)
+    
+    /// Execute a raw GraphQL query with AnyCodable variables
     public func queryRaw(
         _ query: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
     ) async throws -> GraphQLRawResponse {
-        let requestBody = buildJSONRequestBody(query: query, variablesJSON: variablesJSON)
-        return try await executeRaw(requestBody: requestBody, headers: headers)
+        let request = GraphQLDynamicRequest(query: query, variables: variables)
+        let requestData = try JSONEncoder().encode(request)
+        return try await executeRaw(requestBody: requestData, headers: headers)
     }
     
-    /// Execute a raw GraphQL mutation with JSON string variables
+    /// Execute a raw GraphQL mutation with AnyCodable variables
     public func mutateRaw(
         _ mutation: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
     ) async throws -> GraphQLRawResponse {
-        let requestBody = buildJSONRequestBody(query: mutation, variablesJSON: variablesJSON)
-        return try await executeRaw(requestBody: requestBody, headers: headers)
+        let request = GraphQLDynamicRequest(query: mutation, variables: variables)
+        let requestData = try JSONEncoder().encode(request)
+        return try await executeRaw(requestBody: requestData, headers: headers)
     }
+    
     
     // MARK: - Private Execution Methods
     
+    /// Execute a type-safe GraphQL request
+    private func execute<Response: Codable & Sendable, Variables: Codable & Sendable>(
+        request: GraphQLRequest<Variables>,
+        headers: [String: String]
+    ) async throws -> GraphQLResponse<Response> {
+        await VendureLogger.shared.log(.debug, category: "GraphQL", "Executing type-safe query...")
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let requestData = try encoder.encode(request)
+        
+        let rawResponse = try await executeRaw(requestBody: requestData, headers: headers)
+        
+        // Decode the response
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        do {
+            let typedResponse = try decoder.decode(GraphQLResponse<Response>.self, from: rawResponse.rawData)
+            return typedResponse
+        } catch {
+            await VendureLogger.shared.log(.error, category: "GraphQL", "Decoding error: \(error)")
+            throw VendureError.decodingError(error)
+        }
+    }
+    
+    /// Execute a dynamic GraphQL request with AnyCodable variables
+    private func executeDynamic<Response: Codable & Sendable>(
+        request: GraphQLDynamicRequest,
+        headers: [String: String]
+    ) async throws -> GraphQLResponse<Response> {
+        await VendureLogger.shared.log(.debug, category: "GraphQL", "Executing dynamic query...")
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let requestData = try encoder.encode(request)
+        
+        let rawResponse = try await executeRaw(requestBody: requestData, headers: headers)
+        
+        // Decode the response
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        do {
+            let typedResponse = try decoder.decode(GraphQLResponse<Response>.self, from: rawResponse.rawData)
+            return typedResponse
+        } catch {
+            await VendureLogger.shared.log(.error, category: "GraphQL", "Decoding error: \(error)")
+            throw VendureError.decodingError(error)
+        }
+    }
+    
     /// Execute a raw GraphQL request
     private func executeRaw(
-        requestBody: String,
+        requestBody: Data,
         headers: [String: String]
     ) async throws -> GraphQLRawResponse {
         await VendureLogger.shared.log(.debug, category: "GraphQL", "Executing raw query...")
@@ -165,7 +268,7 @@ public actor GraphQLClient {
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.timeoutInterval = timeout
-        urlRequest.httpBody = requestBody.data(using: .utf8)
+        urlRequest.httpBody = requestBody
         
         // Add custom headers
         for (key, value) in headers {
@@ -202,27 +305,6 @@ public actor GraphQLClient {
         return GraphQLRawResponse(rawData: data, errors: errors)
     }
     
-    /// Build JSON request body as string
-    private func buildJSONRequestBody(query: String, variablesJSON: String? = nil) -> String {
-        var parts: [String] = []
-        
-        // Add query
-        let escapedQuery = query
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\n", with: "\\n")
-            .replacingOccurrences(of: "\r", with: "\\r")
-            .replacingOccurrences(of: "\t", with: "\\t")
-        
-        parts.append("\"query\":\"\(escapedQuery)\"")
-        
-        // Add variables if present
-        if let variablesJSON = variablesJSON {
-            parts.append("\"variables\":\(variablesJSON)")
-        }
-        
-        return "{\(parts.joined(separator: ","))}"
-    }
     
     /// Parse errors from response data
     private func parseErrorsFromData(_ data: Data) -> [GraphQLError]? {
@@ -234,74 +316,31 @@ public actor GraphQLClient {
             return nil
         }
     }
+    
 }
 
-// MARK: - Helper for Response Decoding (SKIP Compatible - No Generics)
+// MARK: - Helper Extensions
 
 extension GraphQLClient {
     
-    /// Standard JSON decoding helper for concrete types
+    /// Standard JSON decoder with ISO8601 date strategy
     public static func createJSONDecoder() -> JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return decoder
     }
     
-    /// Extract nested value from object by path
-    private static func extractNestedValue(from object: Any, path: String) -> Any? {
-        let parts = path.split(separator: ".")
-        var current: Any = object
-        
-        for part in parts {
-            if let dict = current as? [String: Any] {
-                guard let nextValue = dict[String(part)] else {
-                    return nil
-                }
-                current = nextValue
-            } else {
-                return nil
-            }
-        }
-        
-        return current
-    }
-    /// Decode a GraphQL response from Data
-    /// Caller must specify the concrete type, no generics
-    public static func decodeGraphQLResponse(_ data: Data) throws -> (data: Data?, errors: [GraphQLError]?) {
-        // Parse the response
-        guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-            throw VendureError.decodingError(NSError(domain: "GraphQL", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON"]))
-        }
-        
-        // Extract data field if present
-        var extractedData: Data? = nil
-        if let dataField = jsonObject["data"] {
-            extractedData = try? JSONSerialization.data(withJSONObject: dataField, options: [])
-        }
-        
-        // Extract errors if present
-        var errors: [GraphQLError]? = nil
-        if let errorsField = jsonObject["errors"] as? [[String: Any]] {
-            let errorsData = try JSONSerialization.data(withJSONObject: errorsField, options: [])
-            errors = try? JSONDecoder().decode([GraphQLError].self, from: errorsData)
-        }
-        
-        // Check for errors
-        if let errors = errors, !errors.isEmpty {
-            throw VendureError.graphqlError(errors.map { $0.message })
-        }
-        
-        guard let responseData = extractedData else {
-            throw VendureError.noData
-        }
-        
-        return (data: responseData, errors: errors)
+    /// Standard JSON encoder with ISO8601 date strategy
+    public static func createJSONEncoder() -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return encoder
     }
 }
 
-// MARK: - Example Usage (Without Protocol/Generics)
+// MARK: - Example Usage
 
-/// Example login variables as simple struct
+/// Example login variables with type safety
 public struct LoginVariables: Codable, Sendable {
     public let email: String
     public let password: String
@@ -310,42 +349,39 @@ public struct LoginVariables: Codable, Sendable {
         self.email = email
         self.password = password
     }
-    
-    /// Convert to JSON string for GraphQL
-    public func toJSONString() -> String? {
-        guard let data = try? JSONEncoder().encode(self) else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
 }
 
-/// Example login response
+/// Example login response with nested user data
 public struct LoginResponse: Codable, Sendable {
-    public let token: String
-    public let user: User
+    public let authenticate: AuthenticationResult
+    
+    public struct AuthenticationResult: Codable, Sendable {
+        public let token: String?
+        public let user: User
+    }
     
     public struct User: Codable, Sendable {
         public let id: String
         public let email: String
-        public let name: String?
+        public let firstName: String?
+        public let lastName: String?
+        public let verified: Bool
     }
 }
 
-// MARK: - Usage Example
-
-/*
- // Create variables
- let variables = LoginVariables(email: "test@example.com", password: "123456")
- let variablesJSON = variables.toJSONString() ?? "{}"
- 
- // Execute query
- let response = try await client.queryRaw(
-     loginMutation,
-     variablesJSON: variablesJSON
- )
- 
- // Decode response
- if let data = response.dataAsJSON() {
-     let loginResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
-     print(loginResponse.token)
- }
- */
+/// Example of GraphQL usage:
+/// ```swift
+/// let client = GraphQLClient(endpoint: URL(string: "https://api.example.com/graphql")!)
+/// let variables = LoginVariables(email: "user@example.com", password: "password")
+/// 
+/// // Type-safe query
+/// let response: GraphQLResponse<LoginResponse> = try await client.mutate(
+///     "mutation Login($email: String!, $password: String!) { authenticate(input: { email: $email, password: $password }) { token user { id email firstName lastName verified } } }",
+///     variables: variables
+/// )
+/// 
+/// if let loginData = response.data {
+///     print("Token: \(loginData.authenticate.token ?? "No token")")
+///     print("User: \(loginData.authenticate.user.email)")
+/// }
+/// ```

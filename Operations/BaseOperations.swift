@@ -10,15 +10,15 @@ public final class BaseOperations: @unchecked Sendable {
         self.graphQLClient = client
     }
     
-    /// Execute a GraphQL query with typed response - SKIP compatible
+    /// Execute a GraphQL query with typed response
     internal func queryCustomer(
         _ queryString: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
     ) async throws -> Customer? {
         let response = try await graphQLClient.queryRaw(
             queryString,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -33,20 +33,20 @@ public final class BaseOperations: @unchecked Sendable {
         
         let decoder = GraphQLClient.createJSONDecoder()
         
-        // Decode as CustomerWrapper to handle nullable Customer - SKIP compatible
+        // Decode as CustomerWrapper to handle nullable Customer
         let wrapper = try decoder.decode(CustomerWrapper.self, from: data)
         return wrapper.customer
     }
     
-    /// Execute a GraphQL query for CurrentUser - SKIP compatible
+    /// Execute a GraphQL query for CurrentUser
     internal func queryCurrentUser(
         _ queryString: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
     ) async throws -> CurrentUser? {
         let response = try await graphQLClient.queryRaw(
             queryString,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -61,20 +61,20 @@ public final class BaseOperations: @unchecked Sendable {
         
         let decoder = GraphQLClient.createJSONDecoder()
         
-        // Decode as CurrentUserWrapper to handle nullable CurrentUser - SKIP compatible
+        // Decode as CurrentUserWrapper to handle nullable CurrentUser
         let wrapper = try decoder.decode(CurrentUserWrapper.self, from: data)
         return wrapper.currentUser
     }
     
-    /// Execute a GraphQL query for Channel - SKIP compatible
+    /// Execute a GraphQL query for Channel
     internal func queryChannel(
         _ queryString: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
     ) async throws -> Channel {
         let response = try await graphQLClient.queryRaw(
             queryString,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -91,15 +91,15 @@ public final class BaseOperations: @unchecked Sendable {
         return try decoder.decode(Channel.self, from: data)
     }
     
-    /// Execute a GraphQL mutation for Customer - SKIP compatible
+    /// Execute a GraphQL mutation for Customer
     internal func mutateCustomer(
         _ mutationString: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
     ) async throws -> Customer {
         let response = try await graphQLClient.mutateRaw(
             mutationString,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -116,15 +116,15 @@ public final class BaseOperations: @unchecked Sendable {
         return try decoder.decode(Customer.self, from: data)
     }
     
-    /// Execute a GraphQL mutation for Address - SKIP compatible
+    /// Execute a GraphQL mutation for Address
     internal func mutateAddress(
         _ mutationString: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
     ) async throws -> Address {
         let response = try await graphQLClient.mutateRaw(
             mutationString,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -141,15 +141,15 @@ public final class BaseOperations: @unchecked Sendable {
         return try decoder.decode(Address.self, from: data)
     }
     
-    /// Execute a GraphQL mutation for Success - SKIP compatible
+    /// Execute a GraphQL mutation for Success
     internal func mutateSuccess(
         _ mutationString: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
     ) async throws -> Success {
         let response = try await graphQLClient.mutateRaw(
             mutationString,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
         
@@ -169,12 +169,12 @@ public final class BaseOperations: @unchecked Sendable {
     /// Execute a GraphQL query and return raw response for error handling
     internal func queryRaw(
         _ queryString: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
     ) async throws -> GraphQLRawResponse {
         return try await graphQLClient.queryRaw(
             queryString,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
     }
@@ -182,48 +182,35 @@ public final class BaseOperations: @unchecked Sendable {
     /// Execute a GraphQL mutation and return raw response for error handling
     internal func mutateRaw(
         _ mutationString: String,
-        variablesJSON: String? = nil,
+        variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
     ) async throws -> GraphQLRawResponse {
         return try await graphQLClient.mutateRaw(
             mutationString,
-            variablesJSON: variablesJSON,
+            variables: variables,
             headers: headers
         )
     }
     
-    /// Helper method to convert variables dictionary to JSON string
+    /// Helper method to convert variables dictionary to JSON string - Modern AnyCodable approach
     internal func convertVariablesToJSON(_ variables: [String: Encodable]) throws -> String? {
         guard !variables.isEmpty else { return nil }
         
-        // Create a dictionary that can be encoded
-        var jsonObject: [String: Any] = [:]
+        // Create AnyCodable dictionary for type-safe conversion
+        var anyCodableDict: [String: AnyCodable] = [:]
         
         for (key, value) in variables {
-            // Handle different encodable types
-            if let stringValue = value as? String {
-                jsonObject[key] = stringValue
-            } else if let intValue = value as? Int {
-                jsonObject[key] = intValue
-            } else if let doubleValue = value as? Double {
-                jsonObject[key] = doubleValue
-            } else if let boolValue = value as? Bool {
-                jsonObject[key] = boolValue
-            } else if let arrayValue = value as? [Any] {
-                jsonObject[key] = arrayValue
-            } else {
-                // For complex types, encode to JSON
-                let encoder = JSONEncoder()
-                if let data = try? encoder.encode(value),
-                   let json = try? JSONSerialization.jsonObject(with: data) {
-                    jsonObject[key] = json
-                }
-            }
+            // Convert Encodable to AnyCodable using automatic conversion
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(value)
+            let jsonValue = try JSONSerialization.jsonObject(with: data)
+            anyCodableDict[key] = AnyCodable(anyValue: jsonValue)
         }
         
-        // Convert to JSON string
-        let data = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
-        return String(data: data, encoding: .utf8)
+        // Encode the AnyCodable dictionary to JSON
+        let encoder = JSONEncoder()
+        let jsonData = try encoder.encode(anyCodableDict)
+        return String(data: jsonData, encoding: .utf8)
     }
 }
 
@@ -462,72 +449,60 @@ public enum AddPaymentToOrderResult: Codable, Hashable, Sendable {
     }
 }
 
-// MARK: - Wrapper structures for nullable types (SKIP compatibility)
+// MARK: - Response wrapper structures for clean architecture
 
-/// Wrapper for nullable Customer to avoid Customer?.self in decode calls
+/// Modern wrapper for nullable Customer using AnyCodable patterns
 struct CustomerWrapper: Codable, Sendable {
     let customer: Customer?
     
     private enum CodingKeys: String, CodingKey {
-        case data
+        case data, activeCustomer
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        // Try to decode from "data" key first, then directly
-        if let dataContainer = try? container.nestedContainer(keyedBy: DynamicCodingKey.self, forKey: .data) {
-            // Look for activeCustomer key
-            if let activeCustomerKey = DynamicCodingKey(stringValue: "activeCustomer") {
-                customer = try dataContainer.decodeIfPresent(Customer.self, forKey: activeCustomerKey)
-            } else {
-                customer = nil
-            }
+        // Modern flexible decoding approach
+        if let dataContainer = try? container.nestedContainer(keyedBy: CodingKeys.self, forKey: .data) {
+            // Look for activeCustomer in nested data
+            customer = try dataContainer.decodeIfPresent(Customer.self, forKey: .activeCustomer)
         } else {
-            // Fallback: decode directly as Customer
-            customer = try? Customer(from: decoder)
+            // Fallback: try direct activeCustomer or full object decode
+            customer = try container.decodeIfPresent(Customer.self, forKey: .activeCustomer) ?? Customer(from: decoder)
         }
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        var dataContainer = container.nestedContainer(keyedBy: DynamicCodingKey.self, forKey: .data)
-        if let activeCustomerKey = DynamicCodingKey(stringValue: "activeCustomer") {
-            try dataContainer.encodeIfPresent(customer, forKey: activeCustomerKey)
-        }
+        var dataContainer = container.nestedContainer(keyedBy: CodingKeys.self, forKey: .data)
+        try dataContainer.encodeIfPresent(customer, forKey: .activeCustomer)
     }
 }
 
-/// Wrapper for nullable CurrentUser
+/// Modern wrapper for nullable CurrentUser using AnyCodable patterns
 struct CurrentUserWrapper: Codable, Sendable {
     let currentUser: CurrentUser?
     
     private enum CodingKeys: String, CodingKey {
-        case data
+        case data, me
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        // Try to decode from "data" key first, then directly
-        if let dataContainer = try? container.nestedContainer(keyedBy: DynamicCodingKey.self, forKey: .data) {
-            // Look for me key
-            if let meKey = DynamicCodingKey(stringValue: "me") {
-                currentUser = try dataContainer.decodeIfPresent(CurrentUser.self, forKey: meKey)
-            } else {
-                currentUser = nil
-            }
+        // Modern flexible decoding approach
+        if let dataContainer = try? container.nestedContainer(keyedBy: CodingKeys.self, forKey: .data) {
+            // Look for me (currentUser) in nested data
+            currentUser = try dataContainer.decodeIfPresent(CurrentUser.self, forKey: .me)
         } else {
-            // Fallback: decode directly as CurrentUser
-            currentUser = try? CurrentUser(from: decoder)
+            // Fallback: try direct me or full object decode
+            currentUser = try container.decodeIfPresent(CurrentUser.self, forKey: .me) ?? CurrentUser(from: decoder)
         }
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        var dataContainer = container.nestedContainer(keyedBy: DynamicCodingKey.self, forKey: .data)
-        if let meKey = DynamicCodingKey(stringValue: "me") {
-            try dataContainer.encodeIfPresent(currentUser, forKey: meKey)
-        }
+        var dataContainer = container.nestedContainer(keyedBy: CodingKeys.self, forKey: .data)
+        try dataContainer.encodeIfPresent(currentUser, forKey: .me)
     }
 }
