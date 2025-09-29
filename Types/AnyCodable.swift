@@ -230,15 +230,15 @@ public struct AnyHashableSendable: Codable, Hashable, Sendable {
 
 // MARK: - Helper Type for Generic Encoding
 
-private struct AnyEncodable: Codable {
-    let value: any Codable
+internal struct AnyEncodable: Encodable {
+    private let encodeFunc: (Encoder) throws -> Void
     
-    init(_ value: any Codable) {
-        self.value = value
+    init(_ value: any Encodable) {
+        self.encodeFunc = { encoder in try value.encode(to: encoder) }
     }
     
     func encode(to encoder: Encoder) throws {
-        try value.encode(to: encoder)
+        try encodeFunc(encoder)
     }
     
     init(from decoder: Decoder) throws {

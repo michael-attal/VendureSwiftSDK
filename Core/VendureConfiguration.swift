@@ -211,7 +211,7 @@ public class VendureConfiguration: @unchecked Sendable {
             } else {
                 // For complex Encodable types, go through JSON encoding
                 let encoder = JSONEncoder()
-                if let data = try? encoder.encode(value),
+                if let data = try? encoder.encode(AnyEncodable(value)),
                    let json = try? JSONSerialization.jsonObject(with: data) {
                     result[key] = AnyCodable(anyValue: json)
                 } else {
