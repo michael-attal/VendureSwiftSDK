@@ -190,10 +190,20 @@ public class GraphQLQueryBuilder {
     
     // MARK: - Search Queries
     
-    /// Building a search query with custom fields
+    /// Building a search query with custom fields with Stellate cache support
     public static func buildSearchQuery(includeCustomFields: Bool = true) -> String {
         var query = "query search(\(param("input", "SearchInput!"))) {\n"
         query += "  search(input: \(arg("input"))) {\n"
+        
+        if VendureConfiguration.shared.isUsingStellateCache {
+            // Add cacheIdentifier for Stellate cache optimization
+            query += """
+                cacheIdentifier {
+                  collectionSlug
+                }
+            """
+        }
+        
         query += """
             items {
               productId
