@@ -7,18 +7,26 @@ public struct Facet: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let code: String
-    public let isPrivate: Bool
-    public let values: [FacetValue]
-    public let translations: [FacetTranslation]
+    public let isPrivate: Bool?
+    public let values: [FacetValue]?
+    public let translations: [FacetTranslation]?
     public let customFields: [String: AnyCodable]?
-    public let languageCode: LanguageCode
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, name: String, code: String, isPrivate: Bool,
-                values: [FacetValue] = [], translations: [FacetTranslation] = [],
-                customFields: [String: AnyCodable]? = nil, languageCode: LanguageCode,
-                createdAt: Date, updatedAt: Date) {
+    public let languageCode: LanguageCode?
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        name: String,
+        code: String,
+        isPrivate: Bool? = nil,
+        values: [FacetValue]? = nil,
+        translations: [FacetTranslation]? = nil,
+        customFields: [String: AnyCodable]? = nil,
+        languageCode: LanguageCode? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
         self.id = id
         self.name = name
         self.code = code
@@ -38,15 +46,23 @@ public struct FacetValue: Codable, Hashable, Identifiable, Sendable {
     public let name: String
     public let code: String
     public let facet: Facet
-    public let facetId: String
-    public let translations: [FacetValueTranslation]
+    public let facetId: String?
+    public let translations: [FacetValueTranslation]?
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, name: String, code: String, facet: Facet, facetId: String,
-                translations: [FacetValueTranslation] = [], customFields: [String: AnyCodable]? = nil,
-                createdAt: Date, updatedAt: Date) {
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        name: String,
+        code: String,
+        facet: Facet,
+        facetId: String? = nil,
+        translations: [FacetValueTranslation]? = nil,
+        customFields: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
         self.id = id
         self.name = name
         self.code = code
