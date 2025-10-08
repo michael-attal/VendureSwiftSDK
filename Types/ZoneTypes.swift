@@ -8,15 +8,16 @@ public struct Zone: Codable, Hashable, Identifiable, Sendable {
     public let name: String
     public let members: [Region]
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
     public init(
         id: String,
         name: String,
         members: [Region] = [],
         customFields: [String: AnyCodable]? = nil,
-        createdAt: Date, updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -28,7 +29,7 @@ public struct Zone: Codable, Hashable, Identifiable, Sendable {
 }
 
 /// Represents a region (country or province)
-public final class Region: Codable, Hashable, Identifiable, @unchecked Sendable {
+public final class Region: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let code: String
     public let name: String
@@ -36,9 +37,9 @@ public final class Region: Codable, Hashable, Identifiable, @unchecked Sendable 
     public let parent: Region?
     public let parentId: String?
     public let type: String
-    public let translations: [RegionTranslation]
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let translations: [RegionTranslation]?
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
     public init(
         id: String,
@@ -48,9 +49,9 @@ public final class Region: Codable, Hashable, Identifiable, @unchecked Sendable 
         parent: Region? = nil,
         parentId: String? = nil,
         type: String,
-        translations: [RegionTranslation] = [],
-        createdAt: Date,
-        updatedAt: Date
+        translations: [RegionTranslation]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.code = code

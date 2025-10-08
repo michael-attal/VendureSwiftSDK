@@ -1,3 +1,5 @@
+import Foundation
+
 /// Represents a channel
 public struct Channel: Codable, Hashable, Identifiable, Sendable {
     public let id: String
@@ -13,16 +15,26 @@ public struct Channel: Codable, Hashable, Identifiable, Sendable {
     public let pricesIncludeTax: Bool
     public let seller: Seller?
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
-    public init(id: String, code: String, token: String, description: String? = nil,
-                defaultLanguageCode: LanguageCode, availableLanguageCodes: [LanguageCode],
-                defaultCurrencyCode: CurrencyCode, availableCurrencyCodes: [CurrencyCode],
-                defaultShippingZone: Zone? = nil, defaultTaxZone: Zone? = nil,
-                pricesIncludeTax: Bool, seller: Seller? = nil,
-                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date)
-    {
+    public init(
+        id: String,
+        code: String,
+        token: String,
+        description: String? = nil,
+        defaultLanguageCode: LanguageCode,
+        availableLanguageCodes: [LanguageCode],
+        defaultCurrencyCode: CurrencyCode,
+        availableCurrencyCodes: [CurrencyCode],
+        defaultShippingZone: Zone? = nil,
+        defaultTaxZone: Zone? = nil,
+        pricesIncludeTax: Bool,
+        seller: Seller? = nil,
+        customFields: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
         self.id = id
         self.code = code
         self.token = token
