@@ -1,10 +1,3 @@
-//
-//  VendureConfiguration.swift
-//  project-novacommerce
-//
-//  Created by Michaël ATTAL on 29/09/2025.
-//
-
 import Foundation
 
 /// Global SDK configuration

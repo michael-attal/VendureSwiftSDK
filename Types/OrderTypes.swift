@@ -263,16 +263,6 @@ public struct FulfillmentLineSummary: Codable, Hashable, Sendable {
 
 // MARK: - History Types
 
-public struct HistoryEntryList: Codable, Hashable, Sendable {
-    public let items: [HistoryEntry]
-    public let totalItems: Int
-    
-    public init(items: [HistoryEntry], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
 public struct HistoryEntry: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let type: HistoryEntryType

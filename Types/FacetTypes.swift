@@ -75,4 +75,13 @@ public struct FacetValue: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
-// Note: FacetTranslation, FacetValueTranslation, and FacetValueFilterInput are defined in ProductTypes.swift and InputTypes.swift
+/// Input type for filtering by facet values
+public struct FacetValueFilterInput: Codable, Sendable {
+    public let and: String?
+    public let or: [String]?
+
+    public init(and: String? = nil, or: [String]? = nil) {
+        self.and = and
+        self.or = or
+    }
+}

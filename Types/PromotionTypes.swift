@@ -19,7 +19,7 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
     public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
-    
+
     public init(
         id: String,
         name: String,
@@ -53,7 +53,7 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-    
+
     // Helper to create with custom fields dictionary
     public static func withCustomFields(
         id: String,
@@ -73,7 +73,7 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
         updatedAt: Date
     ) -> Promotion {
         let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
-        
+
         return Promotion(
             id: id,
             name: name,
@@ -94,32 +94,6 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
-/// Promotion translation
-public struct PromotionTranslation: Codable, Hashable, Sendable {
-    public let languageCode: LanguageCode
-    public let name: String
-    public let description: String
-    
-    public init(languageCode: LanguageCode, name: String, description: String) {
-        self.languageCode = languageCode
-        self.name = name
-        self.description = description
-    }
-}
-
-// MARK: - Promotion List
-
-/// List of promotions
-public struct PromotionList: Codable, Sendable {
-    public let items: [Promotion]
-    public let totalItems: Int
-    
-    public init(items: [Promotion], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
 // MARK: - Coupon Code Errors
 
 /// Error when coupon code is expired
@@ -127,7 +101,7 @@ public struct CouponCodeExpiredError: Codable, Hashable, Sendable {
     public let errorCode: ErrorCode
     public let message: String
     public let couponCode: String
-    
+
     public init(errorCode: ErrorCode = .COUPON_CODE_EXPIRED_ERROR, message: String, couponCode: String) {
         self.errorCode = errorCode
         self.message = message
@@ -140,7 +114,7 @@ public struct CouponCodeInvalidError: Codable, Hashable, Sendable {
     public let errorCode: ErrorCode
     public let message: String
     public let couponCode: String
-    
+
     public init(errorCode: ErrorCode = .COUPON_CODE_INVALID_ERROR, message: String, couponCode: String) {
         self.errorCode = errorCode
         self.message = message
@@ -154,7 +128,7 @@ public struct CouponCodeLimitError: Codable, Hashable, Sendable {
     public let message: String
     public let couponCode: String
     public let limit: Int
-    
+
     public init(
         errorCode: ErrorCode = .COUPON_CODE_LIMIT_ERROR,
         message: String,

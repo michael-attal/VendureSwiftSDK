@@ -4,7 +4,6 @@ import Foundation
 
 /// GraphQL query builder with support for custom fields
 public class GraphQLQueryBuilder {
-    
     // MARK: - Helper Methods
     
     /// Helper to handle dollar sign in GraphQL queries for clean architecture
@@ -21,27 +20,466 @@ public class GraphQLQueryBuilder {
     private static func arg(_ name: String) -> String {
         return dollar(name)
     }
+
+    // MARK: - Facet Queries
+
+    /// Build a GraphQL query to get facets with paginated generic options
+    public static func buildFacetQuery(
+        options: PaginatedListOptions<
+            FilterParameter<IDOperators, DateOperators, StringOperators, NumberOperators, BooleanOperators>,
+            SortParameter<SortOrder>
+        >? = nil,
+        includeCustomFields: Bool = true,
+        baseFields: [String] = ["id", "name", "code"]
+    ) async -> String {
+        var query = "query facets(\(param("options", "FacetListOptions"))) {\n"
+        query += "  facets(options: \(arg("options"))) {\n"
+        query += "    items {\n"
+        for field in baseFields {
+            query += "      \(field)\n"
+        }
+        if includeCustomFields {
+            let customFields = await VendureConfiguration.shared.injectCustomFields(for: "Facet")
+            if !customFields.isEmpty {
+                query += "\n      \(customFields)"
+            }
+        }
+        query += """
+            }
+            totalItems
+          }
+        }
+        """
+        return query
+    }
+
+    /// Build a GraphQL query to get a single facet by ID
+    public static func buildSingleFacetQuery(
+        includeCustomFields: Bool = true,
+        baseFields: [String] = ["id", "name", "code"]
+    ) async -> String {
+        var query = "query facet(\(param("id", "ID!"))) {\n"
+        query += "  facet(id: \(arg("id"))) {\n"
+        for field in baseFields {
+            query += "    \(field)\n"
+        }
+        if includeCustomFields {
+            let customFields = await VendureConfiguration.shared.injectCustomFields(for: "Facet")
+            if !customFields.isEmpty {
+                query += "\n    \(customFields)"
+            }
+        }
+        query += """
+          }
+        }
+        """
+        return query
+    }
+
+    // MARK: - Asset Queries
+
+    /// Build a GraphQL query to get assets with paginated generic options
+    public static func buildAssetQuery(
+        options: PaginatedListOptions<
+            FilterParameter<IDOperators, DateOperators, StringOperators, NumberOperators, BooleanOperators>,
+            SortParameter<SortOrder>
+        >? = nil,
+        includeCustomFields: Bool = true,
+        baseFields: [String] = ["id", "name", "type", "preview", "source"]
+    ) async -> String {
+        var query = "query assets(\(param("options", "AssetListOptions"))) {\n"
+        query += "  assets(options: \(arg("options"))) {\n"
+        query += "    items {\n"
+        for field in baseFields {
+            query += "      \(field)\n"
+        }
+        if includeCustomFields {
+            let customFields = await VendureConfiguration.shared.injectCustomFields(for: "Asset")
+            if !customFields.isEmpty {
+                query += "\n      \(customFields)"
+            }
+        }
+        query += """
+            }
+            totalItems
+          }
+        }
+        """
+        return query
+    }
+
+    /// Build a GraphQL query to get a single asset by ID
+    public static func buildSingleAssetQuery(
+        includeCustomFields: Bool = true,
+        baseFields: [String] = ["id", "name", "type", "preview", "source"]
+    ) async -> String {
+        var query = "query asset(\(param("id", "ID!"))) {\n"
+        query += "  asset(id: \(arg("id"))) {\n"
+        for field in baseFields {
+            query += "    \(field)\n"
+        }
+        if includeCustomFields {
+            let customFields = await VendureConfiguration.shared.injectCustomFields(for: "Asset")
+            if !customFields.isEmpty {
+                query += "\n    \(customFields)"
+            }
+        }
+        query += """
+          }
+        }
+        """
+        return query
+    }
     
+    // MARK: - Order Queries
+
+    /// Build a GraphQL query to get orders with paginated generic options
+    public static func buildOrderQuery(
+        options: PaginatedListOptions<
+            FilterParameter<IDOperators, DateOperators, StringOperators, NumberOperators, BooleanOperators>,
+            SortParameter<SortOrder>
+        >? = nil,
+        includeCustomFields: Bool = true,
+        baseFields: [String] = ["id", "code", "state", "currencyCode", "total", "totalWithTax", "createdAt", "updatedAt"]
+    ) async -> String {
+        var query = "query orders(\(param("options", "OrderListOptions"))) {\n"
+        query += "  orders(options: \(arg("options"))) {\n"
+        query += "    items {\n"
+        for field in baseFields {
+            query += "      \(field)\n"
+        }
+
+        // Basic customer block (inject custom fields if requested)
+        query += """
+              customer {
+                id
+                firstName
+                lastName
+                emailAddress
+              }
+        """
+
+        if includeCustomFields {
+            let customerCustomFields = await VendureConfiguration.shared.injectCustomFields(for: "Customer")
+            if !customerCustomFields.isEmpty {
+                query += "\n      \(customerCustomFields)"
+            }
+        }
+
+        // Addresses
+        query += """
+              shippingAddress {
+                id
+                fullName
+                company
+                streetLine1
+                streetLine2
+                city
+                province
+                postalCode
+                country
+                phoneNumber
+              }
+              billingAddress {
+                id
+                fullName
+                company
+                streetLine1
+                streetLine2
+                city
+                province
+                postalCode
+                country
+                phoneNumber
+              }
+        """
+
+        // Lines with product/variant info
+        query += """
+              lines {
+                id
+                quantity
+                linePrice
+                linePriceWithTax
+                productVariant {
+                  id
+                  name
+                  sku
+                  price
+                  priceWithTax
+                  stockLevel
+                  product {
+                    id
+                    name
+                    slug
+                  }
+                }
+              }
+        """
+
+        // Inject custom fields for Order if present
+        if includeCustomFields {
+            let orderCustomFields = await VendureConfiguration.shared.injectCustomFields(for: "Order")
+            if !orderCustomFields.isEmpty {
+                query += "\n      \(orderCustomFields)"
+            }
+        }
+
+        query += """
+            }
+            totalItems
+          }
+        }
+        """
+        return query
+    }
+
+    /// Build a GraphQL query to get a single order by ID
+    public static func buildSingleOrderQuery(
+        includeCustomFields: Bool = true,
+        baseFields: [String] = ["id", "code", "state", "currencyCode", "total", "totalWithTax", "createdAt", "updatedAt", "orderPlacedAt", "totalQuantity"]
+    ) async -> String {
+        var query = "query order(\(param("id", "ID!"))) {\n"
+        query += "  order(id: \(arg("id"))) {\n"
+        for field in baseFields {
+            query += "    \(field)\n"
+        }
+
+        // Customer with potential custom fields
+        query += """
+            customer {
+              id
+              firstName
+              lastName
+              emailAddress
+            }
+        """
+        if includeCustomFields {
+            let customerCustomFields = await VendureConfiguration.shared.injectCustomFields(for: "Customer")
+            if !customerCustomFields.isEmpty {
+                query += "\n    \(customerCustomFields)"
+            }
+        }
+
+        // Addresses
+        query += """
+            shippingAddress {
+              id
+              fullName
+              company
+              streetLine1
+              streetLine2
+              city
+              province
+              postalCode
+              country
+              phoneNumber
+            }
+            billingAddress {
+              id
+              fullName
+              company
+              streetLine1
+              streetLine2
+              city
+              province
+              postalCode
+              country
+              phoneNumber
+            }
+        """
+
+        // Lines with more detailed product + variant info
+        query += """
+            lines {
+              id
+              quantity
+              linePrice
+              linePriceWithTax
+              productVariant {
+                id
+                name
+                sku
+                price
+                priceWithTax
+                stockLevel
+                featuredAsset {
+                  id
+                  preview
+                  source
+                }
+                product {
+                  id
+                  name
+                  slug
+                  description
+                }
+              }
+            }
+        """
+
+        // Inject custom fields for Order and Product/ProductVariant if requested
+        if includeCustomFields {
+            let orderCustomFields = await VendureConfiguration.shared.injectCustomFields(for: "Order")
+            if !orderCustomFields.isEmpty {
+                query += "\n    \(orderCustomFields)"
+            }
+
+            let productCustomFields = await VendureConfiguration.shared.injectCustomFields(for: "Product")
+            if !productCustomFields.isEmpty {
+                // Place inside product block — safe to add here as fragment inlined
+                query += "\n    \(productCustomFields)"
+            }
+
+            let variantCustomFields = await VendureConfiguration.shared.injectCustomFields(for: "ProductVariant")
+            if !variantCustomFields.isEmpty {
+                query += "\n    \(variantCustomFields)"
+            }
+        }
+
+        query += """
+          }
+        }
+        """
+        return query
+    }
+
+    // MARK: - Customer Queries
+
+    /// Build a GraphQL query to get customers with paginated generic options
+    public static func buildCustomerQuery(
+        options: PaginatedListOptions<
+            FilterParameter<IDOperators, DateOperators, StringOperators, NumberOperators, BooleanOperators>,
+            SortParameter<SortOrder>
+        >? = nil,
+        includeCustomFields: Bool = true,
+        baseFields: [String] = ["id", "firstName", "lastName", "emailAddress", "title"]
+    ) async -> String {
+        var query = "query customers(\(param("options", "CustomerListOptions"))) {\n"
+        query += "  customers(options: \(arg("options"))) {\n"
+        query += "    items {\n"
+        for field in baseFields {
+            query += "      \(field)\n"
+        }
+
+        // Addresses
+        query += """
+              addresses {
+                id
+                fullName
+                company
+                streetLine1
+                streetLine2
+                city
+                province
+                postalCode
+                country
+                phoneNumber
+                defaultShippingAddress
+                defaultBillingAddress
+              }
+        """
+
+        if includeCustomFields {
+            // use extended fields helper for customers (if present)
+            let customerExtended = await VendureConfiguration.shared.getExtendedFieldsFor(type: "Customer")
+            if !customerExtended.isEmpty {
+                for field in customerExtended {
+                    query += "\n      \(field.graphQLFragment)"
+                }
+            } else {
+                // fallback to injectCustomFields
+                let customerCustomFields = await VendureConfiguration.shared.injectCustomFields(for: "Customer")
+                if !customerCustomFields.isEmpty {
+                    query += "\n      \(customerCustomFields)"
+                }
+            }
+        }
+
+        query += """
+            }
+            totalItems
+          }
+        }
+        """
+        return query
+    }
+
+    /// Build a GraphQL query to get a single customer by ID
+    public static func buildSingleCustomerQuery(
+        includeCustomFields: Bool = true,
+        baseFields: [String] = ["id", "title", "firstName", "lastName", "phoneNumber", "emailAddress"]
+    ) async -> String {
+        var query = "query customer(\(param("id", "ID!"))) {\n"
+        query += "  customer(id: \(arg("id"))) {\n"
+        for field in baseFields {
+            query += "    \(field)\n"
+        }
+
+        // Addresses
+        query += """
+            addresses {
+              id
+              fullName
+              company
+              streetLine1
+              streetLine2
+              city
+              province
+              postalCode
+              country
+              phoneNumber
+              defaultShippingAddress
+              defaultBillingAddress
+            }
+        """
+
+        if includeCustomFields {
+            let customerExtended = await VendureConfiguration.shared.getExtendedFieldsFor(type: "Customer")
+            if !customerExtended.isEmpty {
+                for field in customerExtended {
+                    query += "\n    \(field.graphQLFragment)"
+                }
+            } else {
+                let customerCustomFields = await VendureConfiguration.shared.injectCustomFields(for: "Customer")
+                if !customerCustomFields.isEmpty {
+                    query += "\n    \(customerCustomFields)"
+                }
+            }
+        }
+
+        query += """
+          }
+        }
+        """
+        return query
+    }
+
     // MARK: - Product Queries
-    
+
     /// Build a GraphQL query to get products
     public static func buildProductQuery(
         includeCustomFields: Bool = true,
-        options: ProductListOptions? = nil,
+        options: PaginatedListOptions<
+            FilterParameter<IDOperators, DateOperators, StringOperators, NumberOperators, BooleanOperators>,
+            SortParameter<SortOrder>
+        >? = nil,
         baseFields: [String] = [
             "id", "name", "slug", "description", "enabled"
         ]
     ) async -> String {
+        // Note: GraphQL input type remains `ProductListOptions` in the query string
+        // while the Swift-side representation uses the generic `PaginatedListOptions`.
         var query = "query products(\(param("options", "ProductListOptions"))) {\n"
         query += "  products(options: \(arg("options"))) {\n"
         query += "    items {\n"
-        
+
         // Add the basic fields
         for field in baseFields {
             query += "      \(field)\n"
         }
-        
-        // Add the basic assets
+
+        // Add the basic assets and variants
         query += """
               featuredAsset {
                 id
@@ -57,7 +495,7 @@ public class GraphQLQueryBuilder {
                 sku
                 stockLevel
         """
-        
+
         // Inject custom fields for ProductVariant in catalog query
         if includeCustomFields {
             let variantCustomFields = await VendureConfiguration.shared.injectCustomFields(for: "ProductVariant")
@@ -65,29 +503,29 @@ public class GraphQLQueryBuilder {
                 query += "\n        \(variantCustomFields)"
             }
         }
-        
+
         query += """
               }
         """
-        
-        // Inject custom fields
+
+        // Inject custom fields for Product
         if includeCustomFields {
             let customFieldsFragment = await VendureConfiguration.shared.injectCustomFields(for: "Product")
             if !customFieldsFragment.isEmpty {
                 query += "\n      \(customFieldsFragment)"
             }
         }
-        
+
         query += """
             }
             totalItems
           }
         }
         """
-        
+
         return query
     }
-    
+
     /// Build a GraphQL query to get a product by ID or slug
     public static func buildSingleProductQuery(
         byId: Bool = true,
@@ -281,16 +719,16 @@ public class GraphQLQueryBuilder {
         
         if detailed {
             query += """
-              breadcrumbs {
-                id
-                name
-                slug
-              }
-              position
-              isRoot
-              parentId
-        
-        """
+                  breadcrumbs {
+                    id
+                    name
+                    slug
+                  }
+                  position
+                  isRoot
+                  parentId
+                
+            """
         }
         
         query += """
@@ -374,26 +812,26 @@ public class GraphQLQueryBuilder {
         if includeProducts {
             query += """
             
-            productVariants {
-              items {
-                id
-                name
-                sku
-                price
-                priceWithTax
-                currencyCode
-                stockLevel
-                product {
-                  id
-                  name
-                  slug
-                  featuredAsset {
+                productVariants {
+                  items {
                     id
-                    preview
-                    source
-                  }
-                }
-        """
+                    name
+                    sku
+                    price
+                    priceWithTax
+                    currencyCode
+                    stockLevel
+                    product {
+                      id
+                      name
+                      slug
+                      featuredAsset {
+                        id
+                        preview
+                        source
+                      }
+                    }
+            """
             
             // Custom fields for ProductVariant in collections
             if includeCustomFields {
@@ -404,10 +842,10 @@ public class GraphQLQueryBuilder {
             }
             
             query += """
-              }
-              totalItems
-            }
-        """
+                  }
+                  totalItems
+                }
+            """
         }
         
         // Inject custom fields for Collection
@@ -708,18 +1146,17 @@ public class GraphQLQueryBuilder {
 // MARK: - Helper Extensions for Operations
 
 /// Extension to help manage custom fields in operations
-extension VendureConfiguration {
-    
+public extension VendureConfiguration {
     // Note: shouldIncludeCustomFields method is defined in CustomFieldConfiguration.swift
     
     /// Get the list of types that have custom fields configured
-    public func getTypesWithCustomFields() -> Set<String> {
+    func getTypesWithCustomFields() -> Set<String> {
         let allTypes = Set(customFields.flatMap { $0.applicableTypes })
         return allTypes
     }
     
     /// Verify whether a configuration is valid for production
-    public func validateConfiguration() -> [String] {
+    func validateConfiguration() -> [String] {
         var warnings: [String] = []
         
         let fields = customFields

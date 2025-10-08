@@ -7,16 +7,15 @@ public actor SystemOperations {
         self.vendure = vendure
     }
     
-    /// Helper method to execute query and decode FacetList
-    private func executeFacetListQuery(
+    // MARK: - Generic query execution helper
+    
+    private func executeQuery<T: Decodable>(
         _ query: String,
         variables: [String: AnyCodable]?,
-        expectedDataType: String
-    ) async throws -> FacetList {
-        let response = try await vendure.custom.queryRaw(
-            query,
-            variables: variables
-        )
+        expectedDataType: String,
+        decodeTo type: T.Type
+    ) async throws -> T {
+        let response = try await vendure.custom.queryRaw(query, variables: variables)
         
         if response.hasErrors {
             let errorMessages = response.errors?.map { $0.message } ?? ["Unknown GraphQL error"]
@@ -30,149 +29,21 @@ public actor SystemOperations {
         let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
         guard let dict = jsonObject as? [String: Any],
               let responseData = dict["data"] as? [String: Any],
-              let targetData = responseData[expectedDataType] else {
-            throw VendureError.decodingError(NSError(domain: "SystemOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid \(expectedDataType) response"]))
+              let targetData = responseData[expectedDataType]
+        else {
+            throw VendureError.decodingError(
+                NSError(domain: "SystemOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid \(expectedDataType) response"])
+            )
         }
         
         let extractedData = try JSONSerialization.data(withJSONObject: targetData, options: [])
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(FacetList.self, from: extractedData)
+        return try decoder.decode(T.self, from: extractedData)
     }
     
-    /// Helper method to execute query and decode Facet
-    private func executeFacetQuery(
-        _ query: String,
-        variables: [String: AnyCodable]?,
-        expectedDataType: String
-    ) async throws -> Facet {
-        let response = try await vendure.custom.queryRaw(
-            query,
-            variables: variables
-        )
-        
-        if response.hasErrors {
-            let errorMessages = response.errors?.map { $0.message } ?? ["Unknown GraphQL error"]
-            throw VendureError.graphqlError(errorMessages)
-        }
-        
-        guard let data = response.rawData.isEmpty ? nil : response.rawData else {
-            throw VendureError.noData
-        }
-        
-        let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-        guard let dict = jsonObject as? [String: Any],
-              let responseData = dict["data"] as? [String: Any],
-              let targetData = responseData[expectedDataType] else {
-            throw VendureError.decodingError(NSError(domain: "SystemOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid \(expectedDataType) response"]))
-        }
-        
-        let extractedData = try JSONSerialization.data(withJSONObject: targetData, options: [])
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(Facet.self, from: extractedData)
-    }
+    // MARK: - Countries
     
-    /// Helper method to execute query and decode VendureCollection
-    private func executeVendureCollectionQuery(
-        _ query: String,
-        variables: [String: AnyCodable]?,
-        expectedDataType: String
-    ) async throws -> VendureCollection {
-        let response = try await vendure.custom.queryRaw(
-            query,
-            variables: variables
-        )
-        
-        if response.hasErrors {
-            let errorMessages = response.errors?.map { $0.message } ?? ["Unknown GraphQL error"]
-            throw VendureError.graphqlError(errorMessages)
-        }
-        
-        guard let data = response.rawData.isEmpty ? nil : response.rawData else {
-            throw VendureError.noData
-        }
-        
-        let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-        guard let dict = jsonObject as? [String: Any],
-              let responseData = dict["data"] as? [String: Any],
-              let targetData = responseData[expectedDataType] else {
-            throw VendureError.decodingError(NSError(domain: "SystemOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid \(expectedDataType) response"]))
-        }
-        
-        let extractedData = try JSONSerialization.data(withJSONObject: targetData, options: [])
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(VendureCollection.self, from: extractedData)
-    }
-    
-    /// Helper method to execute query and decode CollectionList
-    private func executeSystemCollectionListQuery(
-        _ query: String,
-        variables: [String: AnyCodable]?,
-        expectedDataType: String
-    ) async throws -> CollectionList {
-        let response = try await vendure.custom.queryRaw(
-            query,
-            variables: variables
-        )
-        
-        if response.hasErrors {
-            let errorMessages = response.errors?.map { $0.message } ?? ["Unknown GraphQL error"]
-            throw VendureError.graphqlError(errorMessages)
-        }
-        
-        guard let data = response.rawData.isEmpty ? nil : response.rawData else {
-            throw VendureError.noData
-        }
-        
-        let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-        guard let dict = jsonObject as? [String: Any],
-              let responseData = dict["data"] as? [String: Any],
-              let targetData = responseData[expectedDataType] else {
-            throw VendureError.decodingError(NSError(domain: "SystemOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid \(expectedDataType) response"]))
-        }
-        
-        let extractedData = try JSONSerialization.data(withJSONObject: targetData, options: [])
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(CollectionList.self, from: extractedData)
-    }
-    
-    /// Helper method to execute query and decode SearchResult
-    private func executeSystemSearchResultQuery(
-        _ query: String,
-        variables: [String: AnyCodable]?,
-        expectedDataType: String
-    ) async throws -> SearchResult {
-        let response = try await vendure.custom.queryRaw(
-            query,
-            variables: variables
-        )
-        
-        if response.hasErrors {
-            let errorMessages = response.errors?.map { $0.message } ?? ["Unknown GraphQL error"]
-            throw VendureError.graphqlError(errorMessages)
-        }
-        
-        guard let data = response.rawData.isEmpty ? nil : response.rawData else {
-            throw VendureError.noData
-        }
-        
-        let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-        guard let dict = jsonObject as? [String: Any],
-              let responseData = dict["data"] as? [String: Any],
-              let targetData = responseData[expectedDataType] else {
-            throw VendureError.decodingError(NSError(domain: "SystemOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid \(expectedDataType) response"]))
-        }
-        
-        let extractedData = try JSONSerialization.data(withJSONObject: targetData, options: [])
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(SearchResult.self, from: extractedData)
-    }
-    
-    /// Get available countries
     public func getAvailableCountries() async throws -> [Country] {
         let query = """
         query availableCountries {
@@ -190,12 +61,7 @@ public actor SystemOperations {
         }
         """
         
-        // Use queryRaw and decode manually for clean architecture
-        let response = try await vendure.custom.queryRaw(
-            query,
-            variables: nil
-        )
-        
+        let response = try await vendure.custom.queryRaw(query, variables: nil)
         if response.hasErrors {
             let errorMessages = response.errors?.map { $0.message } ?? ["Unknown GraphQL error"]
             throw VendureError.graphqlError(errorMessages)
@@ -205,31 +71,34 @@ public actor SystemOperations {
             throw VendureError.noData
         }
         
-        // Extract availableCountries array from response
         let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
         guard let dict = jsonObject as? [String: Any],
               let responseData = dict["data"] as? [String: Any],
-              let countriesArray = responseData["availableCountries"] as? [Any] else {
-            throw VendureError.decodingError(NSError(domain: "SystemOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid availableCountries response"]))
+              let countriesArray = responseData["availableCountries"] as? [Any]
+        else {
+            throw VendureError.decodingError(
+                NSError(domain: "SystemOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid availableCountries response"])
+            )
         }
         
-        // Decode each country
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        var countries: [Country] = []
-        for countryData in countriesArray {
-            let itemData = try JSONSerialization.data(withJSONObject: countryData, options: [])
-            let country = try decoder.decode(Country.self, from: itemData)
-            countries.append(country)
+        return try countriesArray.map { itemData in
+            let data = try JSONSerialization.data(withJSONObject: itemData, options: [])
+            return try decoder.decode(Country.self, from: data)
         }
-        
-        return countries
     }
     
-    /// Get facets
-    public func getFacets(options: FacetListOptions? = nil) async throws -> FacetList {
+    // MARK: - Facets
+    
+    public func getFacets(
+        options: PaginatedListOptions<
+            FilterParameter<IDOperators, DateOperators, StringOperators, NumberOperators, BooleanOperators>,
+            SortParameter<SortOrder>
+        >? = nil
+    ) async throws -> PaginatedList<Facet> {
         let query = """
-        query facets($options: FacetListOptions) {
+        query facets($options: PaginatedListOptions) {
           facets(options: $options) {
             items {
               id
@@ -258,25 +127,16 @@ public actor SystemOperations {
         }
         """
         
-        var variables: [String: AnyCodable]? = nil
-        if let options = options {
-            variables = [
-                "options": AnyCodable(anyValue: options)
-            ]
-        } else {
-            variables = [
-                "options": AnyCodable(anyValue: nil as String?)
-            ]
-        }
+        let variables: [String: AnyCodable]? = ["options": AnyCodable(anyValue: options ?? nil as String?)]
         
-        return try await executeFacetListQuery(
+        return try await executeQuery(
             query,
             variables: variables,
-            expectedDataType: "facets"
+            expectedDataType: "facets",
+            decodeTo: PaginatedList<Facet>.self
         )
     }
     
-    /// Get facet by ID
     public func getFacet(id: String) async throws -> Facet {
         let query = """
         query facet($id: ID!) {
@@ -305,21 +165,24 @@ public actor SystemOperations {
         }
         """
         
-        let variables: [String: AnyCodable] = [
-            "id": AnyCodable(id)
-        ]
-        
-        return try await executeFacetQuery(
+        return try await executeQuery(
             query,
-            variables: variables,
-            expectedDataType: "facet"
+            variables: ["id": AnyCodable(id)],
+            expectedDataType: "facet",
+            decodeTo: Facet.self
         )
     }
     
-    /// Get collections with parent and children
-    public func getCollectionListWithParentChildren(options: VendureCollectionListOptions? = nil) async throws -> CollectionList {
+    // MARK: - Collections
+    
+    public func getCollectionListWithParentChildren(
+        options: PaginatedListOptions<
+            FilterParameter<IDOperators, DateOperators, StringOperators, NumberOperators, BooleanOperators>,
+            SortParameter<SortOrder>
+        >? = nil
+    ) async throws -> PaginatedList<VendureCollection> {
         let query = """
-        query collections($options: VendureCollectionListOptions) {
+        query collections($options: PaginatedListOptions) {
           collections(options: $options) {
             items {
               id
@@ -357,25 +220,16 @@ public actor SystemOperations {
         }
         """
         
-        var variables: [String: AnyCodable]? = nil
-        if let options = options {
-            variables = [
-                "options": AnyCodable(anyValue: options)
-            ]
-        } else {
-            variables = [
-                "options": AnyCodable(anyValue: nil as String?)
-            ]
-        }
+        let variables: [String: AnyCodable]? = ["options": AnyCodable(anyValue: options ?? nil as String?)]
         
-        return try await executeSystemCollectionListQuery(
+        return try await executeQuery(
             query,
             variables: variables,
-            expectedDataType: "collections"
+            expectedDataType: "collections",
+            decodeTo: PaginatedList<VendureCollection>.self
         )
     }
     
-    /// Get collection with parent and children
     public func getCollectionWithParentChildren(id: String) async throws -> VendureCollection {
         let query = """
         query collection($id: ID!) {
@@ -412,19 +266,14 @@ public actor SystemOperations {
           }
         }
         """
-        
-        let variables: [String: AnyCodable] = [
-            "id": AnyCodable(id)
-        ]
-        
-        return try await executeVendureCollectionQuery(
+        return try await executeQuery(
             query,
-            variables: variables,
-            expectedDataType: "collection"
+            variables: ["id": AnyCodable(id)],
+            expectedDataType: "collection",
+            decodeTo: VendureCollection.self
         )
     }
     
-    /// Get collection with parent only
     public func getCollectionWithParent(id: String) async throws -> VendureCollection {
         let query = """
         query collection($id: ID!) {
@@ -446,19 +295,14 @@ public actor SystemOperations {
           }
         }
         """
-        
-        let variables: [String: AnyCodable] = [
-            "id": AnyCodable(id)
-        ]
-        
-        return try await executeVendureCollectionQuery(
+        return try await executeQuery(
             query,
-            variables: variables,
-            expectedDataType: "collection"
+            variables: ["id": AnyCodable(id)],
+            expectedDataType: "collection",
+            decodeTo: VendureCollection.self
         )
     }
     
-    /// Get collection with children only
     public func getCollectionWithChildren(id: String) async throws -> VendureCollection {
         let query = """
         query collection($id: ID!) {
@@ -480,19 +324,16 @@ public actor SystemOperations {
           }
         }
         """
-        
-        let variables: [String: AnyCodable] = [
-            "id": AnyCodable(id)
-        ]
-        
-        return try await executeVendureCollectionQuery(
+        return try await executeQuery(
             query,
-            variables: variables,
-            expectedDataType: "collection"
+            variables: ["id": AnyCodable(id)],
+            expectedDataType: "collection",
+            decodeTo: VendureCollection.self
         )
     }
     
-    /// Search catalog
+    // MARK: - Search
+    
     public func searchCatalog(input: SearchInput) async throws -> SearchResponse {
         let query = """
         query search($input: SearchInput!) {
@@ -507,36 +348,20 @@ public actor SystemOperations {
               productAsset {
                 id
                 preview
-                focalPoint {
-                  x
-                  y
-                }
+                focalPoint { x y }
               }
               productVariantAsset {
                 id
                 preview
-                focalPoint {
-                  x
-                  y
-                }
+                focalPoint { x y }
               }
               price {
-                ... on PriceRange {
-                  min
-                  max
-                }
-                ... on SinglePrice {
-                  value
-                }
+                ... on PriceRange { min max }
+                ... on SinglePrice { value }
               }
               priceWithTax {
-                ... on PriceRange {
-                  min
-                  max
-                }
-                ... on SinglePrice {
-                  value
-                }
+                ... on PriceRange { min max }
+                ... on SinglePrice { value }
               }
               currencyCode
               description
@@ -560,14 +385,11 @@ public actor SystemOperations {
         }
         """
         
-        let variables: [String: AnyCodable] = [
-            "input": AnyCodable(anyValue: input)
-        ]
-        
-        return try await executeSystemSearchResultQuery(
+        return try await executeQuery(
             query,
-            variables: variables,
-            expectedDataType: "search"
+            variables: ["input": AnyCodable(anyValue: input)],
+            expectedDataType: "search",
+            decodeTo: SearchResponse.self
         )
     }
 }

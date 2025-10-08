@@ -15,7 +15,7 @@ public struct ShippingMethod: Codable, Hashable, Identifiable, Sendable {
     public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
-    
+
     public init(
         id: String,
         code: String,
@@ -43,19 +43,6 @@ public struct ShippingMethod: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
-/// Shipping method translation
-public struct ShippingMethodTranslation: Codable, Hashable, Sendable {
-    public let languageCode: LanguageCode
-    public let name: String
-    public let description: String
-    
-    public init(languageCode: LanguageCode, name: String, description: String) {
-        self.languageCode = languageCode
-        self.name = name
-        self.description = description
-    }
-}
-
 /// Shipping method quote for an order
 public struct ShippingMethodQuote: Codable, Hashable, Identifiable, Sendable {
     public let id: String
@@ -66,7 +53,7 @@ public struct ShippingMethodQuote: Codable, Hashable, Identifiable, Sendable {
     public let description: String
     public let metadata: [String: AnyCodable]?
     public let customFields: [String: AnyCodable]?
-    
+
     public init(
         id: String,
         price: Double,
@@ -97,7 +84,7 @@ public struct ShippingLine: Codable, Hashable, Identifiable, Sendable {
     public let discountedPrice: Double
     public let discountedPriceWithTax: Double
     public let taxLines: [TaxLine]
-    
+
     public init(
         id: String,
         shippingMethod: ShippingMethod,
@@ -117,19 +104,6 @@ public struct ShippingLine: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
-// MARK: - Shipping Lists
-
-/// List of shipping methods
-public struct ShippingMethodList: Codable, Sendable {
-    public let items: [ShippingMethod]
-    public let totalItems: Int
-    
-    public init(items: [ShippingMethod], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
 // MARK: - Shipping Errors
 
 /// Error when shipping method is ineligible
@@ -137,7 +111,7 @@ public struct IneligibleShippingMethodError: Codable, Hashable, Sendable {
     public let errorCode: ErrorCode
     public let message: String
     public let eligibilityCheckerMessage: String?
-    
+
     public init(
         errorCode: ErrorCode = .INELIGIBLE_SHIPPING_METHOD_ERROR,
         message: String,
@@ -148,4 +122,3 @@ public struct IneligibleShippingMethodError: Codable, Hashable, Sendable {
         self.eligibilityCheckerMessage = eligibilityCheckerMessage
     }
 }
-
