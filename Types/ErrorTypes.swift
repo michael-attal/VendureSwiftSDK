@@ -8,9 +8,10 @@ public struct InsufficientStockError: Codable, Hashable {
     public let message: String
     public let quantityAvailable: Int
     public let order: Order
-    
+
     public init(errorCode: ErrorCode = .INSUFFICIENT_STOCK_ERROR, message: String,
-                quantityAvailable: Int, order: Order) {
+                quantityAvailable: Int, order: Order)
+    {
         self.errorCode = errorCode
         self.message = message
         self.quantityAvailable = quantityAvailable
@@ -22,7 +23,7 @@ public struct InsufficientStockError: Codable, Hashable {
 public struct NegativeQuantityError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .NEGATIVE_QUANTITY_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -34,7 +35,7 @@ public struct OrderLimitError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
     public let maxItems: Int
-    
+
     public init(errorCode: ErrorCode = .ORDER_LIMIT_ERROR, message: String, maxItems: Int) {
         self.errorCode = errorCode
         self.message = message
@@ -46,7 +47,7 @@ public struct OrderLimitError: Codable, Hashable {
 public struct OrderModificationError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .ORDER_MODIFICATION_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -57,7 +58,7 @@ public struct OrderModificationError: Codable, Hashable {
 public struct OrderPaymentStateError: Codable, Hashable, Error {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .ORDER_PAYMENT_STATE_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -71,9 +72,10 @@ public struct OrderStateTransitionError: Codable, Hashable, Error {
     public let transitionError: String
     public let fromState: String
     public let toState: String
-    
+
     public init(errorCode: ErrorCode = .ORDER_STATE_TRANSITION_ERROR, message: String,
-                transitionError: String, fromState: String, toState: String) {
+                transitionError: String, fromState: String, toState: String)
+    {
         self.errorCode = errorCode
         self.message = message
         self.transitionError = transitionError
@@ -86,7 +88,7 @@ public struct OrderStateTransitionError: Codable, Hashable, Error {
 public struct NoActiveOrderError: Codable, Hashable, Error {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .NO_ACTIVE_ORDER_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -100,9 +102,10 @@ public struct InvalidCredentialsError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
     public let authenticationError: String
-    
+
     public init(errorCode: ErrorCode = .INVALID_CREDENTIALS_ERROR, message: String,
-                authenticationError: String) {
+                authenticationError: String)
+    {
         self.errorCode = errorCode
         self.message = message
         self.authenticationError = authenticationError
@@ -113,7 +116,7 @@ public struct InvalidCredentialsError: Codable, Hashable {
 public struct AlreadyLoggedInError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .ALREADY_LOGGED_IN_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -124,7 +127,7 @@ public struct AlreadyLoggedInError: Codable, Hashable {
 public struct MissingPasswordError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .MISSING_PASSWORD_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -135,7 +138,7 @@ public struct MissingPasswordError: Codable, Hashable {
 public struct PasswordAlreadySetError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .PASSWORD_ALREADY_SET_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -147,9 +150,10 @@ public struct PasswordValidationError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
     public let validationErrorMessage: String
-    
+
     public init(errorCode: ErrorCode = .PASSWORD_VALIDATION_ERROR, message: String,
-                validationErrorMessage: String) {
+                validationErrorMessage: String)
+    {
         self.errorCode = errorCode
         self.message = message
         self.validationErrorMessage = validationErrorMessage
@@ -160,7 +164,7 @@ public struct PasswordValidationError: Codable, Hashable {
 public struct PasswordResetTokenExpiredError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .PASSWORD_RESET_TOKEN_EXPIRED_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -171,7 +175,7 @@ public struct PasswordResetTokenExpiredError: Codable, Hashable {
 public struct PasswordResetTokenInvalidError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .PASSWORD_RESET_TOKEN_INVALID_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -184,7 +188,7 @@ public struct PasswordResetTokenInvalidError: Codable, Hashable {
 public struct EmailAddressConflictError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .EMAIL_ADDRESS_CONFLICT_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -195,7 +199,7 @@ public struct EmailAddressConflictError: Codable, Hashable {
 public struct NotVerifiedError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .NOT_VERIFIED_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -206,7 +210,7 @@ public struct NotVerifiedError: Codable, Hashable {
 public struct VerificationTokenExpiredError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .VERIFICATION_TOKEN_EXPIRED_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -217,7 +221,7 @@ public struct VerificationTokenExpiredError: Codable, Hashable {
 public struct VerificationTokenInvalidError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .VERIFICATION_TOKEN_INVALID_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -228,7 +232,7 @@ public struct VerificationTokenInvalidError: Codable, Hashable {
 public struct IdentifierChangeTokenExpiredError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .IDENTIFIER_CHANGE_TOKEN_EXPIRED_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -239,7 +243,7 @@ public struct IdentifierChangeTokenExpiredError: Codable, Hashable {
 public struct IdentifierChangeTokenInvalidError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .IDENTIFIER_CHANGE_TOKEN_INVALID_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
@@ -253,7 +257,7 @@ public struct GuestCheckoutError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
     public let errorDetail: String
-    
+
     public init(errorCode: ErrorCode = .GUEST_CHECKOUT_ERROR, message: String, errorDetail: String) {
         self.errorCode = errorCode
         self.message = message
@@ -267,10 +271,112 @@ public struct GuestCheckoutError: Codable, Hashable {
 public struct NativeAuthStrategyError: Codable, Hashable {
     public let errorCode: ErrorCode
     public let message: String
-    
+
     public init(errorCode: ErrorCode = .NATIVE_AUTH_STRATEGY_ERROR, message: String) {
         self.errorCode = errorCode
         self.message = message
     }
 }
- 
+
+// MARK: - Generic Ineligible Method Error
+
+/// Generic error for ineligible methods (shipping, payment, etc.)
+public struct IneligibleMethodError: Codable, Hashable, Error, Sendable {
+    public let errorCode: ErrorCode
+    public let message: String
+    public let eligibilityCheckerMessage: String?
+
+    public init(
+        errorCode: ErrorCode,
+        message: String,
+        eligibilityCheckerMessage: String? = nil
+    ) {
+        self.errorCode = errorCode
+        self.message = message
+        self.eligibilityCheckerMessage = eligibilityCheckerMessage
+    }
+}
+
+// MARK: - Payment Errors // TODO: Make it generic
+
+/// Error when payment is declined
+public struct PaymentDeclinedError: Codable, Hashable, Error, Sendable {
+    public let errorCode: ErrorCode
+    public let message: String
+    public let paymentErrorMessage: String
+
+    public init(
+        errorCode: ErrorCode = .PAYMENT_DECLINED_ERROR,
+        message: String,
+        paymentErrorMessage: String
+    ) {
+        self.errorCode = errorCode
+        self.message = message
+        self.paymentErrorMessage = paymentErrorMessage
+    }
+}
+
+/// Error when payment fails
+public struct PaymentFailedError: Codable, Hashable, Error, Sendable {
+    public let errorCode: ErrorCode
+    public let message: String
+    public let paymentErrorMessage: String
+
+    public init(
+        errorCode: ErrorCode = .PAYMENT_FAILED_ERROR,
+        message: String,
+        paymentErrorMessage: String
+    ) {
+        self.errorCode = errorCode
+        self.message = message
+        self.paymentErrorMessage = paymentErrorMessage
+    }
+}
+
+// MARK: - Coupon Code Errors
+
+/// Error when coupon code is expired
+public struct CouponCodeExpiredError: Codable, Hashable, Sendable {
+    public let errorCode: ErrorCode
+    public let message: String
+    public let couponCode: String
+
+    public init(errorCode: ErrorCode = .COUPON_CODE_EXPIRED_ERROR, message: String, couponCode: String) {
+        self.errorCode = errorCode
+        self.message = message
+        self.couponCode = couponCode
+    }
+}
+
+/// Error when coupon code is invalid
+public struct CouponCodeInvalidError: Codable, Hashable, Sendable {
+    public let errorCode: ErrorCode
+    public let message: String
+    public let couponCode: String
+
+    public init(errorCode: ErrorCode = .COUPON_CODE_INVALID_ERROR, message: String, couponCode: String) {
+        self.errorCode = errorCode
+        self.message = message
+        self.couponCode = couponCode
+    }
+}
+
+/// Error when coupon code usage limit is exceeded
+public struct CouponCodeLimitError: Codable, Hashable, Sendable {
+    public let errorCode: ErrorCode
+    public let message: String
+    public let couponCode: String
+    public let limit: Int
+
+    public init(
+        errorCode: ErrorCode = .COUPON_CODE_LIMIT_ERROR,
+        message: String,
+        couponCode: String,
+        limit: Int
+    ) {
+        self.errorCode = errorCode
+        self.message = message
+        self.couponCode = couponCode
+        self.limit = limit
+    }
+}

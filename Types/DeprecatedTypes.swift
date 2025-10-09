@@ -132,6 +132,12 @@ public typealias CustomerListOptions = PaginatedListOptions<
     SortParameter<SortOrder>
 >
 
+@available(*, deprecated, message: "Use IneligibleMethodError instead")
+public typealias IneligibleShippingMethodError = IneligibleMethodError
+
+@available(*, deprecated, message: "Use IneligibleMethodError instead")
+public typealias IneligiblePaymentMethodError = IneligibleMethodError
+
 /// Product translation (name, slug, description)
 @available(*, deprecated, message: "Use Translation<TranslationContentNameSlugDescription> instead")
 public typealias ProductTranslation = Translation<TranslationContentNameSlugDescription>

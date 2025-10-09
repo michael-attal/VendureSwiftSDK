@@ -11,10 +11,10 @@ public struct ShippingMethod: Codable, Hashable, Identifiable, Sendable {
     public let fulfillmentHandlerCode: String
     public let checker: ConfigurableOperation
     public let calculator: ConfigurableOperation
-    public let translations: [ShippingMethodTranslation]
+    public let translations: [ShippingMethodTranslation]?
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
     public init(
         id: String,
@@ -24,10 +24,10 @@ public struct ShippingMethod: Codable, Hashable, Identifiable, Sendable {
         fulfillmentHandlerCode: String,
         checker: ConfigurableOperation,
         calculator: ConfigurableOperation,
-        translations: [ShippingMethodTranslation] = [],
+        translations: [ShippingMethodTranslation]? = nil,
         customFields: [String: AnyCodable]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.code = code
@@ -101,24 +101,5 @@ public struct ShippingLine: Codable, Hashable, Identifiable, Sendable {
         self.discountedPrice = discountedPrice
         self.discountedPriceWithTax = discountedPriceWithTax
         self.taxLines = taxLines
-    }
-}
-
-// MARK: - Shipping Errors
-
-/// Error when shipping method is ineligible
-public struct IneligibleShippingMethodError: Codable, Hashable, Sendable {
-    public let errorCode: ErrorCode
-    public let message: String
-    public let eligibilityCheckerMessage: String?
-
-    public init(
-        errorCode: ErrorCode = .INELIGIBLE_SHIPPING_METHOD_ERROR,
-        message: String,
-        eligibilityCheckerMessage: String? = nil
-    ) {
-        self.errorCode = errorCode
-        self.message = message
-        self.eligibilityCheckerMessage = eligibilityCheckerMessage
     }
 }

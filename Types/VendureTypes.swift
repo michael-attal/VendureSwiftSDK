@@ -118,39 +118,6 @@ public enum ErrorCode: String, Codable, CaseIterable, Sendable {
 
 // MARK: - Base Types
 
-/// Represents a monetary amount
-public struct Money: Codable, Hashable, Sendable {
-    public let value: Double
-    public let currencyCode: CurrencyCode
-
-    public init(value: Double, currencyCode: CurrencyCode) {
-        self.value = value
-        self.currencyCode = currencyCode
-    }
-}
-
-/// Represents a price range
-public struct PriceRange: Codable, Hashable, Sendable {
-    public let min: Double
-    public let max: Double
-
-    public init(min: Double, max: Double) {
-        self.min = min
-        self.max = max
-    }
-}
-
-/// Represents a date range
-public struct DateRange: Codable, Hashable, Sendable {
-    public let start: Date
-    public let end: Date
-
-    public init(start: Date, end: Date) {
-        self.start = start
-        self.end = end
-    }
-}
-
 /// Represents a coordinate
 public struct Coordinate: Codable, Hashable, Sendable {
     public let x: Double
@@ -159,17 +126,6 @@ public struct Coordinate: Codable, Hashable, Sendable {
     public init(x: Double, y: Double) {
         self.x = x
         self.y = y
-    }
-}
-
-/// Represents localized string content
-public struct LocalizedString: Codable, Hashable, Sendable {
-    public let languageCode: LanguageCode
-    public let value: String
-
-    public init(languageCode: LanguageCode, value: String) {
-        self.languageCode = languageCode
-        self.value = value
     }
 }
 
@@ -341,6 +297,17 @@ public struct BooleanOperators: Codable, Sendable {
 
     public init(eq: Bool? = nil) {
         self.eq = eq
+    }
+}
+
+/// Represents a date range
+public struct DateRange: Codable, Hashable, Sendable {
+    public let start: Date
+    public let end: Date
+
+    public init(start: Date, end: Date) {
+        self.start = start
+        self.end = end
     }
 }
 

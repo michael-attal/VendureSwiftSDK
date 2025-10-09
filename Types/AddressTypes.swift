@@ -17,16 +17,26 @@ public struct Address: Codable, Hashable, Identifiable, Sendable {
     public let defaultShippingAddress: Bool?
     public let defaultBillingAddress: Bool?
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
-    public init(id: String, fullName: String? = nil, company: String? = nil,
-                streetLine1: String, streetLine2: String? = nil, city: String? = nil,
-                province: String? = nil, postalCode: String? = nil, country: Country,
-                phoneNumber: String? = nil, defaultShippingAddress: Bool? = nil,
-                defaultBillingAddress: Bool? = nil, customFields: [String: AnyCodable]? = nil,
-                createdAt: Date, updatedAt: Date)
-    {
+    public init(
+        id: String,
+        fullName: String? = nil,
+        company: String? = nil,
+        streetLine1: String,
+        streetLine2: String? = nil,
+        city: String? = nil,
+        province: String? = nil,
+        postalCode: String? = nil,
+        country: Country,
+        phoneNumber: String? = nil,
+        defaultShippingAddress: Bool? = nil,
+        defaultBillingAddress: Bool? = nil,
+        customFields: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
         self.id = id
         self.fullName = fullName
         self.company = company
@@ -51,9 +61,15 @@ public struct Country: Codable, Hashable, Identifiable, Sendable {
     public let code: String
     public let name: String
     public let enabled: Bool
-    public let translations: [CountryTranslation]
+    public let translations: [CountryTranslation]?
 
-    public init(id: String, code: String, name: String, enabled: Bool, translations: [CountryTranslation] = []) {
+    public init(
+        id: String,
+        code: String,
+        name: String,
+        enabled: Bool,
+        translations: [CountryTranslation]? = nil
+    ) {
         self.id = id
         self.code = code
         self.name = name

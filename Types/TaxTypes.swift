@@ -8,16 +8,16 @@ public struct TaxCategory: Codable, Hashable, Identifiable, Sendable {
     public let name: String
     public let isDefault: Bool
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
     public init(
         id: String,
         name: String,
         isDefault: Bool = false,
         customFields: [String: AnyCodable]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -33,8 +33,8 @@ public struct TaxCategory: Codable, Hashable, Identifiable, Sendable {
         name: String,
         isDefault: Bool = false,
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> TaxCategory {
         let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
 
@@ -61,8 +61,8 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
     public let zone: Zone
     public let customerGroup: CustomerGroup?
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
     public init(
         id: String,
@@ -73,8 +73,8 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
         zone: Zone,
         customerGroup: CustomerGroup? = nil,
         customFields: [String: AnyCodable]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -98,8 +98,8 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
         zone: Zone,
         customerGroup: CustomerGroup? = nil,
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> TaxRate {
         let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
 

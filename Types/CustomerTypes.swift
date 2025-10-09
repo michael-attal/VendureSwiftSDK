@@ -14,8 +14,8 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
     public let orders: [Order]?
     public let user: User?
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
     public init(
         id: String,
@@ -28,8 +28,8 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
         orders: [Order]? = nil,
         user: User? = nil,
         customFields: [String: AnyCodable]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.firstName = firstName
@@ -57,8 +57,8 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
         orders: [Order]? = nil,
         user: User? = nil,
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> Customer {
         let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
 
@@ -88,8 +88,8 @@ public struct User: Codable, Hashable, Identifiable, Sendable {
     public let lastLogin: Date?
     public let authenticationMethods: [AuthenticationMethod]
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
     public init(
         id: String,
@@ -99,8 +99,8 @@ public struct User: Codable, Hashable, Identifiable, Sendable {
         lastLogin: Date? = nil,
         authenticationMethods: [AuthenticationMethod] = [],
         customFields: [String: AnyCodable]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.identifier = identifier
@@ -122,8 +122,8 @@ public struct User: Codable, Hashable, Identifiable, Sendable {
         lastLogin: Date? = nil,
         authenticationMethods: [AuthenticationMethod] = [],
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> User {
         let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
 
@@ -148,8 +148,8 @@ public struct Role: Codable, Hashable, Identifiable, Sendable {
     public let description: String
     public let permissions: [Permission]
     public let channels: [Channel]
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
     public init(
         id: String,
@@ -157,8 +157,8 @@ public struct Role: Codable, Hashable, Identifiable, Sendable {
         description: String,
         permissions: [Permission] = [],
         channels: [Channel] = [],
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.code = code
@@ -215,16 +215,16 @@ public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
     public let name: String
     public let customers: [Customer]
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
     public init(
         id: String,
         name: String,
         customers: [Customer],
         customFields: [String: AnyCodable]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -240,8 +240,8 @@ public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
         name: String,
         customers: [Customer],
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> CustomerGroup {
         let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
 

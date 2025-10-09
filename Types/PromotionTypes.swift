@@ -15,10 +15,10 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
     public let usageLimit: Int?
     public let startsAt: Date?
     public let endsAt: Date?
-    public let translations: [PromotionTranslation]
+    public let translations: [PromotionTranslation]?
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let createdAt: Date?
+    public let updatedAt: Date?
 
     public init(
         id: String,
@@ -32,10 +32,10 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
         usageLimit: Int? = nil,
         startsAt: Date? = nil,
         endsAt: Date? = nil,
-        translations: [PromotionTranslation] = [],
+        translations: [PromotionTranslation], = nil,
         customFields: [String: AnyCodable]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -69,8 +69,8 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
         endsAt: Date? = nil,
         translations: [PromotionTranslation] = [],
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> Promotion {
         let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
 
@@ -91,53 +91,5 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
             createdAt: createdAt,
             updatedAt: updatedAt
         )
-    }
-}
-
-// MARK: - Coupon Code Errors
-
-/// Error when coupon code is expired
-public struct CouponCodeExpiredError: Codable, Hashable, Sendable {
-    public let errorCode: ErrorCode
-    public let message: String
-    public let couponCode: String
-
-    public init(errorCode: ErrorCode = .COUPON_CODE_EXPIRED_ERROR, message: String, couponCode: String) {
-        self.errorCode = errorCode
-        self.message = message
-        self.couponCode = couponCode
-    }
-}
-
-/// Error when coupon code is invalid
-public struct CouponCodeInvalidError: Codable, Hashable, Sendable {
-    public let errorCode: ErrorCode
-    public let message: String
-    public let couponCode: String
-
-    public init(errorCode: ErrorCode = .COUPON_CODE_INVALID_ERROR, message: String, couponCode: String) {
-        self.errorCode = errorCode
-        self.message = message
-        self.couponCode = couponCode
-    }
-}
-
-/// Error when coupon code usage limit is exceeded
-public struct CouponCodeLimitError: Codable, Hashable, Sendable {
-    public let errorCode: ErrorCode
-    public let message: String
-    public let couponCode: String
-    public let limit: Int
-
-    public init(
-        errorCode: ErrorCode = .COUPON_CODE_LIMIT_ERROR,
-        message: String,
-        couponCode: String,
-        limit: Int
-    ) {
-        self.errorCode = errorCode
-        self.message = message
-        self.couponCode = couponCode
-        self.limit = limit
     }
 }

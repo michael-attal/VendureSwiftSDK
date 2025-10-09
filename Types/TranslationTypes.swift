@@ -66,3 +66,14 @@ public struct TranslationContentNameSlugDescription: Codable, Hashable, Sendable
 /// Generic convenience aliases if needed:
 public typealias SimpleNameTranslation = Translation<TranslationContentName>
 public typealias NameSlugTranslation = Translation<TranslationContentNameSlug>
+
+/// Represents localized string content
+public struct LocalizedString: Codable, Hashable, Sendable {
+    public let languageCode: LanguageCode
+    public let value: String
+
+    public init(languageCode: LanguageCode, value: String) {
+        self.languageCode = languageCode
+        self.value = value
+    }
+}
