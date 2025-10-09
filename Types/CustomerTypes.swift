@@ -11,7 +11,7 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
     public let title: String?
     public let phoneNumber: String?
     public let addresses: [Address]?
-    public let orders: OrderList?
+    public let orders: [Order]?
     public let user: User?
     public let customFields: [String: AnyCodable]?
     public let createdAt: Date
@@ -25,7 +25,7 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
         title: String? = nil,
         phoneNumber: String? = nil,
         addresses: [Address]? = nil,
-        orders: OrderList? = nil,
+        orders: [Order]? = nil,
         user: User? = nil,
         customFields: [String: AnyCodable]? = nil,
         createdAt: Date,
@@ -47,11 +47,18 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
 
     // Helper to create with custom fields dictionary
     public static func withCustomFields(
-        id: String, firstName: String, lastName: String, emailAddress: String,
-        title: String? = nil, phoneNumber: String? = nil, addresses: [Address]? = nil,
-        orders: OrderList? = nil, user: User? = nil,
+        id: String,
+        firstName: String,
+        lastName: String,
+        emailAddress: String,
+        title: String? = nil,
+        phoneNumber: String? = nil,
+        addresses: [Address]? = nil,
+        orders: [Order]? = nil,
+        user: User? = nil,
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date, updatedAt: Date
+        createdAt: Date,
+        updatedAt: Date
     ) -> Customer {
         let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
 
@@ -108,9 +115,15 @@ public struct User: Codable, Hashable, Identifiable, Sendable {
 
     // Helper to create with custom fields dictionary
     public static func withCustomFields(
-        id: String, identifier: String, verified: Bool, roles: [Role] = [],
-        lastLogin: Date? = nil, authenticationMethods: [AuthenticationMethod] = [],
-        customFieldsDict: [String: Any]? = nil, createdAt: Date, updatedAt: Date
+        id: String,
+        identifier: String,
+        verified: Bool,
+        roles: [Role] = [],
+        lastLogin: Date? = nil,
+        authenticationMethods: [AuthenticationMethod] = [],
+        customFieldsDict: [String: Any]? = nil,
+        createdAt: Date,
+        updatedAt: Date
     ) -> User {
         let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
 
@@ -200,7 +213,7 @@ public struct CurrentUserChannel: Codable, Hashable, Identifiable, Sendable {
 public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
-    public let customers: CustomerList
+    public let customers: [Customer]
     public let customFields: [String: AnyCodable]?
     public let createdAt: Date
     public let updatedAt: Date
@@ -208,7 +221,7 @@ public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
     public init(
         id: String,
         name: String,
-        customers: CustomerList,
+        customers: [Customer],
         customFields: [String: AnyCodable]? = nil,
         createdAt: Date,
         updatedAt: Date
@@ -223,9 +236,12 @@ public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
 
     // Helper to create with custom fields dictionary
     public static func withCustomFields(
-        id: String, name: String, customers: CustomerList,
+        id: String,
+        name: String,
+        customers: [Customer],
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date, updatedAt: Date
+        createdAt: Date,
+        updatedAt: Date
     ) -> CustomerGroup {
         let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
 
@@ -262,6 +278,3 @@ public extension CustomerGroup {
         return CustomFieldsUtility.toAnyDictionary(customFields)
     }
 }
-
-// Note: These types now fully support AnyCodable custom fields.
-// Use the extension methods from CustomFieldExtensions.swift for type-safe access.

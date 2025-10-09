@@ -138,13 +138,13 @@ public actor CatalogOperations {
             SortParameter<SortOrder>
         >? = nil
     ) async throws -> PaginatedList<Facet> {
-        let query = GraphQLQueryBuilder.buildFacetQuery()
+        let query = await GraphQLQueryBuilder.buildFacetQuery()
         let variables: [String: AnyCodable]? = ["options": AnyCodable(anyValue: options ?? nil as String?)]
         return try await executePaginatedQuery(query, variables: variables, expectedDataType: "facets")
     }
 
     public func getFacetById(id: String) async throws -> Facet {
-        let query = GraphQLQueryBuilder.buildSingleFacetQuery()
+        let query = await GraphQLQueryBuilder.buildSingleFacetQuery()
         let variables: [String: AnyCodable] = ["id": AnyCodable(id)]
         return try await executeSingleQuery(query, variables: variables, expectedDataType: "facet")
     }
@@ -157,13 +157,13 @@ public actor CatalogOperations {
             SortParameter<SortOrder>
         >? = nil
     ) async throws -> PaginatedList<Asset> {
-        let query = GraphQLQueryBuilder.buildAssetQuery()
+        let query = await GraphQLQueryBuilder.buildAssetQuery()
         let variables: [String: AnyCodable]? = ["options": AnyCodable(anyValue: options ?? nil as String?)]
         return try await executePaginatedQuery(query, variables: variables, expectedDataType: "assets")
     }
 
     public func getAssetById(id: String) async throws -> Asset {
-        let query = GraphQLQueryBuilder.buildSingleAssetQuery()
+        let query = await GraphQLQueryBuilder.buildSingleAssetQuery()
         let variables: [String: AnyCodable] = ["id": AnyCodable(id)]
         return try await executeSingleQuery(query, variables: variables, expectedDataType: "asset")
     }
@@ -176,13 +176,13 @@ public actor CatalogOperations {
             SortParameter<SortOrder>
         >? = nil
     ) async throws -> PaginatedList<Order> {
-        let query = GraphQLQueryBuilder.buildOrderQuery()
+        let query = await GraphQLQueryBuilder.buildOrderQuery()
         let variables: [String: AnyCodable]? = ["options": AnyCodable(anyValue: options ?? nil as String?)]
         return try await executePaginatedQuery(query, variables: variables, expectedDataType: "orders")
     }
 
     public func getOrderById(id: String) async throws -> Order {
-        let query = GraphQLQueryBuilder.buildSingleOrderQuery()
+        let query = await GraphQLQueryBuilder.buildSingleOrderQuery()
         let variables: [String: AnyCodable] = ["id": AnyCodable(id)]
         return try await executeSingleQuery(query, variables: variables, expectedDataType: "order")
     }
@@ -195,13 +195,13 @@ public actor CatalogOperations {
             SortParameter<SortOrder>
         >? = nil
     ) async throws -> PaginatedList<Customer> {
-        let query = GraphQLQueryBuilder.buildCustomerQuery()
+        let query = await GraphQLQueryBuilder.buildCustomerQuery()
         let variables: [String: AnyCodable]? = ["options": AnyCodable(anyValue: options ?? nil as String?)]
         return try await executePaginatedQuery(query, variables: variables, expectedDataType: "customers")
     }
 
     public func getCustomerById(id: String) async throws -> Customer {
-        let query = GraphQLQueryBuilder.buildSingleCustomerQuery()
+        let query = await GraphQLQueryBuilder.buildSingleCustomerQuery()
         let variables: [String: AnyCodable] = ["id": AnyCodable(id)]
         return try await executeSingleQuery(query, variables: variables, expectedDataType: "customer")
     }
