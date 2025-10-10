@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Collection Types
 
 /// Represents a product collection
-public struct VendureCollection: Codable, Identifiable, Sendable {
+public struct VendureCollection: Codable, Identifiable, Hashable, Sendable {
     public let id: String
     public let name: String
     public let slug: String

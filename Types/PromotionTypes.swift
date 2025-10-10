@@ -32,7 +32,7 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
         usageLimit: Int? = nil,
         startsAt: Date? = nil,
         endsAt: Date? = nil,
-        translations: [PromotionTranslation], = nil,
+        translations: [PromotionTranslation]? = nil,
         customFields: [String: AnyCodable]? = nil,
         createdAt: Date? = nil,
         updatedAt: Date? = nil
