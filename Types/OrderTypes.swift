@@ -4,6 +4,7 @@ import Foundation
 
 /// Represents an order
 public struct Order: Codable, Hashable, Identifiable, Sendable {
+    public let id: String
     /// An order is active as long as the payment process has not been completed
     public let active: Bool
     public let billingAddress: OrderAddress?
@@ -17,8 +18,7 @@ public struct Order: Codable, Hashable, Identifiable, Sendable {
     public let customer: Customer?
     public let discounts: [Discount]
     public let fulfillments: [Fulfillment]?
-    public let history: HistoryEntryList
-    public let id: String
+    public let history: [HistoryEntry]
     public let lines: [OrderLine]
     /// The date & time that the Order was placed, i.e. the Customer completed the checkout and the Order is no longer "active"
     public let orderPlacedAt: Date?
@@ -49,17 +49,40 @@ public struct Order: Codable, Hashable, Identifiable, Sendable {
     /// The final payable amount. Equal to subTotalWithTax plus shippingWithTax
     public let totalWithTax: Double
     public let type: OrderType
-    public let updatedAt: Date
-    
-    public init(active: Bool, billingAddress: OrderAddress? = nil, code: String, couponCodes: [String] = [],
-                createdAt: Date, currencyCode: CurrencyCode, customFields: [String: AnyCodable]? = nil,
-                customer: Customer? = nil, discounts: [Discount] = [], fulfillments: [Fulfillment]? = nil,
-                history: HistoryEntryList, id: String, lines: [OrderLine] = [], orderPlacedAt: Date? = nil,
-                payments: [Payment]? = nil, promotions: [Promotion] = [], shipping: Double,
-                shippingAddress: OrderAddress? = nil, shippingLines: [ShippingLine] = [], shippingWithTax: Double,
-                state: String, subTotal: Double, subTotalWithTax: Double, surcharges: [Surcharge] = [],
-                taxSummary: [OrderTaxSummary] = [], total: Double, totalQuantity: Int, totalWithTax: Double,
-                type: OrderType, updatedAt: Date) {
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        active: Bool,
+        billingAddress: OrderAddress? = nil,
+        code: String,
+        couponCodes: [String] = [],
+        createdAt: Date,
+        currencyCode: CurrencyCode,
+        customFields: [String: AnyCodable]? = nil,
+        customer: Customer? = nil,
+        discounts: [Discount] = [],
+        fulfillments: [Fulfillment]? = nil,
+        history: [HistoryEntry],
+        lines: [OrderLine] = [],
+        orderPlacedAt: Date? = nil,
+        payments: [Payment]? = nil,
+        promotions: [Promotion] = [],
+        shipping: Double,
+        shippingAddress: OrderAddress? = nil,
+        shippingLines: [ShippingLine] = [],
+        shippingWithTax: Double,
+        state: String,
+        subTotal: Double,
+        subTotalWithTax: Double,
+        surcharges: [Surcharge] = [],
+        taxSummary: [OrderTaxSummary] = [],
+        total: Double,
+        totalQuantity: Int,
+        totalWithTax: Double,
+        type: OrderType,
+        updatedAt: Date? = nil)
+    {
         self.active = active
         self.billingAddress = billingAddress
         self.code = code
@@ -105,11 +128,19 @@ public struct OrderAddress: Codable, Hashable, Sendable {
     public let country: String?
     public let countryCode: String?
     public let phoneNumber: String?
-    
-    public init(fullName: String? = nil, company: String? = nil, streetLine1: String,
-                streetLine2: String? = nil, city: String? = nil, province: String? = nil,
-                postalCode: String? = nil, country: String? = nil, countryCode: String? = nil,
-                phoneNumber: String? = nil) {
+
+    public init(
+        fullName: String? = nil,
+        company: String? = nil,
+        streetLine1: String,
+        streetLine2: String? = nil,
+        city: String? = nil,
+        province: String? = nil,
+        postalCode: String? = nil,
+        country: String? = nil,
+        countryCode: String? = nil,
+        phoneNumber: String? = nil)
+    {
         self.fullName = fullName
         self.company = company
         self.streetLine1 = streetLine1
@@ -138,14 +169,26 @@ public struct OrderLine: Codable, Hashable, Identifiable, Sendable {
     public let discounts: [Discount]
     public let taxLines: [TaxLine]
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, productVariant: ProductVariant, featuredAsset: Asset? = nil,
-                unitPrice: Double, unitPriceWithTax: Double, quantity: Int, linePrice: Double,
-                linePriceWithTax: Double, discountedLinePrice: Double, discountedLinePriceWithTax: Double,
-                discounts: [Discount] = [], taxLines: [TaxLine] = [], customFields: [String: AnyCodable]? = nil,
-                createdAt: Date, updatedAt: Date) {
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        productVariant: ProductVariant,
+        featuredAsset: Asset? = nil,
+        unitPrice: Double,
+        unitPriceWithTax: Double,
+        quantity: Int,
+        linePrice: Double,
+        linePriceWithTax: Double,
+        discountedLinePrice: Double,
+        discountedLinePriceWithTax: Double,
+        discounts: [Discount] = [],
+        taxLines: [TaxLine] = [],
+        customFields: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil)
+    {
         self.id = id
         self.productVariant = productVariant
         self.featuredAsset = featuredAsset
@@ -171,11 +214,16 @@ public struct Discount: Codable, Hashable, Identifiable, Sendable {
     public let description: String
     public let amount: Double
     public let amountWithTax: Double
-    
+
     public var id: String { adjustmentSource }
-    
-    public init(adjustmentSource: String, type: AdjustmentType, description: String,
-                amount: Double, amountWithTax: Double) {
+
+    public init(
+        adjustmentSource: String,
+        type: AdjustmentType,
+        description: String,
+        amount: Double,
+        amountWithTax: Double)
+    {
         self.adjustmentSource = adjustmentSource
         self.type = type
         self.description = description
@@ -197,9 +245,15 @@ public struct Surcharge: Codable, Hashable, Identifiable, Sendable {
     public let price: Double
     public let priceWithTax: Double
     public let taxRate: Double
-    
-    public init(id: String, description: String, sku: String? = nil,
-                price: Double, priceWithTax: Double, taxRate: Double) {
+
+    public init(
+        id: String,
+        description: String,
+        sku: String? = nil,
+        price: Double,
+        priceWithTax: Double,
+        taxRate: Double)
+    {
         self.id = id
         self.description = description
         self.sku = sku
@@ -219,12 +273,20 @@ public struct Fulfillment: Codable, Hashable, Identifiable, Sendable {
     public let lines: [FulfillmentLine]
     public let summary: [FulfillmentLineSummary]
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, state: String, method: String, trackingCode: String? = nil,
-                lines: [FulfillmentLine] = [], summary: [FulfillmentLineSummary] = [],
-                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        state: String,
+        method: String,
+        trackingCode: String? = nil,
+        lines: [FulfillmentLine] = [],
+        summary: [FulfillmentLineSummary] = [],
+        customFields: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil)
+    {
         self.id = id
         self.state = state
         self.method = method
@@ -241,9 +303,9 @@ public struct FulfillmentLine: Codable, Hashable, Identifiable, Sendable {
     public let orderLineId: String
     public let quantity: Int
     public let orderLine: OrderLine
-    
+
     public var id: String { orderLineId }
-    
+
     public init(orderLineId: String, quantity: Int, orderLine: OrderLine) {
         self.orderLineId = orderLineId
         self.quantity = quantity
@@ -254,7 +316,7 @@ public struct FulfillmentLine: Codable, Hashable, Identifiable, Sendable {
 public struct FulfillmentLineSummary: Codable, Hashable, Sendable {
     public let orderLine: OrderLine
     public let quantity: Int
-    
+
     public init(orderLine: OrderLine, quantity: Int) {
         self.orderLine = orderLine
         self.quantity = quantity
@@ -263,41 +325,44 @@ public struct FulfillmentLineSummary: Codable, Hashable, Sendable {
 
 // MARK: - History Types
 
-public struct HistoryEntryList: Codable, Hashable, Sendable {
-    public let items: [HistoryEntry]
-    public let totalItems: Int
-    
-    public init(items: [HistoryEntry], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
 public struct HistoryEntry: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let type: HistoryEntryType
-    public let data: [String: AnyCodable]
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, type: HistoryEntryType, data: [String: AnyCodable],
-                createdAt: Date, updatedAt: Date) {
+    public let data: [String: AnyCodable]?
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        type: HistoryEntryType,
+        data: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil)
+    {
         self.id = id
         self.type = type
         self.data = data
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-    
+
     /// Helper to create from Any dictionary
-    public static func withDataDict(id: String, type: HistoryEntryType,
-                                    dataDict: [String: Any],
-                                    createdAt: Date, updatedAt: Date) -> HistoryEntry {
-        let anyCodableData = CustomFieldsUtility.create(dataDict)
-        return HistoryEntry(id: id, type: type, data: anyCodableData,
-                          createdAt: createdAt, updatedAt: updatedAt)
+    public static func withDataDict(
+        id: String,
+        type: HistoryEntryType,
+        dataDict: [String: Any]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil) -> HistoryEntry
+    {
+        return HistoryEntry(
+            id: id,
+            type: type,
+            data: dataDict != nil ? CustomFieldsUtility.create(dataDict!) : nil,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
     }
-    
+
     /// Get data as Any dictionary (for reading)
     public func getDataDict() -> [String: Any] {
         return CustomFieldsUtility.toAnyDictionary(data)
@@ -338,5 +403,3 @@ public typealias RemoveCouponCodeResult = Order
 
 /// Transition order to state result
 public typealias TransitionOrderToStateResult = Order
-
-

@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: List Wrapper (No Generics)
-
 public actor CustomOperations {
     private let vendure: Vendure
     
@@ -219,7 +217,8 @@ public actor CustomOperations {
         if let dict = extractedData as? [String: Any],
            let typename = dict["__typename"] as? String,
            typename == "ErrorResult",
-           let message = dict["message"] as? String {
+           let message = dict["message"] as? String
+        {
             throw VendureError.graphqlError([message])
         }
         
@@ -324,7 +323,8 @@ public actor CustomOperations {
         if let dict = extractedData as? [String: Any],
            let typename = dict["__typename"] as? String,
            typename == "ErrorResult",
-           let message = dict["message"] as? String {
+           let message = dict["message"] as? String
+        {
             throw VendureError.graphqlError([message])
         }
         
@@ -430,5 +430,3 @@ public actor CustomOperations {
         return current
     }
 }
-
-// MARK: - Helper Types

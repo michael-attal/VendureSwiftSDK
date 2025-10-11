@@ -11,16 +11,26 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
     public let title: String?
     public let phoneNumber: String?
     public let addresses: [Address]?
-    public let orders: OrderList?
+    public let orders: [Order]?
     public let user: User?
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, firstName: String, lastName: String, emailAddress: String,
-                title: String? = nil, phoneNumber: String? = nil, addresses: [Address]? = nil,
-                orders: OrderList? = nil, user: User? = nil, customFields: [String: AnyCodable]? = nil,
-                createdAt: Date, updatedAt: Date) {
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        firstName: String,
+        lastName: String,
+        emailAddress: String,
+        title: String? = nil,
+        phoneNumber: String? = nil,
+        addresses: [Address]? = nil,
+        orders: [Order]? = nil,
+        user: User? = nil,
+        customFields: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
         self.id = id
         self.firstName = firstName
         self.lastName = lastName
@@ -34,17 +44,24 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-    
+
     // Helper to create with custom fields dictionary
     public static func withCustomFields(
-        id: String, firstName: String, lastName: String, emailAddress: String,
-        title: String? = nil, phoneNumber: String? = nil, addresses: [Address]? = nil,
-        orders: OrderList? = nil, user: User? = nil,
+        id: String,
+        firstName: String,
+        lastName: String,
+        emailAddress: String,
+        title: String? = nil,
+        phoneNumber: String? = nil,
+        addresses: [Address]? = nil,
+        orders: [Order]? = nil,
+        user: User? = nil,
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date, updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> Customer {
         let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
-        
+
         return Customer(
             id: id,
             firstName: firstName,
@@ -62,17 +79,6 @@ public struct Customer: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
-/// Order list response
-public struct OrderList: Codable, Hashable, Sendable {
-    public let items: [Order]
-    public let totalItems: Int
-    
-    public init(items: [Order], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
 /// Represents a user
 public struct User: Codable, Hashable, Identifiable, Sendable {
     public let id: String
@@ -82,12 +88,20 @@ public struct User: Codable, Hashable, Identifiable, Sendable {
     public let lastLogin: Date?
     public let authenticationMethods: [AuthenticationMethod]
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, identifier: String, verified: Bool, roles: [Role] = [],
-                lastLogin: Date? = nil, authenticationMethods: [AuthenticationMethod] = [],
-                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        identifier: String,
+        verified: Bool,
+        roles: [Role] = [],
+        lastLogin: Date? = nil,
+        authenticationMethods: [AuthenticationMethod] = [],
+        customFields: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
         self.id = id
         self.identifier = identifier
         self.verified = verified
@@ -98,15 +112,21 @@ public struct User: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-    
+
     // Helper to create with custom fields dictionary
     public static func withCustomFields(
-        id: String, identifier: String, verified: Bool, roles: [Role] = [],
-        lastLogin: Date? = nil, authenticationMethods: [AuthenticationMethod] = [],
-        customFieldsDict: [String: Any]? = nil, createdAt: Date, updatedAt: Date
+        id: String,
+        identifier: String,
+        verified: Bool,
+        roles: [Role] = [],
+        lastLogin: Date? = nil,
+        authenticationMethods: [AuthenticationMethod] = [],
+        customFieldsDict: [String: Any]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> User {
         let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
-        
+
         return User(
             id: id,
             identifier: identifier,
@@ -128,11 +148,18 @@ public struct Role: Codable, Hashable, Identifiable, Sendable {
     public let description: String
     public let permissions: [Permission]
     public let channels: [Channel]
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, code: String, description: String, permissions: [Permission] = [],
-                channels: [Channel] = [], createdAt: Date, updatedAt: Date) {
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        code: String,
+        description: String,
+        permissions: [Permission] = [],
+        channels: [Channel] = [],
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
         self.id = id
         self.code = code
         self.description = description
@@ -147,7 +174,7 @@ public struct Role: Codable, Hashable, Identifiable, Sendable {
 public struct AuthenticationMethod: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let strategy: String
-    
+
     public init(id: String, strategy: String) {
         self.id = id
         self.strategy = strategy
@@ -159,7 +186,7 @@ public struct CurrentUser: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let identifier: String
     public let channels: [CurrentUserChannel]
-    
+
     public init(id: String, identifier: String, channels: [CurrentUserChannel] = []) {
         self.id = id
         self.identifier = identifier
@@ -173,7 +200,7 @@ public struct CurrentUserChannel: Codable, Hashable, Identifiable, Sendable {
     public let token: String
     public let code: String
     public let permissions: [Permission]
-    
+
     public init(id: String, token: String, code: String, permissions: [Permission] = []) {
         self.id = id
         self.token = token
@@ -186,13 +213,19 @@ public struct CurrentUserChannel: Codable, Hashable, Identifiable, Sendable {
 public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
-    public let customers: CustomerList
+    public let customers: [Customer]
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, name: String, customers: CustomerList, customFields: [String: AnyCodable]? = nil,
-                createdAt: Date, updatedAt: Date) {
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        name: String,
+        customers: [Customer],
+        customFields: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
         self.id = id
         self.name = name
         self.customers = customers
@@ -200,15 +233,18 @@ public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-    
+
     // Helper to create with custom fields dictionary
     public static func withCustomFields(
-        id: String, name: String, customers: CustomerList,
+        id: String,
+        name: String,
+        customers: [Customer],
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date, updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> CustomerGroup {
         let customFields = customFieldsDict != nil ? CustomFieldsUtility.create(customFieldsDict!) : nil
-        
+
         return CustomerGroup(
             id: id,
             name: name,
@@ -220,50 +256,25 @@ public struct CustomerGroup: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
-/// Customer list response
-public struct CustomerList: Codable, Hashable, Sendable {
-    public let items: [Customer]
-    public let totalItems: Int
-    
-    public init(items: [Customer], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
-/// Role list response
-public struct RoleList: Codable, Hashable, Sendable {
-    public let items: [Role]
-    public let totalItems: Int
-    
-    public init(items: [Role], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
 // MARK: - Extensions for Custom Fields Access
 
-extension Customer {
+public extension Customer {
     /// Get custom fields as Any dictionary
-    public func getCustomFields() -> [String: Any] {
+    func getCustomFields() -> [String: Any] {
         return CustomFieldsUtility.toAnyDictionary(customFields)
     }
 }
 
-extension User {
+public extension User {
     /// Get custom fields as Any dictionary
-    public func getCustomFields() -> [String: Any] {
+    func getCustomFields() -> [String: Any] {
         return CustomFieldsUtility.toAnyDictionary(customFields)
     }
 }
 
-extension CustomerGroup {
+public extension CustomerGroup {
     /// Get custom fields as Any dictionary
-    public func getCustomFields() -> [String: Any] {
+    func getCustomFields() -> [String: Any] {
         return CustomFieldsUtility.toAnyDictionary(customFields)
     }
 }
-
-// Note: These types now fully support AnyCodable custom fields.
-// Use the extension methods from CustomFieldExtensions.swift for type-safe access.

@@ -8,11 +8,17 @@ public struct TaxCategory: Codable, Hashable, Identifiable, Sendable {
     public let name: String
     public let isDefault: Bool
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, name: String, isDefault: Bool = false,
-                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        name: String,
+        isDefault: Bool = false,
+        customFields: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
         self.id = id
         self.name = name
         self.isDefault = isDefault
@@ -20,18 +26,18 @@ public struct TaxCategory: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-    
+
     // Helper to create with custom fields dictionary
     public static func withCustomFields(
         id: String,
         name: String,
         isDefault: Bool = false,
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> TaxCategory {
         let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
-        
+
         return TaxCategory(
             id: id,
             name: name,
@@ -55,12 +61,21 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
     public let zone: Zone
     public let customerGroup: CustomerGroup?
     public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, name: String, enabled: Bool, value: Double,
-                category: TaxCategory, zone: Zone, customerGroup: CustomerGroup? = nil,
-                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: String,
+        name: String,
+        enabled: Bool,
+        value: Double,
+        category: TaxCategory,
+        zone: Zone,
+        customerGroup: CustomerGroup? = nil,
+        customFields: [String: AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
         self.id = id
         self.name = name
         self.enabled = enabled
@@ -72,7 +87,7 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-    
+
     // Helper to create with custom fields dictionary
     public static func withCustomFields(
         id: String,
@@ -83,11 +98,11 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
         zone: Zone,
         customerGroup: CustomerGroup? = nil,
         customFieldsDict: [String: Any]? = nil,
-        createdAt: Date,
-        updatedAt: Date
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) -> TaxRate {
         let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
-        
+
         return TaxRate(
             id: id,
             name: name,
@@ -109,7 +124,7 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
 public struct TaxLine: Codable, Hashable, Sendable {
     public let description: String
     public let taxRate: Double
-    
+
     public init(description: String, taxRate: Double) {
         self.description = description
         self.taxRate = taxRate
@@ -124,35 +139,11 @@ public struct OrderTaxSummary: Codable, Hashable, Sendable {
     public let taxRate: Double
     public let taxBase: Double
     public let taxTotal: Double
-    
+
     public init(description: String, taxRate: Double, taxBase: Double, taxTotal: Double) {
         self.description = description
         self.taxRate = taxRate
         self.taxBase = taxBase
         self.taxTotal = taxTotal
-    }
-}
-
-// MARK: - Tax Lists
-
-/// List of tax rates
-public struct TaxRateList: Codable, Sendable {
-    public let items: [TaxRate]
-    public let totalItems: Int
-    
-    public init(items: [TaxRate], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
-/// List of tax categories
-public struct TaxCategoryList: Codable, Sendable {
-    public let items: [TaxCategory]
-    public let totalItems: Int
-    
-    public init(items: [TaxCategory], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
     }
 }

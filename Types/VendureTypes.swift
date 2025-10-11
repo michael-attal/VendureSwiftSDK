@@ -118,535 +118,91 @@ public enum ErrorCode: String, Codable, CaseIterable, Sendable {
 
 // MARK: - Base Types
 
-/// Represents a monetary amount
-public struct Money: Codable, Hashable, Sendable {
-    public let value: Double
-    public let currencyCode: CurrencyCode
-    
-    public init(value: Double, currencyCode: CurrencyCode) {
-        self.value = value
-        self.currencyCode = currencyCode
-    }
-}
-
-/// Represents a price range
-public struct PriceRange: Codable, Hashable, Sendable {
-    public let min: Double
-    public let max: Double
-    
-    public init(min: Double, max: Double) {
-        self.min = min
-        self.max = max
-    }
-}
-
-/// Represents a date range
-public struct DateRange: Codable, Hashable, Sendable {
-    public let start: Date
-    public let end: Date
-    
-    public init(start: Date, end: Date) {
-        self.start = start
-        self.end = end
-    }
-}
-
 /// Represents a coordinate
 public struct Coordinate: Codable, Hashable, Sendable {
     public let x: Double
     public let y: Double
-    
+
     public init(x: Double, y: Double) {
         self.x = x
         self.y = y
     }
 }
 
-/// Represents localized string content
-public struct LocalizedString: Codable, Hashable, Sendable {
-    public let languageCode: LanguageCode
-    public let value: String
-    
-    public init(languageCode: LanguageCode, value: String) {
-        self.languageCode = languageCode
-        self.value = value
-    }
-}
+// MARK: - Filter Parameters
 
-// MARK: - Asset Types
+/// Generic filter parameter for any entity
+public struct FilterParameter<Id: Codable & Sendable,
+    DateField: Codable & Sendable,
+    StringField: Codable & Sendable,
+    NumberField: Codable & Sendable,
+    BooleanField: Codable & Sendable>: Codable, Sendable
+{
+    public let id: Id?
+    public let createdAt: DateField?
+    public let updatedAt: DateField?
+    public let languageCode: StringField?
+    public let name: StringField?
+    public let slug: StringField?
+    public let description: StringField?
 
-/// Represents an asset (image, document, etc.)
-public struct Asset: Codable, Hashable, Identifiable, Sendable {
-    public let id: String
-    public let name: String?
-    public let type: AssetType?
-    public let fileSize: Int?
-    public let mimeType: String
-    public let width: Int?
-    public let height: Int?
-    public let source: String
-    public let preview: String
-    public let focalPoint: Coordinate?
-    public let tags: [Tag]?
-    public let customFields: [String: AnyCodable]?
-    public let createdAt: Date?
-    public let updatedAt: Date?
-    
-    public init(id: String, name: String? = nil, type: AssetType? = nil, fileSize: Int? = nil, mimeType: String,
-                width: Int? = nil, height: Int? = nil, source: String, preview: String,
-                focalPoint: Coordinate? = nil, tags: [Tag]? = nil,
-                customFields: [String: AnyCodable]? = nil, createdAt: Date? = nil, updatedAt: Date? = nil) {
+    // Optional numeric and boolean fields
+    public let numberFields: NumberField?
+    public let booleanFields: BooleanField?
+
+    // Additional custom fields
+    public let extraFields: [String: AnyCodable]?
+
+    public init(id: Id? = nil,
+                createdAt: DateField? = nil,
+                updatedAt: DateField? = nil,
+                languageCode: StringField? = nil,
+                name: StringField? = nil,
+                slug: StringField? = nil,
+                description: StringField? = nil,
+                numberFields: NumberField? = nil,
+                booleanFields: BooleanField? = nil,
+                extraFields: [String: AnyCodable]? = nil)
+    {
         self.id = id
-        self.name = name
-        self.type = type
-        self.fileSize = fileSize
-        self.mimeType = mimeType
-        self.width = width
-        self.height = height
-        self.source = source
-        self.preview = preview
-        self.focalPoint = focalPoint
-        self.tags = tags
-        self.customFields = customFields
         self.createdAt = createdAt
         self.updatedAt = updatedAt
-    }
-}
-
-/// Asset type enumeration
-public enum AssetType: String, Codable, CaseIterable, Sendable {
-    case IMAGE, VIDEO, AUDIO, BINARY, OTHER
-}
-
-/// Represents a list of assets with pagination info
-public struct AssetList: Codable, Hashable, Sendable {
-    public let items: [Asset]
-    public let totalItems: Int
-    
-    public init(items: [Asset], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
-// MARK: - Address Types
-
-/// Represents an address
-/// Represents an address
-public struct Address: Codable, Hashable, Identifiable, Sendable {
-    public let id: String
-    public let fullName: String?
-    public let company: String?
-    public let streetLine1: String
-    public let streetLine2: String?
-    public let city: String?
-    public let province: String?
-    public let postalCode: String?
-    public let country: Country
-    public let phoneNumber: String?
-    public let defaultShippingAddress: Bool?
-    public let defaultBillingAddress: Bool?
-    public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, fullName: String? = nil, company: String? = nil,
-                streetLine1: String, streetLine2: String? = nil, city: String? = nil,
-                province: String? = nil, postalCode: String? = nil, country: Country,
-                phoneNumber: String? = nil, defaultShippingAddress: Bool? = nil,
-                defaultBillingAddress: Bool? = nil, customFields: [String: AnyCodable]? = nil,
-                createdAt: Date, updatedAt: Date) {
-        self.id = id
-        self.fullName = fullName
-        self.company = company
-        self.streetLine1 = streetLine1
-        self.streetLine2 = streetLine2
-        self.city = city
-        self.province = province
-        self.postalCode = postalCode
-        self.country = country
-        self.phoneNumber = phoneNumber
-        self.defaultShippingAddress = defaultShippingAddress
-        self.defaultBillingAddress = defaultBillingAddress
-        self.customFields = customFields
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-    }
-}
-
-/// Represents a country
-public struct Country: Codable, Hashable, Identifiable, Sendable {
-    public let id: String
-    public let code: String
-    public let name: String
-    public let enabled: Bool
-    public let translations: [CountryTranslation]
-    
-    public init(id: String, code: String, name: String, enabled: Bool, translations: [CountryTranslation] = []) {
-        self.id = id
-        self.code = code
-        self.name = name
-        self.enabled = enabled
-        self.translations = translations
-    }
-}
-
-/// Country translation
-public struct CountryTranslation: Codable, Hashable, Sendable {
-    public let languageCode: LanguageCode
-    public let name: String
-    
-    public init(languageCode: LanguageCode, name: String) {
         self.languageCode = languageCode
         self.name = name
-    }
-}
-
-// MARK: - Channel and Zone
-
-/// Represents a channel
-public struct Channel: Codable, Hashable, Identifiable, Sendable {
-    public let id: String
-    public let code: String
-    public let token: String
-    public let description: String?
-    public let defaultLanguageCode: LanguageCode
-    public let availableLanguageCodes: [LanguageCode]
-    public let defaultCurrencyCode: CurrencyCode
-    public let availableCurrencyCodes: [CurrencyCode]
-    public let defaultShippingZone: Zone?
-    public let defaultTaxZone: Zone?
-    public let pricesIncludeTax: Bool
-    public let seller: Seller?
-    public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, code: String, token: String, description: String? = nil,
-                defaultLanguageCode: LanguageCode, availableLanguageCodes: [LanguageCode],
-                defaultCurrencyCode: CurrencyCode, availableCurrencyCodes: [CurrencyCode],
-                defaultShippingZone: Zone? = nil, defaultTaxZone: Zone? = nil,
-                pricesIncludeTax: Bool, seller: Seller? = nil,
-                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
-        self.id = id
-        self.code = code
-        self.token = token
+        self.slug = slug
         self.description = description
-        self.defaultLanguageCode = defaultLanguageCode
-        self.availableLanguageCodes = availableLanguageCodes
-        self.defaultCurrencyCode = defaultCurrencyCode
-        self.availableCurrencyCodes = availableCurrencyCodes
-        self.defaultShippingZone = defaultShippingZone
-        self.defaultTaxZone = defaultTaxZone
-        self.pricesIncludeTax = pricesIncludeTax
-        self.seller = seller
-        self.customFields = customFields
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-    }
-}
-
-/// Represents a zone
-public struct Zone: Codable, Hashable, Identifiable, Sendable {
-    public let id: String
-    public let name: String
-    public let members: [Region]
-    public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, name: String, members: [Region] = [],
-                customFields: [String: AnyCodable]? = nil, createdAt: Date, updatedAt: Date) {
-        self.id = id
-        self.name = name
-        self.members = members
-        self.customFields = customFields
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-    }
-}
-
-
-/// Represents a region (country or province)
-public final class Region: Codable, Hashable, Identifiable, @unchecked Sendable {
-    public let id: String
-    public let code: String
-    public let name: String
-    public let enabled: Bool
-    public let parent: Region?
-    public let parentId: String?
-    public let type: String
-    public let translations: [RegionTranslation]
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, code: String, name: String, enabled: Bool, parent: Region? = nil,
-                parentId: String? = nil, type: String, translations: [RegionTranslation] = [],
-                createdAt: Date, updatedAt: Date) {
-        self.id = id
-        self.code = code
-        self.name = name
-        self.enabled = enabled
-        self.parent = parent
-        self.parentId = parentId
-        self.type = type
-        self.translations = translations
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-    }
-    
-    // MARK: - Hashable
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-    
-    public static func == (lhs: Region, rhs: Region) -> Bool {
-        return lhs.id == rhs.id
-    }
-}
-
-/// Region translation
-public struct RegionTranslation: Codable, Hashable, Sendable {
-    public let languageCode: LanguageCode
-    public let name: String
-    
-    public init(languageCode: LanguageCode, name: String) {
-        self.languageCode = languageCode
-        self.name = name
-    }
-}
-
-public struct Seller: Codable, Hashable, Identifiable, Sendable {
-    public let id: String
-    public let name: String
-    public let customFields: [String: AnyCodable]?
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(id: String, name: String, customFields: [String: AnyCodable]? = nil,
-                createdAt: Date, updatedAt: Date) {
-        self.id = id
-        self.name = name
-        self.customFields = customFields
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-    }
-}
-
-
-// MARK: - List Types
-
-public struct ProductList: Codable, Sendable {
-    public let items: [Product]
-    public let totalItems: Int
-    
-    public init(items: [Product], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
-public struct ProductVariantList: Codable, Sendable {
-    public let items: [ProductVariant]
-    public let totalItems: Int
-    
-    public init(items: [ProductVariant], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
-public struct CollectionList: Codable, Sendable {
-    public let items: [VendureCollection]
-    public let totalItems: Int
-    
-    public init(items: [VendureCollection], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
-public struct FacetList: Codable, Sendable {
-    public let items: [Facet]
-    public let totalItems: Int
-    
-    public init(items: [Facet], totalItems: Int) {
-        self.items = items
-        self.totalItems = totalItems
-    }
-}
-
-// MARK: - List Options
-
-public struct ProductListOptions: Codable, Sendable {
-    public let skip: Int?
-    public let take: Int?
-    public let sort: ProductSortParameter?
-    public let filter: ProductFilterParameter?
-    public let filterOperator: LogicalOperator?
-    
-    public init(skip: Int? = nil, take: Int? = nil, sort: ProductSortParameter? = nil, filter: ProductFilterParameter? = nil, filterOperator: LogicalOperator? = nil) {
-        self.skip = skip
-        self.take = take
-        self.sort = sort
-        self.filter = filter
-        self.filterOperator = filterOperator
-    }
-}
-
-public struct VendureCollectionListOptions: Codable, Sendable {
-    public let skip: Int?
-    public let take: Int?
-    public let sort: VendureCollectionSortParameter?
-    public let filter: VendureCollectionFilterParameter?
-    public let filterOperator: LogicalOperator?
-    public let topLevelOnly: Bool?
-    
-    public init(skip: Int? = nil, take: Int? = nil, sort: VendureCollectionSortParameter? = nil, filter: VendureCollectionFilterParameter? = nil, filterOperator: LogicalOperator? = nil, topLevelOnly: Bool? = nil) {
-        self.skip = skip
-        self.take = take
-        self.sort = sort
-        self.filter = filter
-        self.filterOperator = filterOperator
-        self.topLevelOnly = topLevelOnly
-    }
-}
-
-public struct FacetListOptions: Codable, Sendable {
-    public let skip: Int?
-    public let take: Int?
-    public let sort: FacetSortParameter?
-    public let filter: FacetFilterParameter?
-    public let filterOperator: LogicalOperator?
-    
-    public init(skip: Int? = nil, take: Int? = nil, sort: FacetSortParameter? = nil, filter: FacetFilterParameter? = nil, filterOperator: LogicalOperator? = nil) {
-        self.skip = skip
-        self.take = take
-        self.sort = sort
-        self.filter = filter
-        self.filterOperator = filterOperator
+        self.numberFields = numberFields
+        self.booleanFields = booleanFields
+        self.extraFields = extraFields
     }
 }
 
 // MARK: - Sort Parameters
 
-public struct ProductSortParameter: Codable, Sendable {
-    public let id: SortOrder?
-    public let createdAt: SortOrder?
-    public let updatedAt: SortOrder?
-    public let name: SortOrder?
-    public let slug: SortOrder?
-    
-    public init(id: SortOrder? = nil, createdAt: SortOrder? = nil, updatedAt: SortOrder? = nil, name: SortOrder? = nil, slug: SortOrder? = nil) {
+/// Generic sort parameter for any entity
+public struct SortParameter<Field: Codable & Sendable>: Codable, Sendable {
+    public let id: Field?
+    public let createdAt: Field?
+    public let updatedAt: Field?
+    public let name: Field?
+    public let slug: Field?
+
+    // Optional extra fields
+    public let extraFields: [String: Field]?
+
+    public init(id: Field? = nil,
+                createdAt: Field? = nil,
+                updatedAt: Field? = nil,
+                name: Field? = nil,
+                slug: Field? = nil,
+                extraFields: [String: Field]? = nil)
+    {
         self.id = id
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.name = name
         self.slug = slug
-    }
-}
-
-public struct VendureCollectionSortParameter: Codable, Sendable {
-    public let id: SortOrder?
-    public let createdAt: SortOrder?
-    public let updatedAt: SortOrder?
-    public let name: SortOrder?
-    public let slug: SortOrder?
-    public let position: SortOrder?
-    
-    public init(id: SortOrder? = nil, createdAt: SortOrder? = nil, updatedAt: SortOrder? = nil, name: SortOrder? = nil, slug: SortOrder? = nil, position: SortOrder? = nil) {
-        self.id = id
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.name = name
-        self.slug = slug
-        self.position = position
-    }
-}
-
-public struct FacetSortParameter: Codable, Sendable {
-    public let id: SortOrder?
-    public let createdAt: SortOrder?
-    public let updatedAt: SortOrder?
-    public let name: SortOrder?
-    public let code: SortOrder?
-    
-    public init(id: SortOrder? = nil, createdAt: SortOrder? = nil, updatedAt: SortOrder? = nil, name: SortOrder? = nil, code: SortOrder? = nil) {
-        self.id = id
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.name = name
-        self.code = code
-    }
-}
-
-// MARK: - Filter Parameters
-
-public struct ProductFilterParameter: Codable, Sendable {
-    public let id: IDOperators?
-    public let createdAt: DateOperators?
-    public let updatedAt: DateOperators?
-    public let languageCode: StringOperators?
-    public let name: StringOperators?
-    public let slug: StringOperators?
-    public let description: StringOperators?
-    public let enabled: BooleanOperators?
-    
-    public init(id: IDOperators? = nil, createdAt: DateOperators? = nil, updatedAt: DateOperators? = nil, languageCode: StringOperators? = nil, name: StringOperators? = nil, slug: StringOperators? = nil, description: StringOperators? = nil, enabled: BooleanOperators? = nil) {
-        self.id = id
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.languageCode = languageCode
-        self.name = name
-        self.slug = slug
-        self.description = description
-        self.enabled = enabled
-    }
-}
-
-public struct VendureCollectionFilterParameter: Codable, Sendable {
-    public let id: IDOperators?
-    public let createdAt: DateOperators?
-    public let updatedAt: DateOperators?
-    public let languageCode: StringOperators?
-    public let name: StringOperators?
-    public let slug: StringOperators?
-    public let description: StringOperators?
-    public let position: NumberOperators?
-    public let isRoot: BooleanOperators?
-    public let parentId: IDOperators?
-    
-    public init(id: IDOperators? = nil, createdAt: DateOperators? = nil, updatedAt: DateOperators? = nil, languageCode: StringOperators? = nil, name: StringOperators? = nil, slug: StringOperators? = nil, description: StringOperators? = nil, position: NumberOperators? = nil, isRoot: BooleanOperators? = nil, parentId: IDOperators? = nil) {
-        self.id = id
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.languageCode = languageCode
-        self.name = name
-        self.slug = slug
-        self.description = description
-        self.position = position
-        self.isRoot = isRoot
-        self.parentId = parentId
-    }
-}
-
-public struct FacetFilterParameter: Codable, Sendable {
-    public let id: IDOperators?
-    public let createdAt: DateOperators?
-    public let updatedAt: DateOperators?
-    public let languageCode: StringOperators?
-    public let name: StringOperators?
-    public let code: StringOperators?
-    public let isPrivate: BooleanOperators?
-    
-    public init(id: IDOperators? = nil, createdAt: DateOperators? = nil, updatedAt: DateOperators? = nil, languageCode: StringOperators? = nil, name: StringOperators? = nil, code: StringOperators? = nil, isPrivate: BooleanOperators? = nil) {
-        self.id = id
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.languageCode = languageCode
-        self.name = name
-        self.code = code
-        self.isPrivate = isPrivate
+        self.extraFields = extraFields
     }
 }
 
@@ -657,7 +213,7 @@ public struct NumberOperators: Codable, Sendable {
     public let gt: Double?
     public let gte: Double?
     public let between: NumberRange?
-    
+
     public init(eq: Double? = nil, lt: Double? = nil, lte: Double? = nil, gt: Double? = nil, gte: Double? = nil, between: NumberRange? = nil) {
         self.eq = eq
         self.lt = lt
@@ -671,7 +227,7 @@ public struct NumberOperators: Codable, Sendable {
 public struct NumberRange: Codable, Sendable {
     public let start: Double
     public let end: Double
-    
+
     public init(start: Double, end: Double) {
         self.start = start
         self.end = end
@@ -683,7 +239,7 @@ public struct NumberRange: Codable, Sendable {
 public struct ConfigurableOperation: Codable, Hashable, Sendable {
     public let code: String
     public let args: [ConfigArg]
-    
+
     public init(code: String, args: [ConfigArg] = []) {
         self.code = code
         self.args = args
@@ -693,7 +249,7 @@ public struct ConfigurableOperation: Codable, Hashable, Sendable {
 public struct ConfigArg: Codable, Hashable, Sendable {
     public let name: String
     public let value: String
-    
+
     public init(name: String, value: String) {
         self.name = name
         self.value = value
@@ -707,11 +263,11 @@ public struct IDOperators: Codable, Sendable {
     public let notEq: String?
     public let `in`: [String]?
     public let notIn: [String]?
-    
-    public init(eq: String? = nil, notEq: String? = nil, `in`: [String]? = nil, notIn: [String]? = nil) {
+
+    public init(eq: String? = nil, notEq: String? = nil, in: [String]? = nil, notIn: [String]? = nil) {
         self.eq = eq
         self.notEq = notEq
-        self.`in` = `in`
+        self.in = `in`
         self.notIn = notIn
     }
 }
@@ -724,13 +280,13 @@ public struct StringOperators: Codable, Sendable {
     public let `in`: [String]?
     public let notIn: [String]?
     public let regex: String?
-    
-    public init(eq: String? = nil, notEq: String? = nil, contains: String? = nil, notContains: String? = nil, `in`: [String]? = nil, notIn: [String]? = nil, regex: String? = nil) {
+
+    public init(eq: String? = nil, notEq: String? = nil, contains: String? = nil, notContains: String? = nil, in: [String]? = nil, notIn: [String]? = nil, regex: String? = nil) {
         self.eq = eq
         self.notEq = notEq
         self.contains = contains
         self.notContains = notContains
-        self.`in` = `in`
+        self.in = `in`
         self.notIn = notIn
         self.regex = regex
     }
@@ -738,9 +294,20 @@ public struct StringOperators: Codable, Sendable {
 
 public struct BooleanOperators: Codable, Sendable {
     public let eq: Bool?
-    
+
     public init(eq: Bool? = nil) {
         self.eq = eq
+    }
+}
+
+/// Represents a date range
+public struct DateRange: Codable, Hashable, Sendable {
+    public let start: Date
+    public let end: Date
+
+    public init(start: Date, end: Date) {
+        self.start = start
+        self.end = end
     }
 }
 
@@ -749,27 +316,11 @@ public struct DateOperators: Codable, Sendable {
     public let before: Date?
     public let after: Date?
     public let between: DateRange?
-    
+
     public init(eq: Date? = nil, before: Date? = nil, after: Date? = nil, between: DateRange? = nil) {
         self.eq = eq
         self.before = before
         self.after = after
         self.between = between
-    }
-}
-
-// MARK: - Tag Types
-
-public struct Tag: Codable, Hashable, Sendable {
-    public let id: String
-    public let createdAt: Date
-    public let updatedAt: Date
-    public let value: String
-    
-    public init(id: String, createdAt: Date, updatedAt: Date, value: String) {
-        self.id = id
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.value = value
     }
 }

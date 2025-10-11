@@ -1,6 +1,7 @@
 import Foundation
 
 // MARK: - Address Input
+
 public struct CreateAddressInput: Codable, Sendable {
     public let fullName: String?
     public let company: String?
@@ -13,7 +14,7 @@ public struct CreateAddressInput: Codable, Sendable {
     public let phoneNumber: String?
     public let defaultShippingAddress: Bool?
     public let defaultBillingAddress: Bool?
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
+    public let customFields: String? // JSON string instead of [String: AnyCodable] // TODO: Replace by AnyCodable
     
     public init(
         fullName: String? = nil,
@@ -169,6 +170,7 @@ public struct UpdateAddressInput: Codable, Sendable {
 }
 
 // MARK: - Customer Input
+
 public struct CreateCustomerInput: Codable, Sendable {
     public let title: String?
     public let firstName: String
@@ -267,6 +269,7 @@ public struct UpdateCustomerInput: Codable, Sendable {
 }
 
 // MARK: - Authentication Input
+
 public struct RegisterCustomerInput: Codable, Sendable {
     public let emailAddress: String
     public let title: String?
@@ -324,6 +327,7 @@ public struct RegisterCustomerInput: Codable, Sendable {
 }
 
 // MARK: - Order Input
+
 public struct UpdateOrderInput: Codable, Sendable {
     public let customFields: String? // JSON string instead of [String: AnyCodable]
     
@@ -344,22 +348,11 @@ public struct UpdateOrderInput: Codable, Sendable {
     }
 }
 
-// MARK: - Search Input
-public struct FacetValueFilterInput: Codable, Sendable {
-    public let and: String?
-    public let or: [String]?
-    
-    public init(and: String? = nil, or: [String]? = nil) {
-        self.and = and
-        self.or = or
-    }
-}
-
 // MARK: - Additional Helper Extensions
 
-extension CreateAddressInput {
+public extension CreateAddressInput {
     /// Convert to JSON string for GraphQL variables
-    public func toVariablesJSON() -> String? {
+    func toVariablesJSON() -> String? {
         guard let data = try? JSONEncoder().encode(self) else { return nil }
         guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
         guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
@@ -367,9 +360,9 @@ extension CreateAddressInput {
     }
 }
 
-extension UpdateAddressInput {
+public extension UpdateAddressInput {
     /// Convert to JSON string for GraphQL variables
-    public func toVariablesJSON() -> String? {
+    func toVariablesJSON() -> String? {
         guard let data = try? JSONEncoder().encode(self) else { return nil }
         guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
         guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
@@ -377,9 +370,9 @@ extension UpdateAddressInput {
     }
 }
 
-extension CreateCustomerInput {
+public extension CreateCustomerInput {
     /// Convert to JSON string for GraphQL variables
-    public func toVariablesJSON() -> String? {
+    func toVariablesJSON() -> String? {
         guard let data = try? JSONEncoder().encode(self) else { return nil }
         guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
         guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
@@ -387,9 +380,9 @@ extension CreateCustomerInput {
     }
 }
 
-extension UpdateCustomerInput {
+public extension UpdateCustomerInput {
     /// Convert to JSON string for GraphQL variables
-    public func toVariablesJSON() -> String? {
+    func toVariablesJSON() -> String? {
         guard let data = try? JSONEncoder().encode(self) else { return nil }
         guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
         guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
@@ -397,9 +390,9 @@ extension UpdateCustomerInput {
     }
 }
 
-extension RegisterCustomerInput {
+public extension RegisterCustomerInput {
     /// Convert to JSON string for GraphQL variables
-    public func toVariablesJSON() -> String? {
+    func toVariablesJSON() -> String? {
         guard let data = try? JSONEncoder().encode(self) else { return nil }
         guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
         guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
@@ -407,9 +400,9 @@ extension RegisterCustomerInput {
     }
 }
 
-extension UpdateOrderInput {
+public extension UpdateOrderInput {
     /// Convert to JSON string for GraphQL variables
-    public func toVariablesJSON() -> String? {
+    func toVariablesJSON() -> String? {
         guard let data = try? JSONEncoder().encode(self) else { return nil }
         guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
         guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
