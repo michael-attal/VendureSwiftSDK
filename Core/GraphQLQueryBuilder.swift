@@ -486,6 +486,14 @@ public class GraphQLQueryBuilder {
                 preview
                 source
               }
+              assets {
+                id
+                preview
+                source
+                name
+                type
+                mimeType
+              }
               variants {
                 id
                 name
@@ -494,7 +502,20 @@ public class GraphQLQueryBuilder {
                 currencyCode
                 sku
                 stockLevel
+                assets {
+                    id
+                    preview
+                    source
+                }
         """
+        
+        // query += """
+        //         assets {
+        //             id
+        //             preview
+        //             source
+        //         }
+        // """
 
         // Inject custom fields for ProductVariant in catalog query
         if includeCustomFields {

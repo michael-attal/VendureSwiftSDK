@@ -10,9 +10,9 @@ public struct Product: Codable, Hashable, Identifiable, Sendable {
     public let description: String
     public let enabled: Bool
     public let featuredAsset: Asset?
-    public let assets: [Asset]
+    public let assets: [Asset]?
     public let variants: [ProductVariant]
-    public let optionGroups: [ProductOptionGroup]
+    public let optionGroups: [ProductOptionGroup]?
     public let facetValues: [FacetValue]?
     public let translations: [ProductTranslation]? // Optional - may not be present in all GraphQL responses
     public let customFields: [String: AnyCodable]? // Modern AnyCodable approach
@@ -26,16 +26,16 @@ public struct Product: Codable, Hashable, Identifiable, Sendable {
         slug: String,
         description: String,
         enabled: Bool,
-        featuredAsset: Asset?,
-        assets: [Asset],
+        featuredAsset: Asset? = nil,
+        assets: [Asset]? = nil,
         variants: [ProductVariant],
-        optionGroups: [ProductOptionGroup],
-        facetValues: [FacetValue]?,
-        translations: [ProductTranslation]?,
-        customFields: [String: AnyCodable]?,
-        languageCode: LanguageCode?,
-        createdAt: Date?,
-        updatedAt: Date?
+        optionGroups: [ProductOptionGroup]? = nil,
+        facetValues: [FacetValue]? = nil,
+        translations: [ProductTranslation]? = nil,
+        customFields: [String: AnyCodable]? = nil,
+        languageCode: LanguageCode? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -87,22 +87,22 @@ public struct ProductVariant: Codable, Hashable, Identifiable, Sendable {
         price: Double,
         priceWithTax: Double,
         currencyCode: CurrencyCode,
-        enabled: Bool?,
+        enabled: Bool? = nil,
         stockLevel: String,
-        trackInventory: String?,
-        stockOnHand: Int?,
-        stockAllocated: Int?,
-        outOfStockThreshold: Int?,
-        useGlobalOutOfStockThreshold: Bool?,
-        featuredAsset: Asset?,
-        assets: [Asset]?,
-        options: [ProductOption]?,
-        facetValues: [FacetValue]?,
-        translations: [ProductVariantTranslation]?,
-        customFields: [String: AnyCodable]?,
-        languageCode: LanguageCode?,
-        createdAt: Date?,
-        updatedAt: Date?
+        trackInventory: String? = nil,
+        stockOnHand: Int? = nil,
+        stockAllocated: Int? = nil,
+        outOfStockThreshold: Int? = nil,
+        useGlobalOutOfStockThreshold: Bool? = nil,
+        featuredAsset: Asset? = nil,
+        assets: [Asset]? = nil,
+        options: [ProductOption]? = nil,
+        facetValues: [FacetValue]? = nil,
+        translations: [ProductVariantTranslation]? = nil,
+        customFields: [String: AnyCodable]? = nil,
+        languageCode: LanguageCode? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -144,9 +144,9 @@ public struct ProductOption: Codable, Hashable, Identifiable, Sendable {
         code: String,
         name: String,
         groupId: String?,
-        group: ProductOptionGroup?,
-        translations: [ProductOptionTranslation]?,
-        customFields: [String: AnyCodable]?
+        group: ProductOptionGroup? = nil,
+        translations: [ProductOptionTranslation]? = nil,
+        customFields: [String: AnyCodable]? = nil
     ) {
         self.id = id
         self.code = code
@@ -174,12 +174,12 @@ public struct ProductOptionGroup: Codable, Hashable, Identifiable, Sendable {
         id: String,
         code: String,
         name: String,
-        options: [ProductOption]?,
-        translations: [ProductOptionGroupTranslation]?,
-        languageCode: LanguageCode?,
-        createdAt: Date?,
-        updatedAt: Date?,
-        customFields: [String: AnyCodable]?
+        options: [ProductOption]? = nil,
+        translations: [ProductOptionGroupTranslation]? = nil,
+        languageCode: LanguageCode? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil,
+        customFields: [String: AnyCodable]? = nil
     ) {
         self.id = id
         self.code = code
