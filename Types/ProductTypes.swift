@@ -8,7 +8,7 @@ public struct Product: Codable, Hashable, Identifiable, Sendable {
     public let name: String
     public let slug: String
     public let description: String
-    public let enabled: Bool
+    public let enabled: Bool?
     public let featuredAsset: Asset?
     public let assets: [Asset]?
     public let variants: [ProductVariant]
@@ -25,7 +25,7 @@ public struct Product: Codable, Hashable, Identifiable, Sendable {
         name: String,
         slug: String,
         description: String,
-        enabled: Bool,
+        enabled: Bool? = nil,
         featuredAsset: Asset? = nil,
         assets: [Asset]? = nil,
         variants: [ProductVariant],
