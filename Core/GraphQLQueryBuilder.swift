@@ -503,9 +503,12 @@ public class GraphQLQueryBuilder {
                 sku
                 stockLevel
                 assets {
-                    id
-                    preview
-                    source
+                  id
+                  preview
+                  source
+                  name
+                  type
+                  mimeType
                 }
         """
         
@@ -596,6 +599,14 @@ public class GraphQLQueryBuilder {
                 id
                 preview
                 source
+              }
+              assets {
+                id
+                preview
+                source
+                name
+                type
+                mimeType
               }
         """
         
