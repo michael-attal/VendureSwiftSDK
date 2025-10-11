@@ -809,7 +809,6 @@ public class GraphQLQueryBuilder {
               slug
             }
             position
-            isRoot
             parentId
             parent {
               id
