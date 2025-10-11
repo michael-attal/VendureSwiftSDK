@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - Lists (deprecated aliases to generic PaginatedList)
 
-@available(*, deprecated, message: "Use PaginatedList<CatalogProduct> instead")
+@available(*, deprecated, message: "Use PaginatedList<Product> instead")
 public typealias CatalogProductList = PaginatedList<Product>
 
 @available(*, deprecated, message: "Use PaginatedList<Product> instead")
@@ -147,7 +147,7 @@ public typealias ProductTranslation = Translation<TranslationContentNameSlugDesc
 public typealias ProductVariantTranslation = Translation<TranslationContentName>
 
 /// Product option translation (name)
-@available(*, deprecated, message: "Use Translation<ProductOptionTranslation> instead")
+@available(*, deprecated, message: "Use Translation<TranslationContentName> instead")
 public typealias ProductOptionTranslation = Translation<TranslationContentName>
 
 /// Product option group translation (name)
