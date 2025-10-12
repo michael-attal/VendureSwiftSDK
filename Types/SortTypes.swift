@@ -61,3 +61,14 @@ public struct NumberRange: Codable, Sendable {
 public enum SortOrder: String, Codable, CaseIterable, Sendable {
     case ASC, DESC
 }
+
+/// Search result sort parameter
+public struct SearchResultSortParameter: Codable, Sendable {
+    public let name: SortOrder?
+    public let price: SortOrder?
+
+    public init(name: SortOrder? = nil, price: SortOrder? = nil) {
+        self.name = name
+        self.price = price
+    }
+}
