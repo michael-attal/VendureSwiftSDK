@@ -66,4 +66,9 @@ public enum SortOrder: String, Codable, CaseIterable, Sendable {
 public struct SearchResultSortParameter: Codable, Sendable {
     public let name: SortOrder?
     public let price: SortOrder?
+
+    public init(name: SortOrder? = nil, price: SortOrder? = nil) {
+        self.name = name
+        self.price = price
+    }
 }
