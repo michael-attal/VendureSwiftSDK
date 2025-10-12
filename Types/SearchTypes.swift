@@ -2,6 +2,8 @@ import Foundation
 
 // MARK: - Search Types
 
+// TODO: Make it generic like PaginatedList
+
 /// Search input for catalog search
 public struct SearchInput: Codable, Sendable {
     public let term: String?
@@ -14,12 +16,6 @@ public struct SearchInput: Codable, Sendable {
     public let skip: Int?
     public let take: Int?
     public let sort: SearchResultSortParameter?
-}
-
-/// Search result sort parameter
-public struct SearchResultSortParameter: Codable, Sendable {
-    public let name: SortOrder?
-    public let price: SortOrder?
 }
 
 /// Search result
