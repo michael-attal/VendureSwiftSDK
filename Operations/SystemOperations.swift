@@ -334,7 +334,8 @@ public actor SystemOperations {
     
     // MARK: - Search
     
-    public func searchCatalog(input: SearchInput) async throws -> SearchResponse {
+    // UPDATED: Now uses generic CatalogSearchInput and CatalogSearchResult
+    public func searchCatalog(input: CatalogSearchInput) async throws -> CatalogSearchResult {
         let query = """
         query search($input: SearchInput!) {
           search(input: $input) {
@@ -389,7 +390,7 @@ public actor SystemOperations {
             query,
             variables: ["input": AnyCodable(anyValue: input)],
             expectedDataType: "search",
-            decodeTo: SearchResponse.self
+            decodeTo: CatalogSearchResult.self
         )
     }
 }

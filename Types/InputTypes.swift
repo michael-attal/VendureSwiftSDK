@@ -2,6 +2,8 @@ import Foundation
 
 // MARK: - Address Input
 
+// TODO: Make it generic to avoid duplication
+
 public struct CreateAddressInput: Codable, Sendable {
     public let fullName: String?
     public let company: String?
@@ -14,8 +16,8 @@ public struct CreateAddressInput: Codable, Sendable {
     public let phoneNumber: String?
     public let defaultShippingAddress: Bool?
     public let defaultBillingAddress: Bool?
-    public let customFields: String? // JSON string instead of [String: AnyCodable] // TODO: Replace by AnyCodable
-    
+    public let customFields: [String: AnyCodable]?
+
     public init(
         fullName: String? = nil,
         company: String? = nil,
@@ -28,7 +30,7 @@ public struct CreateAddressInput: Codable, Sendable {
         phoneNumber: String? = nil,
         defaultShippingAddress: Bool? = nil,
         defaultBillingAddress: Bool? = nil,
-        customFields: String? = nil
+        customFields: [String: AnyCodable]? = nil
     ) {
         self.fullName = fullName
         self.company = company
@@ -42,44 +44,6 @@ public struct CreateAddressInput: Codable, Sendable {
         self.defaultShippingAddress = defaultShippingAddress
         self.defaultBillingAddress = defaultBillingAddress
         self.customFields = customFields
-    }
-    
-    // Helper to create from dictionary
-    public static func withCustomFields(
-        fullName: String? = nil,
-        company: String? = nil,
-        streetLine1: String,
-        streetLine2: String? = nil,
-        city: String,
-        province: String? = nil,
-        postalCode: String,
-        countryCode: String,
-        phoneNumber: String? = nil,
-        defaultShippingAddress: Bool? = nil,
-        defaultBillingAddress: Bool? = nil,
-        customFieldsDict: [String: Any]? = nil
-    ) -> CreateAddressInput {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
-        
-        return CreateAddressInput(
-            fullName: fullName,
-            company: company,
-            streetLine1: streetLine1,
-            streetLine2: streetLine2,
-            city: city,
-            province: province,
-            postalCode: postalCode,
-            countryCode: countryCode,
-            phoneNumber: phoneNumber,
-            defaultShippingAddress: defaultShippingAddress,
-            defaultBillingAddress: defaultBillingAddress,
-            customFields: customFieldsJSON
-        )
     }
 }
 
@@ -96,8 +60,8 @@ public struct UpdateAddressInput: Codable, Sendable {
     public let phoneNumber: String?
     public let defaultShippingAddress: Bool?
     public let defaultBillingAddress: Bool?
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
-    
+    public let customFields: [String: AnyCodable]?
+
     public init(
         id: String,
         fullName: String? = nil,
@@ -111,7 +75,7 @@ public struct UpdateAddressInput: Codable, Sendable {
         phoneNumber: String? = nil,
         defaultShippingAddress: Bool? = nil,
         defaultBillingAddress: Bool? = nil,
-        customFields: String? = nil
+        customFields: [String: AnyCodable]? = nil
     ) {
         self.id = id
         self.fullName = fullName
@@ -127,46 +91,6 @@ public struct UpdateAddressInput: Codable, Sendable {
         self.defaultBillingAddress = defaultBillingAddress
         self.customFields = customFields
     }
-    
-    // Helper to create from dictionary
-    public static func withCustomFields(
-        id: String,
-        fullName: String? = nil,
-        company: String? = nil,
-        streetLine1: String? = nil,
-        streetLine2: String? = nil,
-        city: String? = nil,
-        province: String? = nil,
-        postalCode: String? = nil,
-        countryCode: String? = nil,
-        phoneNumber: String? = nil,
-        defaultShippingAddress: Bool? = nil,
-        defaultBillingAddress: Bool? = nil,
-        customFieldsDict: [String: Any]? = nil
-    ) -> UpdateAddressInput {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
-        
-        return UpdateAddressInput(
-            id: id,
-            fullName: fullName,
-            company: company,
-            streetLine1: streetLine1,
-            streetLine2: streetLine2,
-            city: city,
-            province: province,
-            postalCode: postalCode,
-            countryCode: countryCode,
-            phoneNumber: phoneNumber,
-            defaultShippingAddress: defaultShippingAddress,
-            defaultBillingAddress: defaultBillingAddress,
-            customFields: customFieldsJSON
-        )
-    }
 }
 
 // MARK: - Customer Input
@@ -177,15 +101,15 @@ public struct CreateCustomerInput: Codable, Sendable {
     public let lastName: String
     public let phoneNumber: String?
     public let emailAddress: String
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
-    
+    public let customFields: [String: AnyCodable]?
+
     public init(
         title: String? = nil,
         firstName: String,
         lastName: String,
         phoneNumber: String? = nil,
         emailAddress: String,
-        customFields: String? = nil
+        customFields: [String: AnyCodable]? = nil
     ) {
         self.title = title
         self.firstName = firstName
@@ -194,32 +118,6 @@ public struct CreateCustomerInput: Codable, Sendable {
         self.emailAddress = emailAddress
         self.customFields = customFields
     }
-    
-    // Helper to create from dictionary
-    public static func withCustomFields(
-        title: String? = nil,
-        firstName: String,
-        lastName: String,
-        phoneNumber: String? = nil,
-        emailAddress: String,
-        customFieldsDict: [String: Any]? = nil
-    ) -> CreateCustomerInput {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
-        
-        return CreateCustomerInput(
-            title: title,
-            firstName: firstName,
-            lastName: lastName,
-            phoneNumber: phoneNumber,
-            emailAddress: emailAddress,
-            customFields: customFieldsJSON
-        )
-    }
 }
 
 public struct UpdateCustomerInput: Codable, Sendable {
@@ -227,44 +125,20 @@ public struct UpdateCustomerInput: Codable, Sendable {
     public let firstName: String?
     public let lastName: String?
     public let phoneNumber: String?
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
-    
+    public let customFields: [String: AnyCodable]?
+
     public init(
         title: String? = nil,
         firstName: String? = nil,
         lastName: String? = nil,
         phoneNumber: String? = nil,
-        customFields: String? = nil
+        customFields: [String: AnyCodable]? = nil
     ) {
         self.title = title
         self.firstName = firstName
         self.lastName = lastName
         self.phoneNumber = phoneNumber
         self.customFields = customFields
-    }
-    
-    // Helper to create from dictionary
-    public static func withCustomFields(
-        title: String? = nil,
-        firstName: String? = nil,
-        lastName: String? = nil,
-        phoneNumber: String? = nil,
-        customFieldsDict: [String: Any]? = nil
-    ) -> UpdateCustomerInput {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
-        
-        return UpdateCustomerInput(
-            title: title,
-            firstName: firstName,
-            lastName: lastName,
-            phoneNumber: phoneNumber,
-            customFields: customFieldsJSON
-        )
     }
 }
 
@@ -277,8 +151,8 @@ public struct RegisterCustomerInput: Codable, Sendable {
     public let lastName: String?
     public let phoneNumber: String?
     public let password: String?
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
-    
+    public let customFields: [String: AnyCodable]?
+
     public init(
         emailAddress: String,
         title: String? = nil,
@@ -286,7 +160,7 @@ public struct RegisterCustomerInput: Codable, Sendable {
         lastName: String? = nil,
         phoneNumber: String? = nil,
         password: String? = nil,
-        customFields: String? = nil
+        customFields: [String: AnyCodable]? = nil
     ) {
         self.emailAddress = emailAddress
         self.title = title
@@ -296,116 +170,14 @@ public struct RegisterCustomerInput: Codable, Sendable {
         self.password = password
         self.customFields = customFields
     }
-    
-    // Helper to create from dictionary
-    public static func withCustomFields(
-        emailAddress: String,
-        title: String? = nil,
-        firstName: String? = nil,
-        lastName: String? = nil,
-        phoneNumber: String? = nil,
-        password: String? = nil,
-        customFieldsDict: [String: Any]? = nil
-    ) -> RegisterCustomerInput {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
-        
-        return RegisterCustomerInput(
-            emailAddress: emailAddress,
-            title: title,
-            firstName: firstName,
-            lastName: lastName,
-            phoneNumber: phoneNumber,
-            password: password,
-            customFields: customFieldsJSON
-        )
-    }
 }
 
 // MARK: - Order Input
 
 public struct UpdateOrderInput: Codable, Sendable {
-    public let customFields: String? // JSON string instead of [String: AnyCodable]
-    
-    public init(customFields: String? = nil) {
+    public let customFields: [String: AnyCodable]?
+
+    public init(customFields: [String: AnyCodable]? = nil) {
         self.customFields = customFields
-    }
-    
-    // Helper to create from dictionary
-    public static func withCustomFields(customFieldsDict: [String: Any]?) -> UpdateOrderInput {
-        var customFieldsJSON: String? = nil
-        if let dict = customFieldsDict {
-            if let data = try? JSONSerialization.data(withJSONObject: dict, options: []) {
-                customFieldsJSON = String(data: data, encoding: .utf8)
-            }
-        }
-        
-        return UpdateOrderInput(customFields: customFieldsJSON)
-    }
-}
-
-// MARK: - Additional Helper Extensions
-
-public extension CreateAddressInput {
-    /// Convert to JSON string for GraphQL variables
-    func toVariablesJSON() -> String? {
-        guard let data = try? JSONEncoder().encode(self) else { return nil }
-        guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
-        return String(data: jsonData, encoding: .utf8)
-    }
-}
-
-public extension UpdateAddressInput {
-    /// Convert to JSON string for GraphQL variables
-    func toVariablesJSON() -> String? {
-        guard let data = try? JSONEncoder().encode(self) else { return nil }
-        guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
-        return String(data: jsonData, encoding: .utf8)
-    }
-}
-
-public extension CreateCustomerInput {
-    /// Convert to JSON string for GraphQL variables
-    func toVariablesJSON() -> String? {
-        guard let data = try? JSONEncoder().encode(self) else { return nil }
-        guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
-        return String(data: jsonData, encoding: .utf8)
-    }
-}
-
-public extension UpdateCustomerInput {
-    /// Convert to JSON string for GraphQL variables
-    func toVariablesJSON() -> String? {
-        guard let data = try? JSONEncoder().encode(self) else { return nil }
-        guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
-        return String(data: jsonData, encoding: .utf8)
-    }
-}
-
-public extension RegisterCustomerInput {
-    /// Convert to JSON string for GraphQL variables
-    func toVariablesJSON() -> String? {
-        guard let data = try? JSONEncoder().encode(self) else { return nil }
-        guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
-        return String(data: jsonData, encoding: .utf8)
-    }
-}
-
-public extension UpdateOrderInput {
-    /// Convert to JSON string for GraphQL variables
-    func toVariablesJSON() -> String? {
-        guard let data = try? JSONEncoder().encode(self) else { return nil }
-        guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: json, options: []) else { return nil }
-        return String(data: jsonData, encoding: .utf8)
     }
 }

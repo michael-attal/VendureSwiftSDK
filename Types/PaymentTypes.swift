@@ -126,39 +126,6 @@ public struct Refund: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-
-    // Helper to create with metadata dictionary
-    public static func withMetadata(
-        id: String,
-        total: Double,
-        reason: String? = nil,
-        state: String,
-        items: Double,
-        shipping: Double,
-        adjustment: Double,
-        paymentId: String,
-        metadataDict: [String: Any]? = nil,
-        method: String? = nil,
-        createdAt: Date? = nil,
-        updatedAt: Date? = nil
-    ) -> Refund {
-        let metadata: [String: AnyCodable]? = metadataDict?.mapValues { AnyCodable(anyValue: $0) }
-
-        return Refund(
-            id: id,
-            total: total,
-            reason: reason,
-            state: state,
-            items: items,
-            shipping: shipping,
-            adjustment: adjustment,
-            paymentId: paymentId,
-            metadata: metadata,
-            method: method,
-            createdAt: createdAt,
-            updatedAt: updatedAt
-        )
-    }
 }
 
 /// Represents a payment
@@ -197,35 +164,6 @@ public struct Payment: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-
-    // Helper to create with metadata dictionary
-    public static func withMetadata(
-        id: String,
-        transactionId: String? = nil,
-        amount: Double,
-        method: String,
-        state: PaymentState,
-        errorMessage: String? = nil,
-        metadataDict: [String: Any]? = nil,
-        refunds: [Refund] = [],
-        createdAt: Date? = nil,
-        updatedAt: Date? = nil
-    ) -> Payment {
-        let metadata: [String: AnyCodable]? = metadataDict?.mapValues { AnyCodable(anyValue: $0) }
-
-        return Payment(
-            id: id,
-            transactionId: transactionId,
-            amount: amount,
-            method: method,
-            state: state,
-            errorMessage: errorMessage,
-            metadata: metadata,
-            refunds: refunds,
-            createdAt: createdAt,
-            updatedAt: updatedAt
-        )
-    }
 }
 
 // MARK: - Payment Input
@@ -238,18 +176,5 @@ public struct PaymentInput: Codable, Sendable {
     public init(method: String, metadata: [String: AnyCodable]? = nil) {
         self.method = method
         self.metadata = metadata
-    }
-
-    // Helper to create with metadata dictionary
-    public static func withMetadata(method: String, metadataDict: [String: Any]? = nil) -> PaymentInput {
-        let metadata: [String: AnyCodable]? = metadataDict?.mapValues { AnyCodable(anyValue: $0) }
-
-        return PaymentInput(method: method, metadata: metadata)
-    }
-
-    /// Convert to JSON string for GraphQL variables
-    public func toVariablesJSON() -> String? {
-        guard let data = try? JSONEncoder().encode(self) else { return nil }
-        return String(data: data, encoding: .utf8)
     }
 }

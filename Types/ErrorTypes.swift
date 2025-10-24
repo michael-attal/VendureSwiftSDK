@@ -1,382 +1,226 @@
 import Foundation
 
-// MARK: - Order Related Errors
+// MARK: - Generic Error Wrapper
 
-/// Error when insufficient stock is available
-public struct InsufficientStockError: Codable, Hashable {
+/// Generic error container for Vendure errors.
+/// - `ErrorDetails` contains the specific error fields beyond the standard errorCode and message.
+public struct VendureErrorType<ErrorDetails: Codable & Hashable & Sendable>: Codable, Hashable, Sendable, Error {
+    /// The error code identifying the type of error
     public let errorCode: ErrorCode
+
+    /// The error message
     public let message: String
+
+    /// The specific error details for this error type
+    public let details: ErrorDetails?
+
+    public init(errorCode: ErrorCode, message: String, details: ErrorDetails? = nil) {
+        self.errorCode = errorCode
+        self.message = message
+        self.details = details
+    }
+}
+
+// MARK: - Convenience Factory Functions
+
+public extension VendureErrorType {
+    /// Create an error with just errorCode and message (for EmptyErrorDetails types)
+    static func simple(_ errorCode: ErrorCode, _ message: String) -> VendureErrorType<EmptyErrorDetails> {
+        return VendureErrorType<EmptyErrorDetails>(errorCode: errorCode, message: message, details: nil)
+    }
+}
+
+public extension VendureErrorType where ErrorDetails == InsufficientStockDetails {
+    static func insufficientStock(
+        message: String,
+        quantityAvailable: Int,
+        order: Order
+    ) -> Self {
+        return VendureErrorType(
+            errorCode: .INSUFFICIENT_STOCK_ERROR,
+            message: message,
+            details: InsufficientStockDetails(quantityAvailable: quantityAvailable, order: order)
+        )
+    }
+}
+
+public extension VendureErrorType where ErrorDetails == OrderStateTransitionDetails {
+    static func stateTransition(
+        message: String,
+        transitionError: String,
+        fromState: String,
+        toState: String
+    ) -> Self {
+        return VendureErrorType(
+            errorCode: .ORDER_STATE_TRANSITION_ERROR,
+            message: message,
+            details: OrderStateTransitionDetails(
+                transitionError: transitionError,
+                fromState: fromState,
+                toState: toState
+            )
+        )
+    }
+}
+
+// MARK: - Error Detail Types
+
+/// Empty details for errors that only have errorCode and message
+public struct EmptyErrorDetails: Codable, Hashable, Sendable {}
+
+/// Details for insufficient stock errors
+public struct InsufficientStockDetails: Codable, Hashable, Sendable {
     public let quantityAvailable: Int
     public let order: Order
 
-    public init(errorCode: ErrorCode = .INSUFFICIENT_STOCK_ERROR, message: String,
-                quantityAvailable: Int, order: Order)
-    {
-        self.errorCode = errorCode
-        self.message = message
+    public init(quantityAvailable: Int, order: Order) {
         self.quantityAvailable = quantityAvailable
         self.order = order
     }
 }
 
-/// Error when order item quantity is negative
-public struct NegativeQuantityError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .NEGATIVE_QUANTITY_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when order limit is exceeded
-public struct OrderLimitError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
+/// Details for order limit errors
+public struct OrderLimitDetails: Codable, Hashable, Sendable {
     public let maxItems: Int
 
-    public init(errorCode: ErrorCode = .ORDER_LIMIT_ERROR, message: String, maxItems: Int) {
-        self.errorCode = errorCode
-        self.message = message
+    public init(maxItems: Int) {
         self.maxItems = maxItems
     }
 }
 
-/// Error when order modification is attempted incorrectly
-public struct OrderModificationError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .ORDER_MODIFICATION_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when order payment state transition is invalid
-public struct OrderPaymentStateError: Codable, Hashable, Error {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .ORDER_PAYMENT_STATE_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when order state transition is invalid
-public struct OrderStateTransitionError: Codable, Hashable, Error {
-    public let errorCode: ErrorCode
-    public let message: String
+/// Details for order state transition errors
+public struct OrderStateTransitionDetails: Codable, Hashable, Sendable {
     public let transitionError: String
     public let fromState: String
     public let toState: String
 
-    public init(errorCode: ErrorCode = .ORDER_STATE_TRANSITION_ERROR, message: String,
-                transitionError: String, fromState: String, toState: String)
-    {
-        self.errorCode = errorCode
-        self.message = message
+    public init(transitionError: String, fromState: String, toState: String) {
         self.transitionError = transitionError
         self.fromState = fromState
         self.toState = toState
     }
 }
 
-/// Error when no active order exists
-public struct NoActiveOrderError: Codable, Hashable, Error {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .NO_ACTIVE_ORDER_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-// MARK: - Authentication Errors
-
-/// Error when invalid credentials are provided
-public struct InvalidCredentialsError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
+/// Details for authentication errors
+public struct AuthenticationErrorDetails: Codable, Hashable, Sendable {
     public let authenticationError: String
 
-    public init(errorCode: ErrorCode = .INVALID_CREDENTIALS_ERROR, message: String,
-                authenticationError: String)
-    {
-        self.errorCode = errorCode
-        self.message = message
+    public init(authenticationError: String) {
         self.authenticationError = authenticationError
     }
 }
 
-/// Error when user is already logged in
-public struct AlreadyLoggedInError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .ALREADY_LOGGED_IN_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when password is missing
-public struct MissingPasswordError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .MISSING_PASSWORD_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when password is already set
-public struct PasswordAlreadySetError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .PASSWORD_ALREADY_SET_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when password validation fails
-public struct PasswordValidationError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
+/// Details for password validation errors
+public struct PasswordValidationDetails: Codable, Hashable, Sendable {
     public let validationErrorMessage: String
 
-    public init(errorCode: ErrorCode = .PASSWORD_VALIDATION_ERROR, message: String,
-                validationErrorMessage: String)
-    {
-        self.errorCode = errorCode
-        self.message = message
+    public init(validationErrorMessage: String) {
         self.validationErrorMessage = validationErrorMessage
     }
 }
 
-/// Error when password reset token is expired
-public struct PasswordResetTokenExpiredError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .PASSWORD_RESET_TOKEN_EXPIRED_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when password reset token is invalid
-public struct PasswordResetTokenInvalidError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .PASSWORD_RESET_TOKEN_INVALID_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-// MARK: - Customer Errors
-
-/// Error when email address conflicts with existing account
-public struct EmailAddressConflictError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .EMAIL_ADDRESS_CONFLICT_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when customer is not verified
-public struct NotVerifiedError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .NOT_VERIFIED_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when verification token is expired
-public struct VerificationTokenExpiredError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .VERIFICATION_TOKEN_EXPIRED_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when verification token is invalid
-public struct VerificationTokenInvalidError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .VERIFICATION_TOKEN_INVALID_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when identifier change token is expired
-public struct IdentifierChangeTokenExpiredError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .IDENTIFIER_CHANGE_TOKEN_EXPIRED_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-/// Error when identifier change token is invalid
-public struct IdentifierChangeTokenInvalidError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .IDENTIFIER_CHANGE_TOKEN_INVALID_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-// MARK: - Guest Checkout Error
-
-/// Error during guest checkout process
-public struct GuestCheckoutError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
+/// Details for guest checkout errors
+public struct GuestCheckoutDetails: Codable, Hashable, Sendable {
     public let errorDetail: String
 
-    public init(errorCode: ErrorCode = .GUEST_CHECKOUT_ERROR, message: String, errorDetail: String) {
-        self.errorCode = errorCode
-        self.message = message
+    public init(errorDetail: String) {
         self.errorDetail = errorDetail
     }
 }
 
-// MARK: - Native Auth Strategy Error
-
-/// Error with native authentication strategy
-public struct NativeAuthStrategyError: Codable, Hashable {
-    public let errorCode: ErrorCode
-    public let message: String
-
-    public init(errorCode: ErrorCode = .NATIVE_AUTH_STRATEGY_ERROR, message: String) {
-        self.errorCode = errorCode
-        self.message = message
-    }
-}
-
-// MARK: - Generic Ineligible Method Error
-
-/// Generic error for ineligible methods (shipping, payment, etc.)
-public struct IneligibleMethodError: Codable, Hashable, Error, Sendable {
-    public let errorCode: ErrorCode
-    public let message: String
+/// Details for ineligible method errors
+public struct IneligibleMethodDetails: Codable, Hashable, Sendable {
     public let eligibilityCheckerMessage: String?
 
-    public init(
-        errorCode: ErrorCode,
-        message: String,
-        eligibilityCheckerMessage: String? = nil
-    ) {
-        self.errorCode = errorCode
-        self.message = message
+    public init(eligibilityCheckerMessage: String? = nil) {
         self.eligibilityCheckerMessage = eligibilityCheckerMessage
     }
 }
 
-// MARK: - Payment Errors // TODO: Make it generic
-
-/// Error when payment is declined
-public struct PaymentDeclinedError: Codable, Hashable, Error, Sendable {
-    public let errorCode: ErrorCode
-    public let message: String
+/// Details for payment errors
+public struct PaymentErrorDetails: Codable, Hashable, Sendable {
     public let paymentErrorMessage: String
 
-    public init(
-        errorCode: ErrorCode = .PAYMENT_DECLINED_ERROR,
-        message: String,
-        paymentErrorMessage: String
-    ) {
-        self.errorCode = errorCode
-        self.message = message
+    public init(paymentErrorMessage: String) {
         self.paymentErrorMessage = paymentErrorMessage
     }
 }
 
-/// Error when payment fails
-public struct PaymentFailedError: Codable, Hashable, Error, Sendable {
-    public let errorCode: ErrorCode
-    public let message: String
-    public let paymentErrorMessage: String
-
-    public init(
-        errorCode: ErrorCode = .PAYMENT_FAILED_ERROR,
-        message: String,
-        paymentErrorMessage: String
-    ) {
-        self.errorCode = errorCode
-        self.message = message
-        self.paymentErrorMessage = paymentErrorMessage
-    }
-}
-
-// MARK: - Coupon Code Errors
-
-/// Error when coupon code is expired
-public struct CouponCodeExpiredError: Codable, Hashable, Sendable {
-    public let errorCode: ErrorCode
-    public let message: String
+/// Details for coupon code errors
+public struct CouponCodeDetails: Codable, Hashable, Sendable {
     public let couponCode: String
 
-    public init(errorCode: ErrorCode = .COUPON_CODE_EXPIRED_ERROR, message: String, couponCode: String) {
-        self.errorCode = errorCode
-        self.message = message
+    public init(couponCode: String) {
         self.couponCode = couponCode
     }
 }
 
-/// Error when coupon code is invalid
-public struct CouponCodeInvalidError: Codable, Hashable, Sendable {
-    public let errorCode: ErrorCode
-    public let message: String
-    public let couponCode: String
-
-    public init(errorCode: ErrorCode = .COUPON_CODE_INVALID_ERROR, message: String, couponCode: String) {
-        self.errorCode = errorCode
-        self.message = message
-        self.couponCode = couponCode
-    }
-}
-
-/// Error when coupon code usage limit is exceeded
-public struct CouponCodeLimitError: Codable, Hashable, Sendable {
-    public let errorCode: ErrorCode
-    public let message: String
+/// Details for coupon code limit errors
+public struct CouponCodeLimitDetails: Codable, Hashable, Sendable {
     public let couponCode: String
     public let limit: Int
 
-    public init(
-        errorCode: ErrorCode = .COUPON_CODE_LIMIT_ERROR,
-        message: String,
-        couponCode: String,
-        limit: Int
-    ) {
-        self.errorCode = errorCode
-        self.message = message
+    public init(couponCode: String, limit: Int) {
         self.couponCode = couponCode
         self.limit = limit
     }
+}
+
+/// Error codes that can be returned by the API
+public enum ErrorCode: String, Codable, CaseIterable, Sendable {
+    case UNKNOWN_ERROR
+    case MIME_TYPE_ERROR
+    case LANGUAGE_NOT_AVAILABLE_ERROR
+    case CHANNEL_DEFAULT_LANGUAGE_ERROR
+    case SETTLE_PAYMENT_ERROR
+    case CANCEL_PAYMENT_ERROR
+    case EMPTY_ORDER_LINE_SELECTION_ERROR
+    case ITEMS_ALREADY_FULFILLED_ERROR
+    case INSUFFICIENT_STOCK_ON_HAND_ERROR
+    case MULTIPLE_ORDER_ERROR
+    case CANCEL_ACTIVE_ORDER_ERROR
+    case PAYMENT_ORDER_MISMATCH_ERROR
+    case REFUND_ORDER_STATE_ERROR
+    case NOTHING_TO_REFUND_ERROR
+    case ALREADY_REFUNDED_ERROR
+    case QUANTITY_TOO_GREAT_ERROR
+    case REFUND_STATE_TRANSITION_ERROR
+    case PAYMENT_STATE_TRANSITION_ERROR
+    case FULFILLMENT_STATE_TRANSITION_ERROR
+    case ORDER_MODIFICATION_STATE_ERROR
+    case NO_CHANGES_SPECIFIED_ERROR
+    case PAYMENT_METHOD_MISSING_ERROR
+    case REFUND_PAYMENT_ID_MISSING_ERROR
+    case MANUAL_PAYMENT_STATE_ERROR
+    case PRODUCT_OPTION_IN_USE_ERROR
+    case MISSING_CONDITIONS_ERROR
+    case NATIVE_AUTH_STRATEGY_ERROR
+    case INVALID_CREDENTIALS_ERROR
+    case ORDER_STATE_TRANSITION_ERROR
+    case EMAIL_ADDRESS_CONFLICT_ERROR
+    case GUEST_CHECKOUT_ERROR
+    case ORDER_LIMIT_ERROR
+    case NEGATIVE_QUANTITY_ERROR
+    case INSUFFICIENT_STOCK_ERROR
+    case COUPON_CODE_INVALID_ERROR
+    case COUPON_CODE_EXPIRED_ERROR
+    case COUPON_CODE_LIMIT_ERROR
+    case ORDER_MODIFICATION_ERROR
+    case INELIGIBLE_SHIPPING_METHOD_ERROR
+    case NO_ACTIVE_ORDER_ERROR
+    case ORDER_PAYMENT_STATE_ERROR
+    case INELIGIBLE_PAYMENT_METHOD_ERROR
+    case PAYMENT_FAILED_ERROR
+    case PAYMENT_DECLINED_ERROR
+    case ALREADY_LOGGED_IN_ERROR
+    case MISSING_PASSWORD_ERROR
+    case PASSWORD_VALIDATION_ERROR
+    case PASSWORD_ALREADY_SET_ERROR
+    case VERIFICATION_TOKEN_INVALID_ERROR
+    case VERIFICATION_TOKEN_EXPIRED_ERROR
+    case IDENTIFIER_CHANGE_TOKEN_INVALID_ERROR
+    case IDENTIFIER_CHANGE_TOKEN_EXPIRED_ERROR
+    case PASSWORD_RESET_TOKEN_INVALID_ERROR
+    case PASSWORD_RESET_TOKEN_EXPIRED_ERROR
+    case NOT_VERIFIED_ERROR
 }

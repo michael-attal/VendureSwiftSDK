@@ -123,7 +123,8 @@ public actor CatalogOperations {
         return try await executeSingleQuery(query, variables: variables, expectedDataType: "product")
     }
 
-    public func searchCatalog(input: SearchInput, includeCustomFields: Bool? = nil) async throws -> SearchResult {
+    // UPDATED: Now uses generic CatalogSearchInput and CatalogSearchResult
+    public func searchCatalog(input: CatalogSearchInput, includeCustomFields: Bool? = nil) async throws -> CatalogSearchResult {
         let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "SearchResult", userRequested: includeCustomFields)
         let query = GraphQLQueryBuilder.buildSearchQuery(includeCustomFields: shouldIncludeCustomFields)
         let variables: [String: AnyCodable] = ["input": AnyCodable(anyValue: input)]

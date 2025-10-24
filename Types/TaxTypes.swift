@@ -26,27 +26,6 @@ public struct TaxCategory: Codable, Hashable, Identifiable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-
-    // Helper to create with custom fields dictionary
-    public static func withCustomFields(
-        id: String,
-        name: String,
-        isDefault: Bool = false,
-        customFieldsDict: [String: Any]? = nil,
-        createdAt: Date? = nil,
-        updatedAt: Date? = nil
-    ) -> TaxCategory {
-        let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
-
-        return TaxCategory(
-            id: id,
-            name: name,
-            isDefault: isDefault,
-            customFields: customFields,
-            createdAt: createdAt,
-            updatedAt: updatedAt
-        )
-    }
 }
 
 // MARK: - Tax Rate
@@ -86,35 +65,6 @@ public struct TaxRate: Codable, Hashable, Identifiable, Sendable {
         self.customFields = customFields
         self.createdAt = createdAt
         self.updatedAt = updatedAt
-    }
-
-    // Helper to create with custom fields dictionary
-    public static func withCustomFields(
-        id: String,
-        name: String,
-        enabled: Bool,
-        value: Double,
-        category: TaxCategory,
-        zone: Zone,
-        customerGroup: CustomerGroup? = nil,
-        customFieldsDict: [String: Any]? = nil,
-        createdAt: Date? = nil,
-        updatedAt: Date? = nil
-    ) -> TaxRate {
-        let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
-
-        return TaxRate(
-            id: id,
-            name: name,
-            enabled: enabled,
-            value: value,
-            category: category,
-            zone: zone,
-            customerGroup: customerGroup,
-            customFields: customFields,
-            createdAt: createdAt,
-            updatedAt: updatedAt
-        )
     }
 }
 
