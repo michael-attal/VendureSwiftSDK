@@ -68,12 +68,10 @@ public struct Promotion: Codable, Hashable, Identifiable, Sendable {
         startsAt: Date? = nil,
         endsAt: Date? = nil,
         translations: [PromotionTranslation] = [],
-        customFieldsDict: [String: Any]? = nil,
+        customFields: [String: AnyCodable]? = nil,
         createdAt: Date? = nil,
         updatedAt: Date? = nil
     ) -> Promotion {
-        let customFields: [String: AnyCodable]? = customFieldsDict?.mapValues { AnyCodable(anyValue: $0) }
-
         return Promotion(
             id: id,
             name: name,

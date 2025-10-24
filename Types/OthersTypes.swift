@@ -2,36 +2,6 @@ import Foundation
 
 // MARK: - Core Types and Enums
 
-/// Currency codes supported by Vendure
-public enum CurrencyCode: String, Codable, CaseIterable, Sendable {
-    case AED, AFN, ALL, AMD, ANG, AOA, ARS, AUD, AWG, AZN
-    case BAM, BBD, BDT, BGN, BHD, BIF, BMD, BND, BOB, BRL, BSD, BTN, BWP, BYN, BZD
-    case CAD, CDF, CHF, CLP, CNY, COP, CRC, CUC, CUP, CVE, CZK
-    case DJF, DKK, DOP, DZD
-    case EGP, ERN, ETB, EUR
-    case FJD, FKP
-    case GBP, GEL, GHS, GIP, GMD, GNF, GTQ, GYD
-    case HKD, HNL, HRK, HTG, HUF
-    case IDR, ILS, INR, IQD, IRR, ISK
-    case JMD, JOD, JPY
-    case KES, KGS, KHR, KMF, KPW, KRW, KWD, KYD, KZT
-    case LAK, LBP, LKR, LRD, LSL, LYD
-    case MAD, MDL, MGA, MKD, MMK, MNT, MOP, MRU, MUR, MVR, MWK, MXN, MYR, MZN
-    case NAD, NGN, NIO, NOK, NPR, NZD
-    case OMR
-    case PAB, PEN, PGK, PHP, PKR, PLN, PYG
-    case QAR
-    case RON, RSD, RUB, RWF
-    case SAR, SBD, SCR, SDG, SEK, SGD, SHP, SLE, SOS, SRD, STN, SYP, SZL
-    case THB, TJS, TMT, TND, TOP, TRY, TTD, TVD, TWD, TZS
-    case UAH, UGX, USD, UYU, UZS
-    case VES, VND, VUV
-    case WST
-    case XAF, XCD, XOF, XPF
-    case YER
-    case ZAR, ZMW, ZWL
-}
-
 /// Order types
 public enum OrderType: String, Codable, CaseIterable, Sendable {
     case Regular, Seller, Aggregate
@@ -45,65 +15,6 @@ public enum LogicalOperator: String, Codable, CaseIterable, Sendable {
 /// Permission levels
 public enum Permission: String, Codable, CaseIterable, Sendable {
     case Authenticated, SuperAdmin, Owner, Public, UpdateGlobalSettings, CreateCatalog, ReadCatalog, UpdateCatalog, DeleteCatalog, CreateProduct, ReadProduct, UpdateProduct, DeleteProduct, CreatePromotion, ReadPromotion, UpdatePromotion, DeletePromotion, CreateSettings, ReadSettings, UpdateSettings, DeleteSettings, CreateAdministrator, ReadAdministrator, UpdateAdministrator, DeleteAdministrator, CreateAsset, ReadAsset, UpdateAsset, DeleteAsset, CreateChannel, ReadChannel, UpdateChannel, DeleteChannel, CreateCollection, ReadCollection, UpdateCollection, DeleteCollection, CreateCountry, ReadCountry, UpdateCountry, DeleteCountry, CreateCustomer, ReadCustomer, UpdateCustomer, DeleteCustomer, CreateCustomerGroup, ReadCustomerGroup, UpdateCustomerGroup, DeleteCustomerGroup, CreateFacet, ReadFacet, UpdateFacet, DeleteFacet, CreateOrder, ReadOrder, UpdateOrder, DeleteOrder, CreatePaymentMethod, ReadPaymentMethod, UpdatePaymentMethod, DeletePaymentMethod, CreateShippingMethod, ReadShippingMethod, UpdateShippingMethod, DeleteShippingMethod, CreateTag, ReadTag, UpdateTag, DeleteTag, CreateTaxCategory, ReadTaxCategory, UpdateTaxCategory, DeleteTaxCategory, CreateTaxRate, ReadTaxRate, UpdateTaxRate, DeleteTaxRate, CreateSystem, ReadSystem, UpdateSystem, DeleteSystem, CreateZone, ReadZone, UpdateZone, DeleteZone
-}
-
-/// Error codes that can be returned by the API
-public enum ErrorCode: String, Codable, CaseIterable, Sendable {
-    case UNKNOWN_ERROR
-    case MIME_TYPE_ERROR
-    case LANGUAGE_NOT_AVAILABLE_ERROR
-    case CHANNEL_DEFAULT_LANGUAGE_ERROR
-    case SETTLE_PAYMENT_ERROR
-    case CANCEL_PAYMENT_ERROR
-    case EMPTY_ORDER_LINE_SELECTION_ERROR
-    case ITEMS_ALREADY_FULFILLED_ERROR
-    case INSUFFICIENT_STOCK_ON_HAND_ERROR
-    case MULTIPLE_ORDER_ERROR
-    case CANCEL_ACTIVE_ORDER_ERROR
-    case PAYMENT_ORDER_MISMATCH_ERROR
-    case REFUND_ORDER_STATE_ERROR
-    case NOTHING_TO_REFUND_ERROR
-    case ALREADY_REFUNDED_ERROR
-    case QUANTITY_TOO_GREAT_ERROR
-    case REFUND_STATE_TRANSITION_ERROR
-    case PAYMENT_STATE_TRANSITION_ERROR
-    case FULFILLMENT_STATE_TRANSITION_ERROR
-    case ORDER_MODIFICATION_STATE_ERROR
-    case NO_CHANGES_SPECIFIED_ERROR
-    case PAYMENT_METHOD_MISSING_ERROR
-    case REFUND_PAYMENT_ID_MISSING_ERROR
-    case MANUAL_PAYMENT_STATE_ERROR
-    case PRODUCT_OPTION_IN_USE_ERROR
-    case MISSING_CONDITIONS_ERROR
-    case NATIVE_AUTH_STRATEGY_ERROR
-    case INVALID_CREDENTIALS_ERROR
-    case ORDER_STATE_TRANSITION_ERROR
-    case EMAIL_ADDRESS_CONFLICT_ERROR
-    case GUEST_CHECKOUT_ERROR
-    case ORDER_LIMIT_ERROR
-    case NEGATIVE_QUANTITY_ERROR
-    case INSUFFICIENT_STOCK_ERROR
-    case COUPON_CODE_INVALID_ERROR
-    case COUPON_CODE_EXPIRED_ERROR
-    case COUPON_CODE_LIMIT_ERROR
-    case ORDER_MODIFICATION_ERROR
-    case INELIGIBLE_SHIPPING_METHOD_ERROR
-    case NO_ACTIVE_ORDER_ERROR
-    case ORDER_PAYMENT_STATE_ERROR
-    case INELIGIBLE_PAYMENT_METHOD_ERROR
-    case PAYMENT_FAILED_ERROR
-    case PAYMENT_DECLINED_ERROR
-    case ALREADY_LOGGED_IN_ERROR
-    case MISSING_PASSWORD_ERROR
-    case PASSWORD_VALIDATION_ERROR
-    case PASSWORD_ALREADY_SET_ERROR
-    case VERIFICATION_TOKEN_INVALID_ERROR
-    case VERIFICATION_TOKEN_EXPIRED_ERROR
-    case IDENTIFIER_CHANGE_TOKEN_INVALID_ERROR
-    case IDENTIFIER_CHANGE_TOKEN_EXPIRED_ERROR
-    case PASSWORD_RESET_TOKEN_INVALID_ERROR
-    case PASSWORD_RESET_TOKEN_EXPIRED_ERROR
-    case NOT_VERIFIED_ERROR
 }
 
 // MARK: - Base Types

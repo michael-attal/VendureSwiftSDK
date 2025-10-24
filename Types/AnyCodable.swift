@@ -60,53 +60,49 @@ public struct AnyCodable: Codable, Hashable, Sendable {
 
 // MARK: - AnyCodable Value Access
 
-extension AnyCodable {
+public extension AnyCodable {
     /// Access the underlying value as a specific type
-    public func decode<T: Codable>(_ type: T.Type) -> T? {
+    func decode<T: Codable>(_ type: T.Type) -> T? {
         return value.base as? T
     }
     
     /// Convenient accessors for common types
-    public var stringValue: String? { decode(String.self) }
-    public var intValue: Int? { decode(Int.self) }
-    public var doubleValue: Double? { decode(Double.self) }
-    public var boolValue: Bool? { decode(Bool.self) }
-    public var arrayValue: [AnyCodable]? { decode([AnyCodable].self) }
-    public var dictionaryValue: [String: AnyCodable]? { decode([String: AnyCodable].self) }
+    var stringValue: String? { decode(String.self) }
+    var intValue: Int? { decode(Int.self) }
+    var doubleValue: Double? { decode(Double.self) }
+    var boolValue: Bool? { decode(Bool.self) }
+    var arrayValue: [AnyCodable]? { decode([AnyCodable].self) }
+    var dictionaryValue: [String: AnyCodable]? { decode([String: AnyCodable].self) }
     
     /// Check if the value is null
-    public var isNull: Bool { value.base is AnyCodableNull }
+    var isNull: Bool { value.base is AnyCodableNull }
 }
 
 // MARK: - Custom Subscript Support
 
-extension AnyCodable {
+public extension AnyCodable {
     /// Dictionary-style access for object values
-    public subscript(key: String) -> AnyCodable? {
-        get { dictionaryValue?[key] }
-    }
+    subscript(key: String) -> AnyCodable? { dictionaryValue?[key] }
     
     /// Array-style access for array values
-    public subscript(index: Int) -> AnyCodable? {
-        get {
-            guard let array = arrayValue, index < array.count else { return nil }
-            return array[index]
-        }
+    subscript(index: Int) -> AnyCodable? {
+        guard let array = arrayValue, index < array.count else { return nil }
+        return array[index]
     }
 }
 
 // MARK: - Supporting Types
 
 /// A null value that conforms to our required protocols
-private struct AnyCodableNull: Codable, Hashable, Sendable {
-    init() {}
+public struct AnyCodableNull: Codable, Hashable, Sendable {
+    public init() {}
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encodeNil()
     }
     
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if !container.decodeNil() {
             throw DecodingError.typeMismatch(
@@ -116,11 +112,11 @@ private struct AnyCodableNull: Codable, Hashable, Sendable {
         }
     }
     
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(0) // Null always hashes to 0
     }
     
-    static func == (lhs: AnyCodableNull, rhs: AnyCodableNull) -> Bool {
+    public static func == (lhs: AnyCodableNull, rhs: AnyCodableNull) -> Bool {
         return true // All nulls are equal
     }
 }
@@ -159,7 +155,7 @@ public struct AnyHashableSendable: Codable, Hashable, Sendable {
         try encode(to: &container)
     }
     
-    internal func encode(to container: inout SingleValueEncodingContainer) throws {
+    public func encode(to container: inout SingleValueEncodingContainer) throws {
         switch base {
         case let bool as Bool:
             try container.encode(bool)
@@ -230,18 +226,18 @@ public struct AnyHashableSendable: Codable, Hashable, Sendable {
 
 // MARK: - Helper Type for Generic Encoding
 
-internal struct AnyEncodable: Encodable {
-    private let encodeFunc: (Encoder) throws -> Void
+public struct AnyEncodable: Encodable {
+    public let encodeFunc: (Encoder) throws -> Void
     
-    init(_ value: any Encodable) {
+    public init(_ value: any Encodable) {
         self.encodeFunc = { encoder in try value.encode(to: encoder) }
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         try encodeFunc(encoder)
     }
     
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         // This should never be called since we only use this for encoding
         throw DecodingError.dataCorrupted(
             DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "AnyEncodable should not be decoded")
@@ -251,9 +247,9 @@ internal struct AnyEncodable: Encodable {
 
 // MARK: - Convenience Extensions
 
-extension Dictionary where Key == String, Value == AnyCodable {
+public extension Dictionary where Key == String, Value == AnyCodable {
     /// Convert to a standard [String: Any] dictionary
-    public func toAnyDictionary() -> [String: Any] {
+    func toAnyDictionary() -> [String: Any] {
         return compactMapValues { anyCodable in
             switch anyCodable.value.base {
             case let bool as Bool: return bool
@@ -269,9 +265,9 @@ extension Dictionary where Key == String, Value == AnyCodable {
     }
 }
 
-extension AnyCodable {
+public extension AnyCodable {
     /// Convert to Any value for compatibility
-    public func toAnyValue() -> Any? {
+    func toAnyValue() -> Any? {
         switch value.base {
         case let bool as Bool: return bool
         case let int as Int: return int
@@ -285,14 +281,14 @@ extension AnyCodable {
     }
     
     /// Create AnyCodable from Any value
-    public init(anyValue: Any?) {
+    init(anyValue: Any?) {
         if let value = anyValue {
             switch value {
             case let bool as Bool: self.init(bool)
             case let int as Int: self.init(int)
             case let double as Double: self.init(double)
             case let string as String: self.init(string)
-            case let array as [Any]: 
+            case let array as [Any]:
                 self.init(array.map { AnyCodable(anyValue: $0) })
             case let dict as [String: Any]:
                 self.init(dict.mapValues { AnyCodable(anyValue: $0) })

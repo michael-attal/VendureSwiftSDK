@@ -178,6 +178,94 @@ public typealias PromotionTranslation = Translation<TranslationContentNameDescri
 @available(*, deprecated, message: "Use Translation<TranslationContentNameDescription> instead")
 public typealias ShippingMethodTranslation = Translation<TranslationContentNameDescription>
 
+
+// MARK: - Type Aliases for Specific Errors
+
+// Order Related Errors
+@available(*, deprecated, message: "Use VendureErrorType<InsufficientStockDetails> instead")
+public typealias InsufficientStockError = VendureErrorType<InsufficientStockDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias NegativeQuantityError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<OrderLimitDetails> instead")
+public typealias OrderLimitError = VendureErrorType<OrderLimitDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias OrderModificationError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias OrderPaymentStateError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<OrderStateTransitionDetails> instead")
+public typealias OrderStateTransitionError = VendureErrorType<OrderStateTransitionDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias NoActiveOrderError = VendureErrorType<EmptyErrorDetails>
+
+// Authentication Errors
+@available(*, deprecated, message: "Use VendureErrorType<AuthenticationErrorDetails> instead")
+public typealias InvalidCredentialsError = VendureErrorType<AuthenticationErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias AlreadyLoggedInError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias MissingPasswordError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias PasswordAlreadySetError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<PasswordValidationDetails> instead")
+public typealias PasswordValidationError = VendureErrorType<PasswordValidationDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias PasswordResetTokenExpiredError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias PasswordResetTokenInvalidError = VendureErrorType<EmptyErrorDetails>
+
+// Customer Errors
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias EmailAddressConflictError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias NotVerifiedError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias VerificationTokenExpiredError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias VerificationTokenInvalidError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias IdentifierChangeTokenExpiredError = VendureErrorType<EmptyErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias IdentifierChangeTokenInvalidError = VendureErrorType<EmptyErrorDetails>
+
+// Guest Checkout Error
+@available(*, deprecated, message: "Use VendureErrorType<GuestCheckoutDetails> instead")
+public typealias GuestCheckoutError = VendureErrorType<GuestCheckoutDetails>
+
+// Native Auth Strategy Error
+@available(*, deprecated, message: "Use VendureErrorType<EmptyErrorDetails> instead")
+public typealias NativeAuthStrategyError = VendureErrorType<EmptyErrorDetails>
+
+// Generic Ineligible Method Error
+@available(*, deprecated, message: "Use IneligibleMethodError instead")
+public typealias IneligibleMethodError = VendureErrorType<IneligibleMethodDetails>
+
+// Payment Errors
+@available(*, deprecated, message: "Use VendureErrorType<PaymentErrorDetails> instead")
+public typealias PaymentDeclinedError = VendureErrorType<PaymentErrorDetails>
+@available(*, deprecated, message: "Use VendureErrorType<PaymentErrorDetails> instead")
+public typealias PaymentFailedError = VendureErrorType<PaymentErrorDetails>
+
+// Coupon Code Errors
+@available(*, deprecated, message: "Use VendureErrorType<CouponCodeDetails> instead")
+public typealias CouponCodeExpiredError = VendureErrorType<CouponCodeDetails>
+@available(*, deprecated, message: "Use VendureErrorType<CouponCodeDetails> instead")
+public typealias CouponCodeInvalidError = VendureErrorType<CouponCodeDetails>
+@available(*, deprecated, message: "Use VendureErrorType<CouponCodeLimitDetails> instead")
+public typealias CouponCodeLimitError = VendureErrorType<CouponCodeLimitDetails>
+
+
+// MARK: - Deprecated Search Types
+
+
+/// Type alias for catalog search input
+@available(*, deprecated, message: "Use SearchInput<CatalogSearchFilter, SearchResultSortParameter> instead")
+public typealias CatalogSearchInput = SearchInput<CatalogSearchFilter, SearchResultSortParameter>
+
+/// Type alias for catalog search result
+@available(*, deprecated, message: "Use SearchResult<SearchResultItem, FacetValueResult> instead")
+public typealias CatalogSearchResult = SearchResult<SearchResultItem, FacetValueResult>
+
+
 // MARK: - Backwards compatibility helpers (optional)
 
 /*
