@@ -53,6 +53,6 @@ public struct Asset: Codable, Hashable, Identifiable, Sendable {
 }
 
 /// Asset type enumeration
-public enum AssetType: String, Codable, CaseIterable, Sendable {
+public enum AssetType: String, Hashable, Codable, CaseIterable, Sendable {
     case IMAGE, VIDEO, AUDIO, BINARY, OTHER
 }

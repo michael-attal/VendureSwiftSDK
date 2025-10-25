@@ -1,4 +1,4 @@
 /// Language codes supported by Vendure
-public enum LanguageCode: String, Codable, CaseIterable, Sendable {
+public enum LanguageCode: String, Hashable, Codable, CaseIterable, Sendable {
     case af, ak, am, ar, `as`, az, be, bg, bm, bn, bo, br, bs, ca, ce, co, cs, cu, cy, da, de, dv, dz, ee, el, en, eo, es, et, eu, fa, ff, fi, fo, fr, fy, ga, gd, gl, gu, gv, ha, he, hi, ho, hr, ht, hu, hy, hz, ia, id, ie, ig, ii, ik, io, `is`, it, iu, ja, jv, ka, kg, ki, kj, kk, kl, km, kn, ko, kr, ks, ku, kv, kw, ky, la, lb, lg, li, ln, lo, lr, ls, lt, lu, lv, mg, mh, mi, mk, ml, mn, mr, ms, mt, my, na, nb, nd, ne, ng, nl, nn, no, nr, nv, ny, oc, oj, om, or, os, pa, pi, pl, ps, pt, qu, rm, rn, ro, ru, rw, sa, sc, sd, se, sg, si, sk, sl, sm, sn, so, sq, sr, ss, st, su, sv, sw, ta, te, tg, th, ti, tk, tl, tn, to, tr, ts, tt, tw, ty, ug, uk, ur, uz, ve, vi, vo, wa, wo, xh, yi, yo, za, zh, zu
 }

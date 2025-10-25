@@ -42,11 +42,11 @@ public class VendureConfiguration: @unchecked Sendable {
         }
         
         // Avoid duplicates for customFields
-        if !customField.isExtendedField && customField.fieldName == "customFields" {
+        if !customField.isExtendedField, customField.fieldName == "customFields" {
             if let existingIndex = _customFields.firstIndex(where: { field in
                 !field.isExtendedField &&
-                field.fieldName == "customFields" &&
-                Set(field.applicableTypes) == Set(customField.applicableTypes)
+                    field.fieldName == "customFields" &&
+                    Set(field.applicableTypes) == Set(customField.applicableTypes)
             }) {
                 _customFields[existingIndex] = customField
                 return
@@ -57,8 +57,8 @@ public class VendureConfiguration: @unchecked Sendable {
         if customField.isExtendedField {
             if let existingIndex = _customFields.firstIndex(where: { field in
                 field.isExtendedField &&
-                field.fieldName == customField.fieldName &&
-                Set(field.applicableTypes) == Set(customField.applicableTypes)
+                    field.fieldName == customField.fieldName &&
+                    Set(field.applicableTypes) == Set(customField.applicableTypes)
             }) {
                 _customFields[existingIndex] = customField
                 return
@@ -95,8 +95,8 @@ public class VendureConfiguration: @unchecked Sendable {
         defer { lock.unlock() }
         return _customFields.first { field in
             field.applicableTypes.contains(type) &&
-            !field.isExtendedField &&
-            field.fieldName == "customFields"
+                !field.isExtendedField &&
+                field.fieldName == "customFields"
         }
     }
     
@@ -205,7 +205,8 @@ public class VendureConfiguration: @unchecked Sendable {
                 // For complex Encodable types, go through JSON encoding
                 let encoder = JSONEncoder()
                 if let data = try? encoder.encode(AnyEncodable(value)),
-                   let json = try? JSONSerialization.jsonObject(with: data) {
+                   let json = try? JSONSerialization.jsonObject(with: data)
+                {
                     result[key] = AnyCodable(anyValue: json)
                 } else {
                     result[key] = AnyCodable(anyValue: "")
@@ -236,5 +237,49 @@ public class VendureConfiguration: @unchecked Sendable {
         }
         
         return nil
+    }
+}
+
+// MARK: - Helper Extensions for Operations
+
+/// Extension to help manage custom fields in operations
+public extension VendureConfiguration {
+    // Note: shouldIncludeCustomFields method is defined in CustomFieldConfiguration.swift
+    
+    /// Get the list of types that have custom fields configured
+    func getTypesWithCustomFields() -> Set<String> {
+        let allTypes = Set(customFields.flatMap { $0.applicableTypes })
+        return allTypes
+    }
+    
+    /// Verify whether a configuration is valid for production
+    func validateConfiguration() -> [String] {
+        var warnings: [String] = []
+        
+        let fields = customFields
+        
+        // Check for overly complex fragments
+        for field in fields {
+            let fragmentLength = field.graphQLFragment.count
+            if fragmentLength > 1000 {
+                warnings.append("Fragment for '\(field.fieldName)' is very long (\(fragmentLength) chars). Consider simplifying.")
+            }
+            
+            // Check nesting levels
+            let nestingLevel = field.graphQLFragment.components(separatedBy: "{").count - 1
+            if nestingLevel > 5 {
+                warnings.append("Fragment for '\(field.fieldName)' has deep nesting (level \(nestingLevel)). This might impact performance.")
+            }
+        }
+        
+        // Check for potential duplicates
+        let extendedFields = fields.filter { $0.isExtendedField }
+        let fieldNames = extendedFields.map { "\($0.fieldName)-\($0.applicableTypes.joined(separator: ","))" }
+        let uniqueNames = Set(fieldNames)
+        if fieldNames.count != uniqueNames.count {
+            warnings.append("Potential duplicate extended field configurations detected.")
+        }
+        
+        return warnings
     }
 }

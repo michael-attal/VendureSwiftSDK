@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Generic Search Types
 
 /// Generic search input with customizable filter and sort types
-public struct SearchInput<Filter: Codable & Sendable, Sort: Codable & Sendable>: Codable, Sendable {
+public struct SearchInput<Filter: Hashable & Codable & Sendable, Sort: Hashable & Codable & Sendable>: Hashable, Codable, Sendable {
     /// Search term/query string
     public let term: String?
 
@@ -40,7 +40,7 @@ public struct SearchInput<Filter: Codable & Sendable, Sort: Codable & Sendable>:
 }
 
 /// Generic search result with any item type and optional faceting
-public struct SearchResult<Item: Codable & Sendable, Facet: Codable & Sendable>: Codable, Sendable {
+public struct SearchResult<Item: Hashable & Codable & Sendable, Facet: Hashable & Codable & Sendable>: Hashable, Codable, Sendable {
     /// Search result items
     public let items: [Item]
 
@@ -67,7 +67,7 @@ public struct SearchResult<Item: Codable & Sendable, Facet: Codable & Sendable>:
 }
 
 /// Search metadata for additional search context
-public struct SearchMetadata: Codable, Sendable {
+public struct SearchMetadata: Hashable, Codable, Sendable {
     public let queryTime: TimeInterval?
     public let maxScore: Double?
     public let appliedCorrections: [String]?
@@ -86,7 +86,7 @@ public struct SearchMetadata: Codable, Sendable {
 // MARK: - Commerce-Specific Search Types
 
 /// Commerce-specific filter for catalog search
-public struct CatalogSearchFilter: Codable, Sendable {
+public struct CatalogSearchFilter: Hashable, Codable, Sendable {
     public let facetValueFilters: [FacetValueFilterInput]?
     public let facetValueIds: [String]?
     public let facetValueOperator: LogicalOperator?
@@ -129,8 +129,47 @@ public struct SearchResultItem: Codable, Hashable, Identifiable, Sendable {
     public let facetIds: [String]
     public let facetValueIds: [String]
     public let score: Double
+    public let customFields: [String: AnyCodable]?
 
     public var id: String { productVariantId }
+
+    public init(
+        productId: String,
+        productName: String,
+        productAsset: Asset?,
+        productVariantId: String,
+        productVariantName: String,
+        productVariantAsset: Asset?,
+        price: SearchResultPrice,
+        priceWithTax: SearchResultPrice,
+        currencyCode: CurrencyCode,
+        description: String,
+        slug: String,
+        sku: String,
+        collectionIds: [String],
+        facetIds: [String],
+        facetValueIds: [String],
+        score: Double,
+        customFields: [String: AnyCodable]? = nil
+    ) {
+        self.productId = productId
+        self.productName = productName
+        self.productAsset = productAsset
+        self.productVariantId = productVariantId
+        self.productVariantName = productVariantName
+        self.productVariantAsset = productVariantAsset
+        self.price = price
+        self.priceWithTax = priceWithTax
+        self.currencyCode = currencyCode
+        self.description = description
+        self.slug = slug
+        self.sku = sku
+        self.collectionIds = collectionIds
+        self.facetIds = facetIds
+        self.facetValueIds = facetValueIds
+        self.score = score
+        self.customFields = customFields
+    }
 }
 
 /// Search result price (can be single price or range)
@@ -163,7 +202,7 @@ public enum SearchResultPrice: Codable, Hashable, Sendable {
         }
     }
 
-    private enum CodingKeys: String, CodingKey {
+    private enum CodingKeys: String, Hashable, CodingKey {
         case min, max
     }
 }

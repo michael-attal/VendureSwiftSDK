@@ -75,7 +75,7 @@ public struct PaymentMethodQuote: Codable, Hashable, Identifiable, Sendable {
 // MARK: - Payment
 
 /// Payment states
-public enum PaymentState: String, Codable, CaseIterable, Sendable {
+public enum PaymentState: String, Hashable, Codable, CaseIterable, Sendable {
     case created = "Created"
     case authorized = "Authorized"
     case settled = "Settled"
@@ -169,7 +169,7 @@ public struct Payment: Codable, Hashable, Identifiable, Sendable {
 // MARK: - Payment Input
 
 /// Input for creating a payment
-public struct PaymentInput: Codable, Sendable {
+public struct PaymentInput: Hashable, Codable, Sendable {
     public let method: String
     public let metadata: [String: AnyCodable]?
 

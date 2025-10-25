@@ -3,15 +3,15 @@ import Foundation
 /// Base class for all Vendure operations
 public final class BaseOperations: @unchecked Sendable {
     /// Reference to the GraphQL client
-    internal let graphQLClient: GraphQLClient
+    let graphQLClient: GraphQLClient
     
     /// Initialize with GraphQL client
-    internal init(_ client: GraphQLClient) {
-        self.graphQLClient = client
+    init(_ client: GraphQLClient) {
+        graphQLClient = client
     }
     
     /// Execute a GraphQL query with typed response
-    internal func queryCustomer(
+    func queryCustomer(
         _ queryString: String,
         variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
@@ -39,7 +39,7 @@ public final class BaseOperations: @unchecked Sendable {
     }
     
     /// Execute a GraphQL query for CurrentUser
-    internal func queryCurrentUser(
+    func queryCurrentUser(
         _ queryString: String,
         variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
@@ -67,7 +67,7 @@ public final class BaseOperations: @unchecked Sendable {
     }
     
     /// Execute a GraphQL query for Channel
-    internal func queryChannel(
+    func queryChannel(
         _ queryString: String,
         variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
@@ -92,7 +92,7 @@ public final class BaseOperations: @unchecked Sendable {
     }
     
     /// Execute a GraphQL mutation for Customer
-    internal func mutateCustomer(
+    func mutateCustomer(
         _ mutationString: String,
         variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
@@ -117,7 +117,7 @@ public final class BaseOperations: @unchecked Sendable {
     }
     
     /// Execute a GraphQL mutation for Address
-    internal func mutateAddress(
+    func mutateAddress(
         _ mutationString: String,
         variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
@@ -142,7 +142,7 @@ public final class BaseOperations: @unchecked Sendable {
     }
     
     /// Execute a GraphQL mutation for Success
-    internal func mutateSuccess(
+    func mutateSuccess(
         _ mutationString: String,
         variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
@@ -167,7 +167,7 @@ public final class BaseOperations: @unchecked Sendable {
     }
     
     /// Execute a GraphQL query and return raw response for error handling
-    internal func queryRaw(
+    func queryRaw(
         _ queryString: String,
         variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
@@ -180,7 +180,7 @@ public final class BaseOperations: @unchecked Sendable {
     }
     
     /// Execute a GraphQL mutation and return raw response for error handling
-    internal func mutateRaw(
+    func mutateRaw(
         _ mutationString: String,
         variables: [String: AnyCodable]? = nil,
         headers: [String: String] = [:]
@@ -190,27 +190,6 @@ public final class BaseOperations: @unchecked Sendable {
             variables: variables,
             headers: headers
         )
-    }
-    
-    /// Helper method to convert variables dictionary to JSON string - Modern AnyCodable approach
-    internal func convertVariablesToJSON(_ variables: [String: Encodable]) throws -> String? {
-        guard !variables.isEmpty else { return nil }
-        
-        // Create AnyCodable dictionary for type-safe conversion
-        var anyCodableDict: [String: AnyCodable] = [:]
-        
-        for (key, value) in variables {
-            // Convert Encodable to AnyCodable using automatic conversion
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(value)
-            let jsonValue = try JSONSerialization.jsonObject(with: data)
-            anyCodableDict[key] = AnyCodable(anyValue: jsonValue)
-        }
-        
-        // Encode the AnyCodable dictionary to JSON
-        let encoder = JSONEncoder()
-        let jsonData = try encoder.encode(anyCodableDict)
-        return String(data: jsonData, encoding: .utf8)
     }
 }
 
@@ -375,9 +354,10 @@ public enum ActiveOrderResult: Codable, Hashable, Sendable {
         } else if let error = try? container.decode(NoActiveOrderError.self) {
             self = .noActiveOrderError(error)
         } else {
-            throw DecodingError.typeMismatch(ActiveOrderResult.self,
-                DecodingError.Context(codingPath: decoder.codingPath,
-                debugDescription: "Cannot decode ActiveOrderResult"))
+            throw DecodingError.typeMismatch(
+                ActiveOrderResult.self,
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Cannot decode ActiveOrderResult")
+            )
         }
     }
     
@@ -421,9 +401,10 @@ public enum AddPaymentToOrderResult: Codable, Hashable, Sendable {
         } else if let error = try? container.decode(NoActiveOrderError.self) {
             self = .noActiveOrderError(error)
         } else {
-            throw DecodingError.typeMismatch(AddPaymentToOrderResult.self,
-                DecodingError.Context(codingPath: decoder.codingPath,
-                debugDescription: "Cannot decode AddPaymentToOrderResult"))
+            throw DecodingError.typeMismatch(
+                AddPaymentToOrderResult.self,
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Cannot decode AddPaymentToOrderResult")
+            )
         }
     }
     

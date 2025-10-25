@@ -2,7 +2,7 @@ import Foundation
 
 /// Generic paginated list response used across the SDK.
 /// Keeps optional limit/skip metadata so client can store the original pagination context.
-public struct PaginatedList<Item: Codable & Sendable>: Codable, Sendable {
+public struct PaginatedList<Item: Hashable & Codable & Sendable>: Hashable, Codable, Sendable {
     // MARK: - Core fields
 
     /// Returned items for the current page/request.
@@ -129,7 +129,7 @@ public struct PaginatedList<Item: Codable & Sendable>: Codable, Sendable {
 }
 
 /// Generic options for fetching paginated lists of any entity
-public struct PaginatedListOptions<Filter: Codable & Sendable, Sort: Codable & Sendable>: Codable, Sendable {
+public struct PaginatedListOptions<Filter: Hashable & Codable & Sendable, Sort: Hashable & Codable & Sendable>: Hashable, Codable, Sendable {
     /// Number of items to skip (for pagination)
     public let skip: Int?
 

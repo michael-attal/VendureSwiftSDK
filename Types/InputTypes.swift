@@ -2,9 +2,9 @@ import Foundation
 
 // MARK: - Address Input
 
-// TODO: Make it generic to avoid duplication
+// TODO: Make it generic like Search to avoid duplication
 
-public struct CreateAddressInput: Codable, Sendable {
+public struct CreateAddressInput: Hashable, Codable, Sendable {
     public let fullName: String?
     public let company: String?
     public let streetLine1: String
@@ -47,7 +47,7 @@ public struct CreateAddressInput: Codable, Sendable {
     }
 }
 
-public struct UpdateAddressInput: Codable, Sendable {
+public struct UpdateAddressInput: Hashable, Codable, Sendable {
     public let id: String
     public let fullName: String?
     public let company: String?
@@ -95,7 +95,7 @@ public struct UpdateAddressInput: Codable, Sendable {
 
 // MARK: - Customer Input
 
-public struct CreateCustomerInput: Codable, Sendable {
+public struct CreateCustomerInput: Hashable, Codable, Sendable {
     public let title: String?
     public let firstName: String
     public let lastName: String
@@ -120,7 +120,7 @@ public struct CreateCustomerInput: Codable, Sendable {
     }
 }
 
-public struct UpdateCustomerInput: Codable, Sendable {
+public struct UpdateCustomerInput: Hashable, Codable, Sendable {
     public let title: String?
     public let firstName: String?
     public let lastName: String?
@@ -144,7 +144,7 @@ public struct UpdateCustomerInput: Codable, Sendable {
 
 // MARK: - Authentication Input
 
-public struct RegisterCustomerInput: Codable, Sendable {
+public struct RegisterCustomerInput: Hashable, Codable, Sendable {
     public let emailAddress: String
     public let title: String?
     public let firstName: String?
@@ -174,7 +174,7 @@ public struct RegisterCustomerInput: Codable, Sendable {
 
 // MARK: - Order Input
 
-public struct UpdateOrderInput: Codable, Sendable {
+public struct UpdateOrderInput: Hashable, Codable, Sendable {
     public let customFields: [String: AnyCodable]?
 
     public init(customFields: [String: AnyCodable]? = nil) {
