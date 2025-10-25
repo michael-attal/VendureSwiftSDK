@@ -23,7 +23,7 @@ public struct PriceRange: Codable, Hashable, Sendable {
 }
 
 /// Currency codes supported by Vendure
-public enum CurrencyCode: String, Codable, CaseIterable, Sendable {
+public enum CurrencyCode: String, Hashable, Codable, CaseIterable, Sendable {
     case AED, AFN, ALL, AMD, ANG, AOA, ARS, AUD, AWG, AZN
     case BAM, BBD, BDT, BGN, BHD, BIF, BMD, BND, BOB, BRL, BSD, BTN, BWP, BYN, BZD
     case CAD, CDF, CHF, CLP, CNY, COP, CRC, CUC, CUP, CVE, CZK

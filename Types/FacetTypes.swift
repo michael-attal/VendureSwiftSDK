@@ -6,7 +6,7 @@ import Foundation
 public struct Facet: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
-    public let code: String
+    public let code: String?
     public let isPrivate: Bool?
     public let values: [FacetValue]?
     public let translations: [FacetTranslation]?
@@ -18,7 +18,7 @@ public struct Facet: Codable, Hashable, Identifiable, Sendable {
     public init(
         id: String,
         name: String,
-        code: String,
+        code: String? = nil,
         isPrivate: Bool? = nil,
         values: [FacetValue]? = nil,
         translations: [FacetTranslation]? = nil,
@@ -44,7 +44,7 @@ public struct Facet: Codable, Hashable, Identifiable, Sendable {
 public struct FacetValue: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let name: String
-    public let code: String
+    public let code: String?
     public let facet: Facet
     public let facetId: String?
     public let translations: [FacetValueTranslation]?
@@ -55,7 +55,7 @@ public struct FacetValue: Codable, Hashable, Identifiable, Sendable {
     public init(
         id: String,
         name: String,
-        code: String,
+        code: String? = nil,
         facet: Facet,
         facetId: String? = nil,
         translations: [FacetValueTranslation]? = nil,
@@ -76,7 +76,7 @@ public struct FacetValue: Codable, Hashable, Identifiable, Sendable {
 }
 
 /// Input type for filtering by facet values
-public struct FacetValueFilterInput: Codable, Sendable {
+public struct FacetValueFilterInput: Hashable, Codable, Sendable {
     public let and: String?
     public let or: [String]?
 

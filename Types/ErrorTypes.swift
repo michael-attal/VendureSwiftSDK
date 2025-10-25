@@ -167,7 +167,7 @@ public struct CouponCodeLimitDetails: Codable, Hashable, Sendable {
 }
 
 /// Error codes that can be returned by the API
-public enum ErrorCode: String, Codable, CaseIterable, Sendable {
+public enum ErrorCode: String, Hashable, Codable, CaseIterable, Sendable {
     case UNKNOWN_ERROR
     case MIME_TYPE_ERROR
     case LANGUAGE_NOT_AVAILABLE_ERROR

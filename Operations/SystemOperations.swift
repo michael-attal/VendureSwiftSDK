@@ -2,395 +2,162 @@ import Foundation
 
 public actor SystemOperations {
     private let vendure: Vendure
-    
+
     public init(_ vendure: Vendure) {
         self.vendure = vendure
     }
-    
-    // MARK: - Generic query execution helper
-    
-    private func executeQuery<T: Decodable>(
+
+    // Specific executor for lists, handling potential empty lists gracefully
+    private func executeListQuery<T: Codable & Sendable>(
         _ query: String,
         variables: [String: AnyCodable]?,
-        expectedDataType: String,
-        decodeTo type: T.Type
-    ) async throws -> T {
-        let response = try await vendure.custom.queryRaw(query, variables: variables)
-        
+        expectedDataType: String, // e.g., "availableCountries", "facets"
+        languageCode: String? = nil
+    ) async throws -> [T] {
+        let response = try await vendure.custom.queryRaw(query, variables: variables, languageCode: languageCode)
+
         if response.hasErrors {
             let errorMessages = response.errors?.map { $0.message } ?? ["Unknown GraphQL error"]
             throw VendureError.graphqlError(errorMessages)
         }
-        
+
         guard let data = response.rawData.isEmpty ? nil : response.rawData else {
-            throw VendureError.noData
+            // An empty list is valid, so no data might just mean zero items if the key exists but is empty/null
+            if let json = try? JSONSerialization.jsonObject(with: response.rawData) as? [String: Any],
+               let dataDict = json["data"] as? [String: Any],
+               dataDict[expectedDataType] is NSNull || dataDict[expectedDataType] == nil
+            {
+                await VendureLogger.shared.log(.info, category: "SystemOps", "List query for '\(expectedDataType)' returned null or empty.")
+                return [] // Return empty array for null/missing list data
+            }
+            throw VendureError.noData // Throw if structure is wrong before key check
         }
-        
+
         let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
         guard let dict = jsonObject as? [String: Any],
               let responseData = dict["data"] as? [String: Any],
               let targetData = responseData[expectedDataType]
         else {
-            throw VendureError.decodingError(
-                NSError(domain: "SystemOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid \(expectedDataType) response"])
-            )
+            await VendureLogger.shared.log(.error, category: "Decode", "Failed to find key '\(expectedDataType)' in list response data.")
+            throw VendureError.decodingError(NSError(domain: "SystemOps", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid \(expectedDataType) list response structure"]))
         }
-        
-        let extractedData = try JSONSerialization.data(withJSONObject: targetData, options: [])
+
+        // Handle null or empty array explicitly
+        if targetData is NSNull {
+            await VendureLogger.shared.log(.info, category: "SystemOps", "List query for '\(expectedDataType)' returned null.")
+            return []
+        }
+        guard let listArray = targetData as? [Any] else {
+            await VendureLogger.shared.log(.error, category: "Decode", "Data for key '\(expectedDataType)' is not an array.")
+            throw VendureError.decodingError(NSError(domain: "SystemOps", code: 2, userInfo: [NSLocalizedDescriptionKey: "Data for \(expectedDataType) is not an array"]))
+        }
+        if listArray.isEmpty {
+            return []
+        }
+
+        let extractedData = try JSONSerialization.data(withJSONObject: listArray, options: [])
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(T.self, from: extractedData)
+        do {
+            return try decoder.decode([T].self, from: extractedData)
+        } catch {
+            await VendureLogger.shared.log(.error, category: "Decode", "Failed to decode list [\(String(describing: T.self))]: \(error)")
+            let extractedString = String(data: extractedData, encoding: .utf8) ?? "Invalid UTF-8 data"
+            await VendureLogger.shared.log(.verbose, category: "Decode", "Extracted Array Data: \(extractedString)")
+            throw VendureError.decodingError(error)
+        }
     }
-    
+
     // MARK: - Countries
-    
-    public func getAvailableCountries() async throws -> [Country] {
+
+    public func getAvailableCountries(languageCode: String? = nil) async throws -> [Country] {
         let query = """
         query availableCountries {
           availableCountries {
-            id
-            code
-            name
-            enabled
-            translations {
-              id
-              languageCode
-              name
-            }
+            id code name enabled
+            translations { id languageCode name }
           }
         }
         """
-        
-        let response = try await vendure.custom.queryRaw(query, variables: nil)
-        if response.hasErrors {
-            let errorMessages = response.errors?.map { $0.message } ?? ["Unknown GraphQL error"]
-            throw VendureError.graphqlError(errorMessages)
-        }
-        
-        guard let data = response.rawData.isEmpty ? nil : response.rawData else {
-            throw VendureError.noData
-        }
-        
-        let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-        guard let dict = jsonObject as? [String: Any],
-              let responseData = dict["data"] as? [String: Any],
-              let countriesArray = responseData["availableCountries"] as? [Any]
-        else {
-            throw VendureError.decodingError(
-                NSError(domain: "SystemOps", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid availableCountries response"])
-            )
-        }
-        
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try countriesArray.map { itemData in
-            let data = try JSONSerialization.data(withJSONObject: itemData, options: [])
-            return try decoder.decode(Country.self, from: data)
-        }
+        return try await executeListQuery(
+            query,
+            variables: nil,
+            expectedDataType: "availableCountries",
+            languageCode: languageCode
+        )
     }
-    
+
     // MARK: - Facets
-    
+
     public func getFacets(
         options: PaginatedListOptions<
             FilterParameter<IDOperators, DateOperators, StringOperators, NumberOperators, BooleanOperators>,
             SortParameter<SortOrder>
-        >? = nil
+        >? = nil,
+        includeCustomFields: Bool? = nil,
+        languageCode: String? = nil
     ) async throws -> PaginatedList<Facet> {
-        let query = """
-        query facets($options: PaginatedListOptions) {
-          facets(options: $options) {
-            items {
-              id
-              name
-              code
-              isPrivate
-              languageCode
-              translations {
-                id
-                languageCode
-                name
-              }
-              values {
-                id
-                name
-                code
-                translations {
-                  id
-                  languageCode
-                  name
-                }
-              }
-            }
-            totalItems
-          }
-        }
-        """
-        
+        let shouldIncludeFacetFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Facet", userRequested: includeCustomFields)
+        let shouldIncludeValueFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "FacetValue", userRequested: includeCustomFields)
+
+        // Pass include flags to builder
+        let query = await GraphQLQueryBuilder.buildFacetQuery(
+            includeCustomFields: shouldIncludeFacetFields,
+            includeValueCustomFields: shouldIncludeValueFields
+        )
         let variables: [String: AnyCodable]? = ["options": AnyCodable(anyValue: options ?? nil as String?)]
-        
-        return try await executeQuery(
+
+        return try await vendure.custom.queryGeneric(
             query,
             variables: variables,
-            expectedDataType: "facets",
-            decodeTo: PaginatedList<Facet>.self
+            expectedDataType: "facets", // The key holding the PaginatedList<Facet> structure
+            responseType: PaginatedList<Facet>.self,
+            languageCode: languageCode
         )
     }
-    
-    public func getFacet(id: String) async throws -> Facet {
-        let query = """
-        query facet($id: ID!) {
-          facet(id: $id) {
-            id
-            name
-            code
-            isPrivate
-            languageCode
-            translations {
-              id
-              languageCode
-              name
-            }
-            values {
-              id
-              name
-              code
-              translations {
-                id
-                languageCode
-                name
-              }
-            }
-          }
-        }
-        """
-        
-        return try await executeQuery(
+
+    public func getFacet(
+        id: String,
+        includeCustomFields: Bool? = nil,
+        languageCode: String? = nil
+    ) async throws -> Facet {
+        let shouldIncludeFacetFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Facet", userRequested: includeCustomFields)
+        let shouldIncludeValueFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "FacetValue", userRequested: includeCustomFields)
+
+        let query = await GraphQLQueryBuilder.buildSingleFacetQuery(
+            includeCustomFields: shouldIncludeFacetFields,
+            includeValueCustomFields: shouldIncludeValueFields
+        )
+        let variables: [String: AnyCodable] = ["id": AnyCodable(id)]
+
+        return try await vendure.custom.executeQuery(
             query,
-            variables: ["id": AnyCodable(id)],
+            variables: variables,
             expectedDataType: "facet",
-            decodeTo: Facet.self
+            decodeTo: Facet.self,
+            languageCode: languageCode
         )
     }
-    
-    // MARK: - Collections
-    
-    public func getCollectionListWithParentChildren(
-        options: PaginatedListOptions<
-            FilterParameter<IDOperators, DateOperators, StringOperators, NumberOperators, BooleanOperators>,
-            SortParameter<SortOrder>
-        >? = nil
-    ) async throws -> PaginatedList<VendureCollection> {
+
+    // MARK: - Tax Categories
+
+    // Tax Categories might have names that need localization
+
+    public func getTaxCategories(languageCode: String? = nil) async throws -> [TaxCategory] {
         let query = """
-        query collections($options: PaginatedListOptions) {
-          collections(options: $options) {
-            items {
-              id
-              name
-              slug
-              description
-              parent {
-                id
-                name
-                slug
-                parent {
-                  id
-                  name
-                  slug
-                }
-              }
-              children {
-                id
-                name
-                slug
-                children {
-                  id
-                  name
-                  slug
-                }
-              }
-              featuredAsset {
-                id
-                preview
-                source
-              }
+        query taxCategories {
+            taxCategories { # Assuming simple list query exists
+                id name isDefault
+                # Add translations if applicable
+                # translations { languageCode name }
             }
-            totalItems
-          }
         }
         """
-        
-        let variables: [String: AnyCodable]? = ["options": AnyCodable(anyValue: options ?? nil as String?)]
-        
-        return try await executeQuery(
+        return try await executeListQuery(
             query,
-            variables: variables,
-            expectedDataType: "collections",
-            decodeTo: PaginatedList<VendureCollection>.self
-        )
-    }
-    
-    public func getCollectionWithParentChildren(id: String) async throws -> VendureCollection {
-        let query = """
-        query collection($id: ID!) {
-          collection(id: $id) {
-            id
-            name
-            slug
-            description
-            parent {
-              id
-              name
-              slug
-              parent {
-                id
-                name
-                slug
-              }
-            }
-            children {
-              id
-              name
-              slug
-              children {
-                id
-                name
-                slug
-              }
-            }
-            featuredAsset {
-              id
-              preview
-              source
-            }
-          }
-        }
-        """
-        return try await executeQuery(
-            query,
-            variables: ["id": AnyCodable(id)],
-            expectedDataType: "collection",
-            decodeTo: VendureCollection.self
-        )
-    }
-    
-    public func getCollectionWithParent(id: String) async throws -> VendureCollection {
-        let query = """
-        query collection($id: ID!) {
-          collection(id: $id) {
-            id
-            name
-            slug
-            description
-            parent {
-              id
-              name
-              slug
-            }
-            featuredAsset {
-              id
-              preview
-              source
-            }
-          }
-        }
-        """
-        return try await executeQuery(
-            query,
-            variables: ["id": AnyCodable(id)],
-            expectedDataType: "collection",
-            decodeTo: VendureCollection.self
-        )
-    }
-    
-    public func getCollectionWithChildren(id: String) async throws -> VendureCollection {
-        let query = """
-        query collection($id: ID!) {
-          collection(id: $id) {
-            id
-            name
-            slug
-            description
-            children {
-              id
-              name
-              slug
-            }
-            featuredAsset {
-              id
-              preview
-              source
-            }
-          }
-        }
-        """
-        return try await executeQuery(
-            query,
-            variables: ["id": AnyCodable(id)],
-            expectedDataType: "collection",
-            decodeTo: VendureCollection.self
-        )
-    }
-    
-    // MARK: - Search
-    
-    // UPDATED: Now uses generic CatalogSearchInput and CatalogSearchResult
-    public func searchCatalog(input: CatalogSearchInput) async throws -> CatalogSearchResult {
-        let query = """
-        query search($input: SearchInput!) {
-          search(input: $input) {
-            items {
-              productId
-              productName
-              productVariantId
-              productVariantName
-              sku
-              slug
-              productAsset {
-                id
-                preview
-                focalPoint { x y }
-              }
-              productVariantAsset {
-                id
-                preview
-                focalPoint { x y }
-              }
-              price {
-                ... on PriceRange { min max }
-                ... on SinglePrice { value }
-              }
-              priceWithTax {
-                ... on PriceRange { min max }
-                ... on SinglePrice { value }
-              }
-              currencyCode
-              description
-              facetIds
-              facetValueIds
-              collectionIds
-            }
-            totalItems
-            facetValues {
-              count
-              facetValue {
-                id
-                name
-                facet {
-                  id
-                  name
-                }
-              }
-            }
-          }
-        }
-        """
-        
-        return try await executeQuery(
-            query,
-            variables: ["input": AnyCodable(anyValue: input)],
-            expectedDataType: "search",
-            decodeTo: CatalogSearchResult.self
+            variables: nil,
+            expectedDataType: "taxCategories",
+            languageCode: languageCode
         )
     }
 }

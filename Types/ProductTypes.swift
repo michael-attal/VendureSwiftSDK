@@ -63,7 +63,7 @@ public struct ProductVariant: Codable, Hashable, Identifiable, Sendable {
     public let price: Double
     public let priceWithTax: Double
     public let currencyCode: CurrencyCode
-    public let enabled: Bool? // Optional - may not be present in all GraphQL responses
+    public let enabled: Bool?
     public let stockLevel: String
     public let trackInventory: String?
     public let stockOnHand: Int?
@@ -132,7 +132,7 @@ public struct ProductVariant: Codable, Hashable, Identifiable, Sendable {
 /// Represents a product option
 public struct ProductOption: Codable, Hashable, Identifiable, Sendable {
     public let id: String
-    public let code: String
+    public let code: String?
     public let name: String
     public let groupId: String?
     public let group: ProductOptionGroup?
@@ -141,7 +141,7 @@ public struct ProductOption: Codable, Hashable, Identifiable, Sendable {
 
     public init(
         id: String,
-        code: String,
+        code: String? = nil,
         name: String,
         groupId: String?,
         group: ProductOptionGroup? = nil,
@@ -161,7 +161,7 @@ public struct ProductOption: Codable, Hashable, Identifiable, Sendable {
 /// Represents a product option group
 public struct ProductOptionGroup: Codable, Hashable, Identifiable, Sendable {
     public let id: String
-    public let code: String
+    public let code: String?
     public let name: String
     public let options: [ProductOption]?
     public let translations: [ProductOptionGroupTranslation]?
@@ -172,7 +172,7 @@ public struct ProductOptionGroup: Codable, Hashable, Identifiable, Sendable {
 
     public init(
         id: String,
-        code: String,
+        code: String? = nil,
         name: String,
         options: [ProductOption]? = nil,
         translations: [ProductOptionGroupTranslation]? = nil,

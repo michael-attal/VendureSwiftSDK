@@ -3,11 +3,11 @@ import Foundation
 // MARK: - Filter Parameters
 
 /// Generic filter parameter for any entity
-public struct FilterParameter<Id: Codable & Sendable,
-    DateField: Codable & Sendable,
-    StringField: Codable & Sendable,
-    NumberField: Codable & Sendable,
-    BooleanField: Codable & Sendable>: Codable, Sendable
+public struct FilterParameter<Id: Hashable & Codable & Sendable,
+    DateField: Hashable & Codable & Sendable,
+    StringField: Hashable & Codable & Sendable,
+    NumberField: Hashable & Codable & Sendable,
+    BooleanField: Hashable & Codable & Sendable>: Hashable, Codable, Sendable
 {
     public let id: Id?
     public let createdAt: DateField?
@@ -50,7 +50,7 @@ public struct FilterParameter<Id: Codable & Sendable,
 
 // MARK: - Filter Operators (continued from SystemOperations)
 
-public struct IDOperators: Codable, Sendable {
+public struct IDOperators: Hashable, Codable, Sendable {
     public let eq: String?
     public let notEq: String?
     public let `in`: [String]?
@@ -64,7 +64,7 @@ public struct IDOperators: Codable, Sendable {
     }
 }
 
-public struct StringOperators: Codable, Sendable {
+public struct StringOperators: Hashable, Codable, Sendable {
     public let eq: String?
     public let notEq: String?
     public let contains: String?
@@ -84,7 +84,7 @@ public struct StringOperators: Codable, Sendable {
     }
 }
 
-public struct BooleanOperators: Codable, Sendable {
+public struct BooleanOperators: Hashable, Codable, Sendable {
     public let eq: Bool?
 
     public init(eq: Bool? = nil) {
@@ -93,7 +93,7 @@ public struct BooleanOperators: Codable, Sendable {
 }
 
 /// Represents a date range
-public struct DateRange: Codable, Hashable, Sendable {
+public struct DateRange: Hashable, Codable, Sendable {
     public let start: Date
     public let end: Date
 
@@ -103,7 +103,7 @@ public struct DateRange: Codable, Hashable, Sendable {
     }
 }
 
-public struct DateOperators: Codable, Sendable {
+public struct DateOperators: Hashable, Codable, Sendable {
     public let eq: Date?
     public let before: Date?
     public let after: Date?
