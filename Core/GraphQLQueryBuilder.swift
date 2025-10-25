@@ -68,7 +68,7 @@ public class GraphQLQueryBuilder {
         } else if contentNameSlugDescriptionFieldsOnly {
             return "translations {\(includeIDField ? " id" : "") languageCode content name slug description }\n"
         }
-        return "translations {\(includeIDField ? " id" : "") languageCode content name }\n"
+        return "translations {\(includeIDField ? " id" : "") languageCode name }\n"
     }
 
     // MARK: - Facet Queries
@@ -635,7 +635,7 @@ public class GraphQLQueryBuilder {
 
         // Inject extended fields for Customer
         if includeCustomFields {
-            let customerCustomFields = await VendureConfiguration.shared.getExtendedFieldsFor(type: "Customer")
+            let customerCustomFields = VendureConfiguration.shared.getExtendedFieldsFor(type: "Customer")
             for field in customerCustomFields {
                 query += "\n    \(field.graphQLFragment)"
             }
