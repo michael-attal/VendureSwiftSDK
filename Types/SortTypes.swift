@@ -72,3 +72,16 @@ public struct SearchResultSortParameter: Hashable, Codable, Sendable {
         self.price = price
     }
 }
+
+// MARK: - Sort Parameter Type Aliases
+
+public typealias CustomerSortParameter = SortParameter<SortOrder>
+public typealias OrderSortParameter = SortParameter<SortOrder>
+public typealias ProductSortParameter = SortParameter<SortOrder>
+public typealias ProductVariantSortParameter = SortParameter<SortOrder>
+public typealias VendureCollectionSortParameter = SortParameter<SortOrder>
+public typealias FacetSortParameter = SortParameter<SortOrder>
+public typealias FacetValueSortParameter = SortParameter<SortOrder>
+public typealias AssetSortParameter = SortParameter<SortOrder>
+public typealias PaymentMethodSortParameter = SortParameter<SortOrder>
+public typealias ShippingMethodSortParameter = SortParameter<SortOrder>

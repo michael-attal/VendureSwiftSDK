@@ -158,3 +158,16 @@ public struct PaginatedListOptions<Filter: Hashable & Codable & Sendable, Sort: 
         self.filterOperator = filterOperator
     }
 }
+
+// MARK: - Paginated List Options Type Aliases
+
+public typealias CustomerListOptions = PaginatedListOptions<CustomerFilterParameter, CustomerSortParameter>
+public typealias OrderListOptions = PaginatedListOptions<OrderFilterParameter, OrderSortParameter>
+public typealias ProductListOptions = PaginatedListOptions<ProductFilterParameter, ProductSortParameter>
+public typealias ProductVariantListOptions = PaginatedListOptions<ProductVariantFilterParameter, ProductVariantSortParameter>
+public typealias VendureCollectionListOptions = PaginatedListOptions<VendureCollectionFilterParameter, VendureCollectionSortParameter>
+public typealias FacetListOptions = PaginatedListOptions<FacetFilterParameter, FacetSortParameter>
+public typealias FacetValueListOptions = PaginatedListOptions<FacetValueFilterParameter, FacetValueSortParameter>
+public typealias AssetListOptions = PaginatedListOptions<AssetFilterParameter, AssetSortParameter>
+public typealias PaymentMethodListOptions = PaginatedListOptions<PaymentMethodFilterParameter, PaymentMethodSortParameter>
+public typealias ShippingMethodListOptions = PaginatedListOptions<ShippingMethodFilterParameter, ShippingMethodSortParameter>

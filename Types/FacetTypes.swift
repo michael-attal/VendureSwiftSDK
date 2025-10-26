@@ -74,14 +74,3 @@ public struct FacetValue: Codable, Hashable, Identifiable, Sendable {
         self.updatedAt = updatedAt
     }
 }
-
-/// Input type for filtering by facet values
-public struct FacetValueFilterInput: Hashable, Codable, Sendable {
-    public let and: String?
-    public let or: [String]?
-
-    public init(and: String? = nil, or: [String]? = nil) {
-        self.and = and
-        self.or = or
-    }
-}
