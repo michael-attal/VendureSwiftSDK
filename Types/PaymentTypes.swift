@@ -165,16 +165,3 @@ public struct Payment: Codable, Hashable, Identifiable, Sendable {
         self.updatedAt = updatedAt
     }
 }
-
-// MARK: - Payment Input
-
-/// Input for creating a payment
-public struct PaymentInput: Hashable, Codable, Sendable {
-    public let method: String
-    public let metadata: [String: AnyCodable]?
-
-    public init(method: String, metadata: [String: AnyCodable]? = nil) {
-        self.method = method
-        self.metadata = metadata
-    }
-}

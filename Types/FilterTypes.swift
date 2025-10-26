@@ -48,7 +48,7 @@ public struct FilterParameter<Id: Hashable & Codable & Sendable,
     }
 }
 
-// MARK: - Filter Operators (continued from SystemOperations)
+// MARK: - Filter Operators
 
 public struct IDOperators: Hashable, Codable, Sendable {
     public let eq: String?
@@ -116,3 +116,85 @@ public struct DateOperators: Hashable, Codable, Sendable {
         self.between = between
     }
 }
+
+// MARK: - Filter Parameter Type Aliases
+
+public typealias CustomerFilterParameter = FilterParameter<
+    IDOperators,
+    DateOperators,
+    StringOperators,
+    NumberOperators,
+    BooleanOperators
+>
+
+public typealias OrderFilterParameter = FilterParameter<
+    IDOperators,
+    DateOperators,
+    StringOperators,
+    NumberOperators,
+    BooleanOperators
+>
+
+public typealias ProductFilterParameter = FilterParameter<
+    IDOperators,
+    DateOperators,
+    StringOperators,
+    NumberOperators,
+    BooleanOperators
+>
+
+public typealias ProductVariantFilterParameter = FilterParameter<
+    IDOperators,
+    DateOperators,
+    StringOperators,
+    NumberOperators,
+    BooleanOperators
+>
+
+public typealias VendureCollectionFilterParameter = FilterParameter<
+    IDOperators,
+    DateOperators,
+    StringOperators,
+    NumberOperators,
+    BooleanOperators
+>
+
+public typealias FacetFilterParameter = FilterParameter<
+    IDOperators,
+    DateOperators,
+    StringOperators,
+    NumberOperators,
+    BooleanOperators
+>
+
+public typealias FacetValueFilterParameter = FilterParameter<
+    IDOperators,
+    DateOperators,
+    StringOperators,
+    NumberOperators,
+    BooleanOperators
+>
+
+public typealias AssetFilterParameter = FilterParameter<
+    IDOperators,
+    DateOperators,
+    StringOperators,
+    NumberOperators,
+    BooleanOperators
+>
+
+public typealias PaymentMethodFilterParameter = FilterParameter<
+    IDOperators,
+    DateOperators,
+    StringOperators,
+    NumberOperators,
+    BooleanOperators
+>
+
+public typealias ShippingMethodFilterParameter = FilterParameter<
+    IDOperators,
+    DateOperators,
+    StringOperators,
+    NumberOperators,
+    BooleanOperators
+>

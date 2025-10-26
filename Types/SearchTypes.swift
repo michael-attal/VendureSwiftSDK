@@ -225,3 +225,8 @@ public struct SearchResultAsset: Codable, Hashable, Identifiable, Sendable {
         self.focalPoint = focalPoint
     }
 }
+
+// MARK: - Search Type Aliases
+
+public typealias CatalogSearchInput = SearchInput<CatalogSearchFilter, SearchResultSortParameter>
+public typealias CatalogSearchResult = SearchResult<SearchResultItem, FacetValueResult>
