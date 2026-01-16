@@ -926,6 +926,33 @@ public class GraphQLQueryBuilder {
         return query
     }
 
+    // MARK: - Channel Queries
+
+    /// Build a GraphQL query to get the active channel.
+    /// Controls inclusion of custom fields for Channel.
+    public static func buildActiveChannelQuery(
+        includeCustomFields: Bool = true,
+        baseFields: [String] = ["id", "code", "token", "currencyCode", "defaultLanguageCode", "availableLanguageCodes", "pricesIncludeTax"]
+    ) async -> String {
+        var query = "query activeChannel {\n"
+        query += "  activeChannel {\n"
+        for field in baseFields {
+            query += "    \(field)\n"
+        }
+
+        // Inject custom fields for Channel
+        if includeCustomFields {
+            let channelCustomFields = VendureConfiguration.shared.injectCustomFields(for: "Channel")
+            if !channelCustomFields.isEmpty { query += "    \(channelCustomFields)\n" }
+        }
+
+        query += """
+          }
+        }
+        """
+        return query
+    }
+
     // MARK: - Order Mutations
 
     // Add builders for other mutations like adjustOrderLine, removeOrderLine etc. if needed,

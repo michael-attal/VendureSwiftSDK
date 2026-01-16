@@ -55,16 +55,11 @@ public actor CustomerOperations {
     }
 
     /// Get active channel (Names/Descriptions might be localized)
-    public func getActiveChannel(languageCode: String? = nil) async throws -> Channel {
-        let query = """
-        query activeChannel {
-          activeChannel {
-            id code token currencyCode defaultLanguageCode availableLanguageCodes pricesIncludeTax
-            # Add potentially localized fields if needed, e.g., name, description
-            # name description
-          }
-        }
-        """
+    /// Use includeCustomFields to fetch channel custom fields (store info, branding, etc.)
+    /// Custom fields must be registered via VendureConfiguration.shared.addCustomField() for "Channel" type
+    public func getActiveChannel(includeCustomFields: Bool? = nil, languageCode: String? = nil) async throws -> Channel {
+        let shouldIncludeCustomFields = VendureConfiguration.shared.shouldIncludeCustomFields(for: "Channel", userRequested: includeCustomFields)
+        let query = await GraphQLQueryBuilder.buildActiveChannelQuery(includeCustomFields: shouldIncludeCustomFields)
 
         return try await vendure.custom.queryGeneric(
             query,
