@@ -932,7 +932,7 @@ public class GraphQLQueryBuilder {
     /// Controls inclusion of custom fields for Channel.
     public static func buildActiveChannelQuery(
         includeCustomFields: Bool = true,
-        baseFields: [String] = ["id", "code", "token", "currencyCode", "defaultLanguageCode", "availableLanguageCodes", "pricesIncludeTax"]
+        baseFields: [String] = ["id", "code", "token", "defaultCurrencyCode", "availableCurrencyCodes", "defaultLanguageCode", "availableLanguageCodes", "pricesIncludeTax"]
     ) async -> String {
         var query = "query activeChannel {\n"
         query += "  activeChannel {\n"
