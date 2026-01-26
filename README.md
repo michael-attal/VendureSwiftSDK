@@ -476,30 +476,26 @@ Create your own computed properties for project-specific custom fields:
 import VendureSwiftSDK
 
 extension Product {
-    /// Access mainUsdzAsset custom field for AR functionality
-    var mainUsdzAsset: Asset? {
-        // Try as nested object first
-        if let assetDict = customFields?["mainUsdzAsset"]?.dictionaryValue {
-            return parseAssetFromCustomField(assetDict)
-        }
-        // Fallback to asset ID lookup
-        if let assetId = getCustomFieldString("mainUsdzAsset") {
-            return assets.first { $0.id == assetId }
-        }
-        return nil
+    /// Access a brand name custom field
+    var brandName: String? {
+        return getCustomFieldString("brandName")
     }
     
-    /// Check if product supports AR
-    var supportsAR: Bool {
-        return mainUsdzAsset != nil
+    /// Access loyalty points multiplier
+    var loyaltyMultiplier: Double {
+        return customFields?["loyaltyMultiplier"]?.doubleValue ?? 1.0
+    }
+    
+    /// Check if the product is a "New Arrival" based on a boolean custom field
+    var isNewArrival: Bool {
+        return getCustomFieldBool("newArrival") ?? false
     }
 }
 
-extension Asset {
-    /// Check if asset is a USDZ file
-    var isUSDZ: Bool {
-        return mimeType.lowercased().contains("usdz") ||
-               source.lowercased().hasSuffix(".usdz")
+extension Order {
+    /// Access a gift message custom field on the Order
+    var giftMessage: String? {
+        return getCustomFieldString("giftMessage")
     }
 }
 ```
@@ -581,7 +577,6 @@ The SDK provides convenient factory methods for common use cases:
 
 ```swift
 // Extended GraphQL fields
-.extendedAsset(name: "mainUsdzAsset", applicableTypes: ["Product"])
 .extendedAssetDetailed(name: "heroImage", applicableTypes: ["Product"])
 .extendedRelation(name: "brand", fields: ["id", "name"], applicableTypes: ["Product"])
 .extendedScalar(name: "calculatedScore", applicableTypes: ["Product"])
@@ -650,9 +645,6 @@ if let customFields = product.customFields {
     let tags = customFields["tags"]?.arrayValue ?? []
     print("Rating: \(rating), Tags: \(tags.count)")
 }
-
-// Note: Typed extensions like .mainUsdzAsset are provided by client modules
-// that import VendureSwiftSDK and add specific functionality
 
 // Access custom fields on other types
 
@@ -781,17 +773,16 @@ VendureConfiguration.shared.clearCustomFields()
 
 ### Use Cases
 
-**E-commerce with AR (Augmented Reality)**
+**Loyalty Program Integration**
 ```swift
-// Configure USDZ assets for AR
+// Configure loyalty points for variants
 VendureConfiguration.shared.addCustomField(
-    .extendedAsset(name: "mainUsdzAsset", applicableTypes: ["Product", "ProductVariant"])
+    .vendureCustomField(name: "loyaltyPoints", applicableTypes: ["ProductVariant"])
 )
 
-// Use in your AR implementation
-if let usdzAsset = product.mainUsdzAsset {
-    // Initialize ARKit with USDZ model
-    let url = URL(string: usdzAsset.source)
+// Use in your UI
+if let points = variant.getCustomFieldInt("loyaltyPoints") {
+    print("Earn \(points) points with this purchase!")
 }
 ```
 
@@ -828,7 +819,7 @@ func configureTenant(_ type: TenantType) {
         ])
     case .electronics:
         VendureConfiguration.shared.addCustomFields([
-            .extendedAsset(name: "manualPdf", applicableTypes: ["Product"]),
+            .extendedAssetDetailed(name: "manualPdf", applicableTypes: ["Product"]),
             .vendureCustomFields(names: ["warranty", "specs"], applicableTypes: ["Product"])
         ])
     case .food:
